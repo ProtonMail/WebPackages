@@ -1,0 +1,16 @@
+{
+    "name": "@protontech/prettier-config",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "type": "module",
+    "exports": {
+        "./prettier.config": "./prettier.config.js"
+    },
+    "scripts": {
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "prettier": "^3.8.1"
+    }
+}

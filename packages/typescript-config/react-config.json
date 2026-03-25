@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./base.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "declaration": false,
+        "declarationMap": false,
+        "noEmit": true,
+        "incremental": true,
+        "resolveJsonModule": true,
+        "target": "ES2022",
+        "jsx": "react-jsx"
+    }
+}

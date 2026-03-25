@@ -1,0 +1,26 @@
+{
+  "name": "packages",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "lint": "pnpm run -r lint",
+    "prepare": "husky",
+    "test": "pnpm run -r test",
+    "typecheck": "pnpm run -r typecheck"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "sort-package-json": "^3.6.1"
+  },
+  "packageManager": "pnpm@10.28.1",
+  "publishConfig": {
+    "registry": "https://nexus.protontech.ch/repository/web-npm/"
+  }
+}

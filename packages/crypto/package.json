@@ -1,0 +1,26 @@
+{
+    "name": "@protontech/crypto",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "exports": {
+        "./aes-gcm": "./src/aes-gcm.ts"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "eslint",
+        "typecheck": "tsc -b"
+    },
+    "devDependencies": {
+        "@protontech/eslint-config": "workspace:*",
+        "@protontech/global-types-monorepo": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "eslint": "^10.1.0",
+        "prettier": "^3.8.1",
+        "typescript": "^6.0.2"
+    }
+}

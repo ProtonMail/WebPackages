@@ -1,0 +1,30 @@
+{
+    "name": "@protontech/fetch",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "exports": {
+        "./fetch": "./src/protonFetch.ts",
+        "./errors": "./src/errors.ts",
+        "./middleware/*": "./src/middleware/*.ts"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "eslint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "devDependencies": {
+        "@protontech/eslint-config": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "eslint": "^10.1.0",
+        "happy-dom": "^20.8.8",
+        "prettier": "^3.8.1",
+        "typescript": "^6.0.2",
+        "vitest": "^4.1.1"
+    }
+}

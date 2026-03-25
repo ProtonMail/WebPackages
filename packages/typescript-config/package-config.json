@@ -1,0 +1,11 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./base.json",
+    "compilerOptions": {
+        "tsBuildInfoFile": "${configDir}/dist/tsconfig.app.tsbuildinfo",
+        "outDir": "${configDir}/dist/types",
+        "composite": true,
+        "declaration": true,
+        "emitDeclarationOnly": true
+    }
+}

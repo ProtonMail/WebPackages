@@ -1,0 +1,24 @@
+import { importKey } from "@protontech/crypto/aes-gcm";
+
+export const getParsedClientKey = (value: string) => {
+    return Uint8Array.fromBase64(value);
+};
+
+const getSerializedClientKey = (value: Uint8Array<ArrayBuffer>) => {
+    return value.toBase64();
+};
+
+export const getClientKey = (value: string) => {
+    return importKey(getParsedClientKey(value));
+};
+
+export const generateClientKey = async () => {
+    const data = crypto.getRandomValues(new Uint8Array(32));
+    const serializedData = getSerializedClientKey(data);
+    const key = await importKey(data);
+
+    return {
+        serializedData,
+        key,
+    };
+};

@@ -1,0 +1,19 @@
+{
+    "name": "@protontech/typescript-config",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "type": "module",
+    "exports": {
+        "./package-config.json": "./package-config.json",
+        "./react-config.json": "./react-config.json"
+    },
+    "scripts": {
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "@protontech/prettier-config": "workspace:*",
+        "prettier": "^3.8.1",
+        "typescript": "^6.0.2"
+    }
+}

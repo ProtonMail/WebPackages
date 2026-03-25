@@ -1,0 +1,39 @@
+{
+    "name": "@protontech/account",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "exports": {
+        "./session-bootstrap": "./src/session-bootstrap.ts",
+        "./session-persistence": "./src/session-persistence.ts",
+        "./authorize-client": "./src/authorize-client.ts",
+        "./local-id": "./src/local-id.ts"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "eslint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "dependencies": {
+        "idb": "^8.0.3"
+    },
+    "devDependencies": {
+        "@protontech/eslint-config": "workspace:*",
+        "@protontech/global-types-monorepo": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "eslint": "^10.1.0",
+        "fake-indexeddb": "^6.2.5",
+        "prettier": "^3.8.1",
+        "typescript": "^6.0.2",
+        "vitest": "^4.1.1"
+    },
+    "peerDependencies": {
+        "@protontech/crypto": "workspace:^",
+        "@protontech/fetch": "workspace:^"
+    }
+}

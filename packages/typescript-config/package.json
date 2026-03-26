@@ -5,7 +5,8 @@
     "type": "module",
     "exports": {
         "./package-config.json": "./package-config.json",
-        "./react-config.json": "./react-config.json"
+        "./react-package-config.json": "./react-package-config.json",
+        "./react-app-config.json": "./react-app-config.json"
     },
     "scripts": {
         "format": "prettier --write ."

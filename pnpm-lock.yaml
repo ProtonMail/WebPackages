@@ -91,8 +91,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.1.0)
       '@protontech/eslint-plugin-enforce-uint8array-arraybuffer':
-        specifier: ^2.0.0
-        version: 2.0.0(@typescript-eslint/parser@8.57.2(eslint@10.1.0)(typescript@6.0.2))(eslint@10.1.0)(typescript@6.0.2)
+        specifier: https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz
+        version: https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz(@typescript-eslint/parser@8.57.2(eslint@10.1.0)(typescript@6.0.2))(eslint@10.1.0)(typescript@6.0.2)
       '@typescript-eslint/parser':
         specifier: ^8.57.2
         version: 8.57.2(eslint@10.1.0)(typescript@6.0.2)
@@ -342,8 +342,9 @@ packages:
   '@oxc-project/types@0.122.0':
     resolution: {integrity: sha512-oLAl5kBpV4w69UtFZ9xqcmTi+GENWOcPF7FCrczTiBbmC0ibXxCwyvZGbO39rCVEuLGAZM84DH0pUIyyv/YJzA==}
 
-  '@protontech/eslint-plugin-enforce-uint8array-arraybuffer@2.0.0':
-    resolution: {integrity: sha512-z5oNFoNpau6xU8PszlauNb/TiC5wQQlRbHo9pDa5rMdSSgfPvUDkTqHi/iLddwCEOQYjbdrD1OlCgAJsVud/xA==}
+  '@protontech/eslint-plugin-enforce-uint8array-arraybuffer@https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz':
+    resolution: {tarball: https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz}
+    version: 2.0.0
     peerDependencies:
       '@typescript-eslint/parser': ^8.43.0
       typescript: ^5.9.2
@@ -2203,7 +2204,7 @@ snapshots:
 
   '@oxc-project/types@0.122.0': {}
 
-  '@protontech/eslint-plugin-enforce-uint8array-arraybuffer@2.0.0(@typescript-eslint/parser@8.57.2(eslint@10.1.0)(typescript@6.0.2))(eslint@10.1.0)(typescript@6.0.2)':
+  '@protontech/eslint-plugin-enforce-uint8array-arraybuffer@https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz(@typescript-eslint/parser@8.57.2(eslint@10.1.0)(typescript@6.0.2))(eslint@10.1.0)(typescript@6.0.2)':
     dependencies:
       '@typescript-eslint/parser': 8.57.2(eslint@10.1.0)(typescript@6.0.2)
       '@typescript-eslint/utils': 8.57.2(eslint@10.1.0)(typescript@6.0.2)

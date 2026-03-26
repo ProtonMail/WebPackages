@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@eslint/js": "^10.0.1",
-        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "^2.0.0",
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz",
         "@typescript-eslint/parser": "^8.57.2",
         "eslint": "^10.1.0",
         "eslint-config-prettier": "^10.1.8",

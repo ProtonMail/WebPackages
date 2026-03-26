@@ -1,6 +1,7 @@
 {
-    "name": "@protontech/global-types-monorepo",
-    "description": "Types that need to be available across the monorepo",
-    "main": "./lib/index.d.ts",
-    "types": "./lib/index.d.ts"
+  "name": "@protontech/global-types-monorepo",
+  "version": "1.0.0",
+  "description": "Types that need to be available across the monorepo",
+  "main": "./lib/index.d.ts",
+  "types": "./lib/index.d.ts"
 }

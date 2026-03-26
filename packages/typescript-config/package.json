@@ -1,9 +1,10 @@
 {
     "name": "@protontech/typescript-config",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": "MIT",
     "type": "module",
     "exports": {
+        "./node.json": "./node.json",
         "./package-config.json": "./package-config.json",
         "./react-package-config.json": "./react-package-config.json",
         "./react-app-config.json": "./react-app-config.json"

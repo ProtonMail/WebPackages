@@ -1,5 +1,6 @@
 {
     "name": "@protontech/eslint-config",
+    "version": "1.0.0",
     "author": "Proton AG",
     "type": "module",
     "exports": {

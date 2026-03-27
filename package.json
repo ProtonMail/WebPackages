@@ -8,12 +8,19 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "changeset": "changeset",
+    "changeset:comment": "changesets-gitlab comment",
+    "changeset:publish": "changeset publish",
+    "changeset:release": "changesets-gitlab",
+    "changeset:version": "changeset version",
     "lint": "pnpm run -r lint",
     "prepare": "husky",
     "test": "pnpm run -r test",
     "typecheck": "pnpm run -r typecheck"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.2",
+    "changesets-gitlab": "^0.13.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",

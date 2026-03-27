@@ -1,6 +1,7 @@
 export interface ProtonConfig {
     url: URL;
     appVersion: string;
+    locale: string;
     uid?: string;
 }
 

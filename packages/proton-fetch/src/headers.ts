@@ -1,11 +1,13 @@
 export interface ProtonConfig {
     uid?: string;
     appVersion?: string;
+    locale?: string;
 }
 
 const headerNameMap = new Map<keyof ProtonConfig, string>([
     ["uid", "x-pm-uid"],
     ["appVersion", "x-pm-appversion"],
+    ["locale", "x-pm-locale"],
 ]);
 
 export const addProtonHeadersToRequest = (

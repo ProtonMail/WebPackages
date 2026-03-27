@@ -67,6 +67,10 @@ export class ProtonFetch {
         this.config.uid = uid;
     }
 
+    public setLocale(locale: string) {
+        this.config.locale = locale;
+    }
+
     public setAppVersion(appVersion: string) {
         this.config.appVersion = appVersion;
     }

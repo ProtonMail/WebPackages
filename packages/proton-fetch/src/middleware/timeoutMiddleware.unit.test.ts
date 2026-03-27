@@ -11,6 +11,7 @@ const baseConfig: ProtonConfig = {
     url: new URL("https://api.proton.me"),
     appVersion: "web-calendar@1.0.0",
     uid: "user-123",
+    locale: "en_US",
 };
 
 function makeContext(

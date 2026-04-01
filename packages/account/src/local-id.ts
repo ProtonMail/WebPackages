@@ -43,14 +43,14 @@ export const getPathnameWithoutLocalId = (pathname: string): string => {
         return "/";
     }
 
-    const userPrefix = "u/";
-    if (strippedPathname.startsWith(userPrefix)) {
+    const pathnamePrefix = "u/";
+    if (strippedPathname.startsWith(pathnamePrefix)) {
         // Strip out the 'u/' part
         let value = stripLeadingSlash(
-            strippedPathname.slice(userPrefix.length),
+            strippedPathname.slice(pathnamePrefix.length),
         );
 
-        const localID = getLocalIdFromPathname(`${userPrefix}${value}`);
+        const localID = getLocalIdFromPathname(`${pathnamePrefix}${value}`);
         // If there is a valid local id, also strip out that
         if (localID !== undefined) {
             value = value.slice(`${localID}`.length);

@@ -2,7 +2,7 @@ import {
     decryptData,
     encryptData,
     importKey,
-} from "@protontech/crypto/aes-gcm";
+} from "@protontech/crypto/subtle/aesGcm.ts";
 
 /**
  * We aim to deliberately be non-persistent. This is useful for

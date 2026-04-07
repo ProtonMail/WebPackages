@@ -1,0 +1,35 @@
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
+import { CryptoProxy, updateServerTime } from "../../../../src/index.ts";
+import { CryptoWorkerPool as CryptoWorker } from "../../../../src/proxy/endpoint/workerPool/bundlers/genericProvider.ts";
+import { runApiTests } from "../apiTests.ts";
+
+describe("Worker API and Worker Pool Integration (behind CryptoProxy)", () => {
+    beforeAll(async () => {
+        await CryptoWorker.init({ poolSize: 1, sentryLogger: null });
+        CryptoProxy.setEndpoint(CryptoWorker, () =>
+            CryptoWorker.clearKeyStore(),
+        );
+
+        // set server time in the future to spot functions that use local time unexpectedly
+        const HOUR = 3600 * 1000;
+        updateServerTime(new Date(Date.now() + HOUR));
+    });
+
+    afterEach(async () => {
+        await CryptoWorker.clearKeyStore();
+    });
+
+    afterAll(async () => {
+        await CryptoProxy.releaseEndpoint();
+        await CryptoWorker.destroy();
+    });
+
+    it("init - should throw if already initialised", async () => {
+        await expect(CryptoWorker.init({ sentryLogger: null })).rejects.toThrow(
+            /already initialised/,
+        );
+    });
+
+    runApiTests(CryptoProxy);
+});

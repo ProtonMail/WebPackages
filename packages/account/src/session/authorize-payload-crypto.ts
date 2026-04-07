@@ -1,4 +1,4 @@
-import { decryptData } from "@protontech/crypto/aes-gcm";
+import { decryptData } from "@protontech/crypto/subtle/aesGcm.ts";
 
 type PayloadBlob =
     | {

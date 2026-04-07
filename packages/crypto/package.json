@@ -4,23 +4,41 @@
     "description": "",
     "keywords": [],
     "license": "ISC",
-    "author": "",
     "type": "module",
     "exports": {
-        "./aes-gcm": "./src/aes-gcm.ts"
+        ".": "./src/index.ts",
+        "./bigInteger": "./src/bigInteger.ts",
+        "./compatibilityChecks": "./src/compatibilityChecks.ts",
+        "./constants": "./src/constants.ts",
+        "./proxy/endpoint/api.ts": "./src/proxy/endpoint/api.ts",
+        "./proxy/endpoint/workerPool/transferHandlers/*": "./src/proxy/endpoint/workerPool/transferHandlers/*",
+        "./proxy/endpoint/workerPool/*": "./src/proxy/endpoint/workerPool/bundlers/*",
+        "./serverTime": "./src/serverTime.ts",
+        "./subtle/*": "./src/subtle/*",
+        "./utils": "./src/utils.ts"
     },
     "scripts": {
         "format": "prettier --write .",
         "lint": "eslint",
+        "test": "vitest --config test/vitest.config.ts --run",
+        "test:ci": "CI=true yarn run test",
         "typecheck": "tsc -b"
+    },
+    "dependencies": {
+        "comlink": "^4.4.2",
+        "core-js": "^3.49.0",
+        "pmcrypto": "https://registry.npmjs.org/@protontech/pmcrypto/-/pmcrypto-8.9.0.tgz"
     },
     "devDependencies": {
         "@protontech/eslint-config": "workspace:*",
         "@protontech/global-types": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
+        "@vitest/browser-playwright": "^4.1.2",
         "eslint": "^10.2.0",
+        "playwright": "^1.58.2",
         "prettier": "^3.8.1",
-        "typescript": "^6.0.2"
+        "typescript": "^6.0.2",
+        "vitest": "^4.1.2"
     }
 }

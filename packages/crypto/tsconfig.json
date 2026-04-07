@@ -2,6 +2,8 @@
     "extends": "@protontech/typescript-config/package-config.json",
     "include": ["src"],
     "compilerOptions": {
-        "types": ["@protontech/global-types"]
+        "types": ["@protontech/global-types"],
+        "erasableSyntaxOnly": false,
+        "noUncheckedIndexedAccess": false
     }
 }

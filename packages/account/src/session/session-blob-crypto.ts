@@ -1,4 +1,4 @@
-import { decryptData, encryptData } from "@protontech/crypto/aes-gcm";
+import { decryptData, encryptData } from "@protontech/crypto/subtle/aesGcm.ts";
 
 export const encryptBlob = async (key: CryptoKey, data: string) => {
     return encryptData(

@@ -1,9 +1,9 @@
-import { generateKey } from "pmcrypto";
+import { generateKey } from "../../../../src/pmcrypto/index.ts";
 import {
     decryptKey as openpgp_decryptKey,
     readKey as openpgp_readKey,
     readPrivateKey as openpgp_readPrivateKey,
-} from "pmcrypto/lib/openpgp";
+} from "../../../../src/pmcrypto/openpgp.ts";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { VERIFICATION_STATUS } from "../../../../src/index.ts";

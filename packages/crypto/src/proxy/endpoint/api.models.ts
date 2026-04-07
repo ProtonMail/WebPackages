@@ -19,8 +19,8 @@ import type {
     VerifyCleartextOptionsPmcrypto,
     VerifyMessageResult,
     VerifyOptionsPmcrypto,
-} from "pmcrypto";
-import type { PartialConfig, enums } from "pmcrypto/lib/openpgp";
+} from "../../pmcrypto";
+import type { PartialConfig, enums } from "../../pmcrypto/openpgp";
 
 import type { KeyCompatibilityLevel } from "../../constants";
 

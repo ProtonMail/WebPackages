@@ -1,0 +1,54 @@
+import { Argon2S2K, type Config, config as defaultConfig } from "../openpgp.ts";
+import { ARGON2_PARAMS } from "../constants.ts";
+
+type Argon2Params = Config["s2kArgon2Params"] & {
+    tagLength: number;
+};
+
+export interface Argon2Options {
+    password: string;
+    salt: Uint8Array<ArrayBuffer>;
+    /** see https://www.rfc-editor.org/rfc/rfc9106.html#name-parameter-choice */
+    params?: Argon2Params;
+}
+
+// We manually reload the module if no memory-heavy (128MB+) argon2 computation has been requested in a while,
+// to deallocate the memory.
+// This is better than reloading the module every time (automatically done if the memory exceeds `Argon2S2K.ARGON2_WASM_MEMORY_THRESHOLD_RELOAD`),
+// as doing so comes with a performance hit.
+const SECOND = 1000;
+const TimeoutHandler = {
+    id: undefined,
+    cancelReloadingTimeout: (memoryExponent: number) =>
+        memoryExponent > ARGON2_PARAMS.MINIMUM.memoryExponent &&
+        clearTimeout(TimeoutHandler.id),
+    setupReloadingTimeout: (memoryExponent: number) => {
+        const shouldReloadAfterTimeout =
+            memoryExponent > ARGON2_PARAMS.MINIMUM.memoryExponent &&
+            memoryExponent <= Argon2S2K.ARGON2_WASM_MEMORY_THRESHOLD_RELOAD;
+        // @ts-expect-error NodeJS.Timeout typedef interfering
+        TimeoutHandler.id = shouldReloadAfterTimeout
+            ? setTimeout(() => Argon2S2K.reloadWasmModule(), 10 * SECOND)
+            : undefined;
+    },
+};
+
+export async function argon2({
+    password,
+    salt,
+    params = ARGON2_PARAMS.RECOMMENDED,
+}: Argon2Options) {
+    TimeoutHandler.cancelReloadingTimeout(params.memoryExponent);
+
+    const s2k = new Argon2S2K({ ...defaultConfig, s2kArgon2Params: params });
+    s2k.salt = salt;
+    const result = await s2k.produceKey(
+        password,
+        params.tagLength,
+        // @ts-expect-error missing config param declaration
+        defaultConfig,
+    );
+
+    TimeoutHandler.setupReloadingTimeout(params.memoryExponent);
+    return result;
+}

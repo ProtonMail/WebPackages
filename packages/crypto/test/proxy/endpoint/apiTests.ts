@@ -1,4 +1,8 @@
-import { generateKey, getSHA256Fingerprints, reformatKey } from "pmcrypto";
+import {
+    generateKey,
+    getSHA256Fingerprints,
+    reformatKey,
+} from "../../../src/pmcrypto/index.ts";
 import {
     type CompressedDataPacket,
     SymEncryptedIntegrityProtectedDataPacket,
@@ -10,7 +14,7 @@ import {
     readMessage as openpgp_readMessage,
     readPrivateKey as openpgp_readPrivateKey,
     revokeKey as openpgp_revokeKey,
-} from "pmcrypto/lib/openpgp";
+} from "../../../src/pmcrypto/openpgp.ts";
 import { describe, expect, it } from "vitest";
 
 import type {
@@ -845,8 +849,8 @@ fLz+Lk0ZkB4L3nhM/c6sQKSsI9k2Tptm1VZ5+Qo=
         const seipdv2Packet = seipdv2Message.packets.findPacket(
             enums.packet.symEncryptedIntegrityProtectedData,
         ) as SymEncryptedIntegrityProtectedDataPacket;
-        // @ts-expect-error missing field declaration for SymEncryptedIntegrityProtectedDataPacket
         expect(
+            // @ts-expect-error missing field declaration for SymEncryptedIntegrityProtectedDataPacket
             seipdv2Packet.version === 2 &&
                 seipdv2Message.packets[0].aeadAlgorithm === enums.aead.gcm,
         );
@@ -1929,9 +1933,9 @@ siLL+xMJ+Hy4AhsMAAAKagEA4Knj6S6nG24nuXfqkkytPlFTHwzurjv3+qqXwWL6
             expect(importedKeyRef.getCreationTime()).to.deep.equal(
                 publicKeyToImport.getCreationTime(),
             );
-            // @ts-expect-error for non-private key reference
             await expect(
                 CryptoApiImplementation.exportPrivateKey({
+                    // @ts-expect-error for non-private key reference
                     privateKey: importedKeyRef,
                 }),
             ).rejects.toThrow(/Private key expected/);

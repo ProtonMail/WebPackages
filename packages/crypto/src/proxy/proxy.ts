@@ -2,7 +2,7 @@ import {
     DEFAULT_KEY_GENERATION_OFFSET,
     DEFAULT_SIGNATURE_VERIFICATION_OFFSET,
     VERIFICATION_STATUS,
-} from "pmcrypto/lib/constants";
+} from "../pmcrypto/constants.ts";
 
 import { serverTime } from "../serverTime.ts";
 import type { ApiInterface } from "./endpoint/api.ts";

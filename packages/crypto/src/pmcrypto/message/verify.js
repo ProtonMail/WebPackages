@@ -1,0 +1,175 @@
+import { createMessage, verify, CleartextMessage } from "../openpgp.ts";
+import {
+    DEFAULT_SIGNATURE_VERIFICATION_OFFSET,
+    VERIFICATION_STATUS,
+} from "../constants.ts";
+import { serverTime } from "../serverTime.ts";
+import { removeTrailingSpaces } from "./utils.ts";
+import {
+    SignatureContextError,
+    getConfigForContextVerification,
+    isValidSignatureContext,
+} from "./context.ts";
+
+const { NOT_SIGNED, SIGNED_AND_VALID, SIGNED_AND_INVALID } =
+    VERIFICATION_STATUS;
+
+/**
+ * Extract information from the result of openpgp.verify
+ * @param {Object} verificationResult return value of openpgp.verify
+ * @param {Uint8Array|String|
+ *          ReadableStream|NodeStream} verificationResult.data message data
+ * @param {String} verificationResult.filename
+ * @param {Object[]} verificationResult.signatures verification information per signature: {
+ *           keyid: module:type/keyid,
+ *           verified: Promise<Boolean>,
+ *           signature: Promise<openpgp.signature.Signature>
+ *         }
+ * @param {Object} contesignatureContextxt - signature context verification options
+ * @param {Boolean} expectSigned - whether a valid signature is expected; it causes the function to throw otherwise
+ * @returns {{
+ *     data: Uint8Array|string|ReadableStream|NodeStream - message data,
+ *     verificationStatus: constants.VERIFICATION_STATUS - message verification status,
+ *     signatures: openpgp.signature.Signature[] - message signatures,
+ *     signatureTimestamp: Date|null - creation date of the first valid message signature, or null if all signatures are missing or invalid,
+ *     errors: Error[]|undefined - verification errors if all signatures are invalid
+ * }}
+ */
+export async function handleVerificationResult(
+    verificationResult,
+    signatureContext,
+    expectSigned,
+) {
+    const { data, signatures: sigsInfo } = verificationResult;
+    const signatures = [];
+    const errors = [];
+    let verificationStatus = NOT_SIGNED;
+    let signatureTimestamp = null;
+
+    if (sigsInfo && sigsInfo.length) {
+        verificationStatus = SIGNED_AND_INVALID;
+        for (let i = 0; i < sigsInfo.length; i++) {
+            const { signature: signaturePromise, verified: verifiedPromise } =
+                sigsInfo[i];
+            const signature = await signaturePromise;
+            const verified = await verifiedPromise.catch((err) => {
+                errors.push(err);
+                return false;
+            });
+            if (verified) {
+                // In the context of message verification, signatures can only hold a single
+                // packet. Thus we do not need to iterate over the packets and find the one
+                // that verified the message. We can just use the single packet in the
+                // signature.
+                const verifiedSigPacket = signature.packets[0];
+
+                if (
+                    !signatureContext ||
+                    isValidSignatureContext(signatureContext, verifiedSigPacket)
+                ) {
+                    verificationStatus = SIGNED_AND_VALID;
+                } else {
+                    errors.push(
+                        new SignatureContextError("context verification error"),
+                    );
+                }
+
+                if (!signatureTimestamp) {
+                    signatureTimestamp = verifiedSigPacket.created;
+                }
+            }
+            signatures.push(signature);
+        }
+    }
+
+    if (expectSigned && verificationStatus !== SIGNED_AND_VALID) {
+        // this is primarily intended to throw context error, which isn't checked by OpenPGP.js
+        throw errors[0];
+    }
+
+    return {
+        data,
+        verificationStatus,
+        signatures,
+        signatureTimestamp,
+        errors: verificationStatus === SIGNED_AND_INVALID ? errors : undefined,
+    };
+}
+
+/**
+ * Verify the given message data against the signature
+ * @param  {Object}                        options - input for openpgp.verify
+ * @param  {String|ReadableStream<String>}  textData - sgined text data
+ * @param  {Uint8Array|ReadableStream<Uint8Array>} binaryData - signed binary data
+ * @param  {Date}                        [options.date] date to use for verification instead of the server time
+ *
+ * @returns {Promise<Object>}  Verification result in the form: {
+ *     data: Uint8Array|string|ReadableStream - message data,
+ *     verificationStatus: VERIFICATION_STATUS - message verification status,
+ *     signatures: openpgp.Signature[] - message signatures,
+ *     signatureTimestamp: Date|null - creation date of the first valid message signature, or null if all signatures are missing or invalid,
+ *     errors: Error[]|undefined - verification errors if all signatures are invalid
+ * }
+ */
+export async function verifyMessage({
+    textData,
+    binaryData,
+    stripTrailingSpaces,
+    signatureContext,
+    config = {},
+    date = new Date(+serverTime() + DEFAULT_SIGNATURE_VERIFICATION_OFFSET),
+    ...options
+}) {
+    const dataType = binaryData ? "binary" : "text";
+    const dataToVerify =
+        binaryData ||
+        (stripTrailingSpaces ? removeTrailingSpaces(textData) : textData); // throw if streamed text and stripTrailingSpaces enabled
+    const sanitizedOptions = {
+        ...options,
+        date,
+        message: await createMessage({ [dataType]: dataToVerify, date }),
+        config: signatureContext
+            ? getConfigForContextVerification(config)
+            : config,
+    };
+
+    const verificationResult = await verify(sanitizedOptions);
+    return handleVerificationResult(
+        verificationResult,
+        signatureContext,
+        options.expectSigned,
+    );
+}
+
+/**
+ * Verify the given Cleartext message, which includes both the data to verify and the corresponding signature.
+ * To verify a detached signature over some data, see `verifyMessage` instead.
+ * @param  {Object}                      options - input for openpgp.verify
+ * @param  {openpgp.CleartextMessage}    cleartextMessage - signed armored cleartext message
+ * @param  {Date}                        [options.date] date to use for verification instead of the server time
+ *
+ * @returns {Promise<Object>}  Verification result in the form: {
+ *     data: Uint8Array|string|ReadableStream - message data,
+ *     verificationStatus: VERIFICATION_STATUS - message verification status,
+ *     signatures: openpgp.Signature[] - message signatures,
+ *     signatureTimestamp: Date|null - creation date of the first valid message signature, or null if all signatures are missing or invalid,
+ *     errors: Error[]|undefined - verification errors if all signatures are invalid
+ * }
+ */
+export async function verifyCleartextMessage({
+    cleartextMessage,
+    date = serverTime(),
+    ...options
+}) {
+    if (!(cleartextMessage instanceof CleartextMessage)) {
+        throw new Error("CleartextMessage expected.");
+    }
+    const sanitizedOptions = { ...options, date, message: cleartextMessage };
+
+    const verificationResult = await verify(sanitizedOptions);
+    return handleVerificationResult(
+        verificationResult,
+        undefined,
+        options.expectSigned,
+    );
+}

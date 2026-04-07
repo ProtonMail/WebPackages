@@ -1,7 +1,7 @@
 import {
     updateServerTime as internalUpdateServerTime,
     serverTime,
-} from "pmcrypto/lib/serverTime";
+} from "./pmcrypto/serverTime.ts";
 
 let updateCalled = false;
 /**

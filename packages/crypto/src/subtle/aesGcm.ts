@@ -1,3 +1,5 @@
+import { mergeUint8Arrays } from "../utils.ts";
+
 export const KEY_LENGTH_BYTES = 32;
 const IV_LENGTH_BYTES = 12;
 export const ENCRYPTION_ALGORITHM = "AES-GCM";
@@ -264,13 +266,3 @@ export const unwrapKey = async (
     );
     return aesGcmKey;
 };
-
-function mergeUint8Arrays(arrays: Uint8Array[]) {
-    const length = arrays.reduce((sum, arr) => sum + arr.length, 0);
-    const chunksAll = new Uint8Array(length);
-    arrays.reduce((position, arr) => {
-        chunksAll.set(arr, position);
-        return position + arr.length;
-    }, 0);
-    return chunksAll;
-}

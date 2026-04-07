@@ -1,4 +1,4 @@
-export * from "pmcrypto/lib/bigInteger";
+export * from "./pmcrypto/bigInteger.ts";
 
 /**
  * Get this value as an exact Number (max 53 bits)

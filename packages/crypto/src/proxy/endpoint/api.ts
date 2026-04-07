@@ -35,9 +35,13 @@ import {
     unsafeSHA1,
     verifyCleartextMessage,
     verifyMessage,
-} from "pmcrypto";
-import type { Argon2Options, Data, Key, PrivateKey, PublicKey } from "pmcrypto";
-import { type UserID, enums } from "pmcrypto/lib/openpgp";
+    type Argon2Options,
+    type Data,
+    type Key,
+    type PrivateKey,
+    type PublicKey,
+} from "../../pmcrypto/index.ts";
+import { type UserID, enums } from "../../pmcrypto/openpgp.ts";
 
 import { ARGON2_PARAMS, KeyCompatibilityLevel } from "../../constants.ts";
 import type {
@@ -311,11 +315,10 @@ class KeyManagementApi {
      * @param options.date - use the given date as creation date of the key and the key signatures, instead of the server time
      * @returns reference to the generated private key
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     async generateKey<
         CustomConfig extends
             | { v6Keys?: boolean; aeadProtect?: boolean }
-            | undefined = {},
+            | undefined = {}, // eslint-disable-line @typescript-eslint/no-empty-object-type
     >(options: WorkerGenerateKeyOptions<CustomConfig>) {
         const { privateKey } = await generateKey({
             ...options,

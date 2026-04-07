@@ -5,6 +5,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 import { importRules } from "./import.js";
 import { allGlobs } from "./globs.js";
+import pluginEnforceUint8ArrayArrayBuffer from "@protontech/eslint-plugin-enforce-uint8array-arraybuffer";
 
 export const eslintConfigPackage = defineConfig([
     {
@@ -14,6 +15,14 @@ export const eslintConfigPackage = defineConfig([
             ...react.configs.flat.recommended.languageOptions,
             ecmaVersion: 2020,
             globals: globals.browser,
+        },
+        plugins: {
+            "@protontech/enforce-uint8array-arraybuffer":
+                pluginEnforceUint8ArrayArrayBuffer,
+        },
+        rules: {
+            "@protontech/enforce-uint8array-arraybuffer/enforce-uint8array-arraybuffer":
+                "error",
         },
     },
 ]);

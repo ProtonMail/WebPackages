@@ -18,6 +18,9 @@
         "./subtle/*": "./src/subtle/*",
         "./utils": "./src/utils.ts"
     },
+    "files": [
+        "src/"
+    ],
     "scripts": {
         "format": "prettier --write .",
         "lint": "eslint",

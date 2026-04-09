@@ -12,13 +12,13 @@ export type PayloadBlob =
           offlineKeySalt: string;
       };
 
-export type PayloadResult = {
+export interface PayloadResult {
     keyPassword: string;
     offlineKey?: {
         password: string;
         salt: string;
     };
-};
+}
 
 const decryptPayloadData = async (
     key: CryptoKey,
@@ -42,7 +42,7 @@ export const decryptPayload = async (
     payloadVersion: number,
 ): Promise<PayloadResult> => {
     const string = await decryptPayloadData(key, data, payloadVersion);
-    const parsedValue: PayloadBlob = JSON.parse(string);
+    const parsedValue = JSON.parse(string) as PayloadBlob;
 
     const keyPassword = parsedValue.keyPassword ?? "";
     let offlineKey: PayloadResult["offlineKey"];

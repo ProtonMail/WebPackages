@@ -184,6 +184,7 @@ describe("Middleware pipeline", () => {
 
     it("middleware can short-circuit and replace the response", async () => {
         const intercepted = new Response("intercepted", { status: 202 });
+        // eslint-disable-next-line @typescript-eslint/require-await
         const m1: MiddlewareFn = () => async () => intercepted;
         const terminal = vi
             .fn()

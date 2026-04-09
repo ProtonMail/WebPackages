@@ -21,11 +21,11 @@ export interface SessionMemDto {
     keyPassword: string;
     clientKey: string;
 }
-type Store = {
+interface Store {
     setItem: typeof setItem;
     getItem: typeof getItem;
     clearItem: typeof clearItem;
-};
+}
 export class SessionMem {
     private store: Store;
 
@@ -51,7 +51,7 @@ export class SessionMem {
             if (!data) {
                 return undefined;
             }
-            const parsedValue: SessionMemDto = JSON.parse(data);
+            const parsedValue = JSON.parse(data) as SessionMemDto;
             const result: SessionMemDto = {
                 localId: parsedValue.localId,
                 keyPassword: parsedValue.keyPassword,

@@ -1,13 +1,8 @@
 import importPlugin from "eslint-plugin-import";
 import { defineConfig } from "eslint/config";
-import {
-    typescriptGlobs,
-    allGlobs,
-    allExtensions,
-    typeScriptExtensions,
-} from "./globs.js";
+import { tsGlobs, allGlobs, allExtensions, tsExtensions } from "../globs.js";
 
-export const importRules = defineConfig([
+export const importConfig = defineConfig([
     {
         name: "global-import-rules",
         files: allGlobs,
@@ -33,7 +28,7 @@ export const importRules = defineConfig([
                 "node_modules/@types",
             ],
             "import/parsers": {
-                "@typescript-eslint/parser": typeScriptExtensions,
+                "@typescript-eslint/parser": tsExtensions,
             },
             "import/resolver": {
                 node: {
@@ -45,7 +40,7 @@ export const importRules = defineConfig([
     },
     {
         name: "typescript-import-rules",
-        files: typescriptGlobs,
+        files: tsGlobs,
         rules: {
             // Disable these, TypeScript provides the same checks as part of standard type checking:
             "import/named": "off",

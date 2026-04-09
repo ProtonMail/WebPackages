@@ -144,7 +144,7 @@ export class AuthorizeState<T> {
             if (!data) {
                 return new AuthorizeState<T>(null);
             }
-            const result: T = JSON.parse(data);
+            const result = JSON.parse(data) as T;
             return new AuthorizeState<T>(result);
         } catch {
             return new AuthorizeState<T>(null);
@@ -183,27 +183,27 @@ export class AuthorizeCallbackParameters {
     static parse(searchParams: URLSearchParams) {
         try {
             const selector =
-                searchParams.get(AuthorizeCallbackQueryParameters.Selector) ||
+                searchParams.get(AuthorizeCallbackQueryParameters.Selector) ??
                 "";
             const state =
-                searchParams.get(AuthorizeCallbackQueryParameters.State) || "";
+                searchParams.get(AuthorizeCallbackQueryParameters.State) ?? "";
             const base64StringKey =
-                searchParams.get(AuthorizeCallbackQueryParameters.Base64Key) ||
+                searchParams.get(AuthorizeCallbackQueryParameters.Base64Key) ??
                 "";
             const persistent =
-                searchParams.get(AuthorizeCallbackQueryParameters.Persistent) ||
+                searchParams.get(AuthorizeCallbackQueryParameters.Persistent) ??
                 "";
             const trusted =
-                searchParams.get(AuthorizeCallbackQueryParameters.Trusted) ||
+                searchParams.get(AuthorizeCallbackQueryParameters.Trusted) ??
                 "";
             const payloadVersion =
                 searchParams.get(
                     AuthorizeCallbackQueryParameters.PayloadVersion,
-                ) || "";
+                ) ?? "";
             const payloadType =
                 searchParams.get(
                     AuthorizeCallbackQueryParameters.PayloadType,
-                ) || "";
+                ) ?? "";
 
             const key = base64StringKey.length
                 ? Uint8Array.fromBase64(base64StringKey, {
@@ -296,9 +296,9 @@ export class AuthorizeClient {
                 },
             ),
         );
-        const getForkSelectorDto: GetForkSelectorDto = await getForkResponse
+        const getForkSelectorDto = (await getForkResponse
             .json()
-            .catch(() => {});
+            .catch(() => {})) as GetForkSelectorDto | undefined;
         if (
             getForkResponse.status !== 200 ||
             typeof getForkSelectorDto?.UID !== "string"

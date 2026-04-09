@@ -51,6 +51,7 @@ export async function setItem(storageKey: string, data: string) {
     sessionStorage.setItem(storageKey, encryptedData.toBase64());
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function clearItem(storageKey: string) {
     window.name = "";
     sessionStorage.removeItem(storageKey);

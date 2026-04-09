@@ -4,6 +4,10 @@ import { generateClientKey, getClientKey } from "./client-key.ts";
 import { decryptBlob, encryptBlob } from "./session-blob-crypto.ts";
 import type { SaveSessionParams } from "./interface.ts";
 
+interface GetClientKeyDto {
+    ClientKey: string;
+}
+
 export interface SessionDto {
     sessionDbDto: SessionDbDto;
     keyPassword: string;
@@ -103,7 +107,9 @@ export class SessionPersistence {
                 null,
             );
         }
-        const json = await response.json().catch(() => {});
+        const json = (await response.json().catch(() => {})) as
+            | GetClientKeyDto
+            | undefined;
         if (response.status !== 200 || typeof json?.ClientKey !== "string") {
             throw new SessionError(
                 SessionErrorCode.Network,

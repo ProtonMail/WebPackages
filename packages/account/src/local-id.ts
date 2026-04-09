@@ -23,7 +23,7 @@ export const getValidLocalId = (localID = "") => {
 };
 
 export const getLocalIdFromPathname = (pathname: string) => {
-    const maybeLocalID = pathname.match(/^\/?u\/([^/]+)\/?/)?.[1];
+    const maybeLocalID = /^\/?u\/([^/]+)\/?/.exec(pathname)?.[1];
     return getValidLocalId(maybeLocalID);
 };
 

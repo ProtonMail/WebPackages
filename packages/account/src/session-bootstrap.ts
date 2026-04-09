@@ -47,10 +47,10 @@ export class SessionBootstrapAuthError extends SessionBootstrapError {
     }
 }
 
-export type SessionBootstrapResult<T> = {
+export interface SessionBootstrapResult<T> {
     session: SessionDto;
     authorizeState: AuthorizeState<T> | null;
-};
+}
 
 export async function sessionBootstrap<T>(parameters: {
     fetch: typeof window.fetch;

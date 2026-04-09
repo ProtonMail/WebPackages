@@ -22,6 +22,7 @@ describe("handleRefresh", () => {
         await handleRefresh(fetch, uid);
 
         expect(fetch).toHaveBeenCalledOnce();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const request: Request = fetch.mock?.calls?.[0]?.[0];
         expect(request.method).toBe("POST");
         expect(request.url).toContain("/auth/refresh");

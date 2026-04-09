@@ -5,20 +5,21 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
-import { importRules } from "./import.js";
-import { allGlobs } from "./globs.js";
+import { importConfig } from "./import-config.js";
+import { allGlobs, jsGlobs } from "../globs.js";
 
-export const eslintConfigReact = defineConfig([
+export const reactTypeCheckedConfig = defineConfig([
     {
         files: allGlobs,
         extends: [
             js.configs.recommended,
-            tseslint.configs.strict,
+            tseslint.configs.recommendedTypeChecked,
+            tseslint.configs.stylisticTypeChecked,
             react.configs.flat.recommended,
             react.configs.flat["jsx-runtime"],
             reactHooks.configs.flat.recommended,
             reactRefresh.configs.vite,
-            importRules,
+            importConfig,
         ],
         settings: {
             react: { version: "detect" },
@@ -27,6 +28,13 @@ export const eslintConfigReact = defineConfig([
             ...react.configs.flat.recommended.languageOptions,
             ecmaVersion: 2020,
             globals: globals.browser,
+            parserOptions: {
+                projectService: true,
+            },
         },
+    },
+    {
+        files: jsGlobs,
+        extends: [tseslint.configs.disableTypeChecked],
     },
 ]);

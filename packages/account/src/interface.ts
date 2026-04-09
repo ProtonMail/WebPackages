@@ -6,11 +6,11 @@ export const AccountAuthorizeType = {
     login: "3",
 };
 
-export type SaveSessionParams = {
+export interface SaveSessionParams {
     localId: number;
     uid: string;
     userId: string;
     persistent: boolean;
     trusted: boolean;
     keyPassword: string;
-};
+}

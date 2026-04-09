@@ -4,10 +4,13 @@ import { SessionMem } from "./session-mem.ts";
 const getStore = () => {
     const map = new Map<string, string>();
     return {
+        // eslint-disable-next-line @typescript-eslint/require-await
         getItem: async (key: string) => map.get(key) ?? null,
+        // eslint-disable-next-line @typescript-eslint/require-await
         setItem: async (key: string, value: string) => {
             map.set(key, value);
         },
+        // eslint-disable-next-line @typescript-eslint/require-await
         clearItem: vi.fn(async (key: string) => {
             map.delete(key);
         }),

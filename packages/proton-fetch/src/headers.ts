@@ -19,7 +19,7 @@ export const addProtonHeadersToRequest = (
             value !== undefined
                 ? headerNameMap.get(key as keyof ProtonConfig)
                 : undefined;
-        if (!headerName) {
+        if (!headerName || typeof value !== "string") {
             return;
         }
         if (!request.headers.has(headerName)) {

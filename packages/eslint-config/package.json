@@ -4,9 +4,7 @@
     "author": "Proton AG",
     "type": "module",
     "exports": {
-        "./react-config": "./react-config.js",
-        "./package-config": "./package-config.js",
-        "./import": "./import.js",
+        "./*": "./configs/*",
         "./globs": "./globs.js"
     },
     "scripts": {
@@ -15,8 +13,8 @@
     "dependencies": {
         "@eslint/js": "^10.0.1",
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "https://registry.npmjs.org/@protontech/eslint-plugin-enforce-uint8array-arraybuffer/-/eslint-plugin-enforce-uint8array-arraybuffer-2.0.0.tgz",
-        "@typescript-eslint/parser": "^8.57.2",
-        "eslint": "^10.1.0",
+        "@typescript-eslint/parser": "^8.58.0",
+        "eslint": "^10.2.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-import-resolver-alias": "^1.1.2",
         "eslint-import-resolver-typescript": "4.4.4",
@@ -26,7 +24,7 @@
         "eslint-plugin-react-refresh": "^0.5.2",
         "globals": "^17.4.0",
         "typescript": "^6.0.2",
-        "typescript-eslint": "^8.57.2"
+        "typescript-eslint": "^8.58.0"
     },
     "devDependencies": {
         "@protontech/prettier-config": "workspace:*",

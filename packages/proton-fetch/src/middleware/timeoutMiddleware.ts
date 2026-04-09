@@ -1,16 +1,19 @@
 import type { MiddlewareFn } from "../interface.ts";
 import { TimeoutError } from "../error.ts";
 
-type TimeoutEntry = {
+interface TimeoutEntry {
     signal: AbortSignal;
     cleanup: () => void;
-};
+}
 
 const timeoutMap = new Map<symbol, TimeoutEntry>();
 
 function createTimeoutEntry(timeout: number): TimeoutEntry {
     if (typeof AbortSignal?.timeout === "function") {
-        return { signal: AbortSignal.timeout(timeout), cleanup: () => {} };
+        return {
+            signal: AbortSignal.timeout(timeout),
+            cleanup: () => {},
+        };
     }
     const controller = new AbortController();
     const cleanTimeout = () => {

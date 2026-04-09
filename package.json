@@ -29,7 +29,7 @@
   "packageManager": "pnpm@10.28.1",
   "pnpm": {
     "overrides": {
-      "undici": "^7.24.6"
+      "undici": "^8.0.2"
     }
   }
 }

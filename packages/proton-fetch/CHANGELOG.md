@@ -1,5 +1,11 @@
 # @protontech/fetch
 
+## 1.0.4
+
+### Patch Changes
+
+- 48e84aa: Update to new lint config
+
 ## 1.0.3
 
 ### Patch Changes

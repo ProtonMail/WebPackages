@@ -8,14 +8,11 @@ import { allGlobs } from "../globs.js";
 import { uint8ArrayConfig } from "./uint8array-config.js";
 
 export const packageConfig = defineConfig([
+    js.configs.recommended,
+    tseslint.configs.strict,
+    importConfig,
+    uint8ArrayConfig,
     {
-        files: allGlobs,
-        extends: [
-            js.configs.recommended,
-            tseslint.configs.strict,
-            importConfig,
-            uint8ArrayConfig,
-        ],
         languageOptions: {
             ...react.configs.flat.recommended.languageOptions,
             ecmaVersion: 2020,

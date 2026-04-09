@@ -5,7 +5,7 @@
     "type": "module",
     "exports": {
         "./*": "./configs/*",
-        "./globs": "./globs.js"
+        "./globs.js": "./globs.js"
     },
     "scripts": {
         "format": "prettier --write ."

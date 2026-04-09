@@ -6,22 +6,18 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 import { importConfig } from "./import-config.js";
-import { allGlobs } from "../globs.js";
 import { uint8ArrayConfig } from "./uint8array-config.js";
 
 export const reactConfig = defineConfig([
+    js.configs.recommended,
+    tseslint.configs.strict,
+    react.configs.flat.recommended,
+    react.configs.flat["jsx-runtime"],
+    reactHooks.configs.flat.recommended,
+    reactRefresh.configs.vite,
+    importConfig,
+    uint8ArrayConfig,
     {
-        files: allGlobs,
-        extends: [
-            js.configs.recommended,
-            tseslint.configs.strict,
-            react.configs.flat.recommended,
-            react.configs.flat["jsx-runtime"],
-            reactHooks.configs.flat.recommended,
-            reactRefresh.configs.vite,
-            importConfig,
-            uint8ArrayConfig,
-        ],
         settings: {
             react: { version: "detect" },
         },

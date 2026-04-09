@@ -4,19 +4,16 @@ import react from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 import { importConfig } from "./import-config.js";
-import { allGlobs, jsGlobs, tsGlobs } from "../globs.js";
+import { jsGlobs, tsGlobs } from "../globs.js";
 import { uint8ArrayConfig } from "./uint8array-config.js";
 
 export const packageTypeCheckedConfig = defineConfig([
+    js.configs.recommended,
+    tseslint.configs.recommendedTypeChecked,
+    tseslint.configs.stylisticTypeChecked,
+    importConfig,
+    uint8ArrayConfig,
     {
-        files: allGlobs,
-        extends: [
-            js.configs.recommended,
-            tseslint.configs.recommendedTypeChecked,
-            tseslint.configs.stylisticTypeChecked,
-            importConfig,
-            uint8ArrayConfig,
-        ],
         languageOptions: {
             ...react.configs.flat.recommended.languageOptions,
             ecmaVersion: 2020,

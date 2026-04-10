@@ -3,6 +3,8 @@
     "exclude": ["node_modules", "dist"],
     "compilerOptions": {
         "types": ["@protontech/global-types"],
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "erasableSyntaxOnly": false,
         "noUncheckedIndexedAccess": false
     }

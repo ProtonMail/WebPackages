@@ -4,7 +4,7 @@ import {
     streamedUint8ArrayToUtf8String,
     streamedUtf8StringToUint8Array,
 } from "../../src/pmcrypto/utils.ts";
-import type { Data } from "../../src/pmcrypto";
+import type { Data } from "../../src/pmcrypto/index.ts";
 
 const streamFromChunks = <T extends Data>(chunks: T[]) => {
     const it = chunks.values();

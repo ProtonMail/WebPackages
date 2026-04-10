@@ -5,16 +5,16 @@
  * - the ciphertext-IV encoding uses JSON instead of serialized binary (this should be refactored in a future version of ES)
  * - encryption does not rely on associatedData
  */
-import { type AesGcmCryptoKey, ENCRYPTION_ALGORITHM } from "../aesGcm";
+import { type AesGcmCryptoKey, ENCRYPTION_ALGORITHM } from "../aesGcm.ts";
 
 const ES_KEY_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12;
 
 export type IndexKey = AesGcmCryptoKey;
-export type GeneratedIndexKey = {
+export interface GeneratedIndexKey {
     indexKey: AesGcmCryptoKey;
     exportedJsonKey: JsonWebKey;
-};
+}
 export const generateIndexKey = async (): Promise<GeneratedIndexKey> => {
     const indexKey = await crypto.subtle.generateKey(
         { name: ENCRYPTION_ALGORITHM, length: ES_KEY_LENGTH_BYTES * 8 },

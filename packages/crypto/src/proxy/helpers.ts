@@ -1,5 +1,5 @@
-import type { KeyReference, PrivateKeyReference } from "./endpoint/api.models";
-import { CryptoProxy } from "./proxy";
+import type { KeyReference, PrivateKeyReference } from "./endpoint/api.models.ts";
+import { CryptoProxy } from "./proxy.ts";
 
 /**
  * Find the key that generated the given signature.
@@ -12,8 +12,7 @@ export async function getMatchingSigningKey(options: {
     armoredSignature: string;
     keys: KeyReference[];
     preferV6Key?: boolean;
-}): Promise<KeyReference | undefined>;
-export async function getMatchingSigningKey(options: {
+} | {
     binarySignature: Uint8Array<ArrayBuffer>;
     keys: KeyReference[];
     preferV6Key?: boolean;
@@ -29,15 +28,15 @@ export async function getMatchingSigningKey(options: {
     const { signingKeyIDs } = binarySignature
         ? await CryptoProxy.getSignatureInfo({ binarySignature })
         : await CryptoProxy.getSignatureInfo({
-              armoredSignature: armoredSignature!,
-          });
+            armoredSignature: armoredSignature!,
+        });
 
     let v4SigningKey: KeyReference | undefined = undefined;
     for (const signingKeyID of signingKeyIDs) {
         // If the signing key is a subkey, we still return the full key entity
         const signingKey = keys.find((key) => {
             const keyIDs = key.getKeyIDs();
-            return keyIDs.indexOf(signingKeyID) >= 0;
+            return keyIDs.includes(signingKeyID);
         });
         if (signingKey) {
             if (!options.preferV6Key || signingKey.getVersion() === 6) {

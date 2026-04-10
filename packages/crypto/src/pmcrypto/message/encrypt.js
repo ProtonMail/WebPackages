@@ -36,9 +36,9 @@ export default async function encryptMessage({
         ...options,
         signatureNotations: signatureContext
             ? getNotationForContext(
-                  signatureContext.value,
-                  signatureContext.critical,
-              )
+                signatureContext.value,
+                signatureContext.critical,
+            )
             : undefined,
         date,
         format,
@@ -64,7 +64,7 @@ export default async function encryptMessage({
             // Supporting streamed data with object output is complicated, and right now we do not have a use case for that.
             // If an object is needed from non-streamed input, the caller should just request armor/binary output and then parse the result.
             throw new Error(
-                'Unsupported detached signature when requesting "object" result',
+                "Unsupported detached signature when requesting 'object' result",
             );
         }
 

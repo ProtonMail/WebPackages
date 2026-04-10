@@ -7,7 +7,7 @@ import {
     type BasePacket as OpenPGPPacket,
     type AnyPacket,
 } from "../openpgp.ts";
-import type { OpenPGPMessage } from "../pmcrypto";
+import type { OpenPGPMessage } from "../pmcrypto.js";
 
 /**
  * Remove trailing spaces, carriage returns and tabs from each line (separated by \n characters)

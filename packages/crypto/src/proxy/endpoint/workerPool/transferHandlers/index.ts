@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TransferHandler } from "comlink";
 
-import type { ComputeHashStreamOptions, KeyReference } from "../../api.models";
+import type { ComputeHashStreamOptions, KeyReference } from "../../api.models.ts";
 import {
     type SerializeWebStreamTypes,
     ReadableStreamSerializer,
@@ -13,8 +13,8 @@ type ExtractFunctionReturnTypes<T> = {
     [I in keyof T]: T[I] extends (...args: any) => any
         ? ReturnType<T[I]>
         : T[I] extends (infer A)[]
-          ? ExtractFunctionReturnTypes<A>[]
-          : T[I]; // recurse on array fields
+            ? ExtractFunctionReturnTypes<A>[]
+            : T[I]; // recurse on array fields
 };
 
 // ExtractFunctionReturnTypes cannot keep track of fixed length of `_keyContentHash` so we explicitly re-declare
@@ -116,11 +116,11 @@ const KeyOptionsSerializer = {
             if (serializedOptions[name]) {
                 options[name] = Array.isArray(options[name])
                     ? serializedOptions[name].map(
-                          KeyReferenceSerializer.deserialize,
-                      )
+                        KeyReferenceSerializer.deserialize,
+                    )
                     : KeyReferenceSerializer.deserialize(
-                          serializedOptions[name],
-                      );
+                        serializedOptions[name],
+                    );
             }
         });
 
@@ -153,10 +153,10 @@ const ComputeHashStreamOptionsSerializer = {
     }),
 };
 
-type SerializedError = {
+interface SerializedError {
     isError: true;
     value: Pick<Error, "message" | "name" | "stack">;
-};
+}
 const ErrorSerializer = {
     canHandle: (value: any) =>
         typeof value === "object" && (value instanceof Error || value.isError),
@@ -202,8 +202,8 @@ const ResultTranferer = {
         return transferables.concat(
             result.signatures
                 ? result.signatures.map(
-                      (sig: Uint8Array<ArrayBuffer>) => sig.buffer,
-                  )
+                    (sig: Uint8Array<ArrayBuffer>) => sig.buffer,
+                )
                 : [],
         );
     },
@@ -221,15 +221,15 @@ const ResultTranferer = {
     },
 };
 
-type OneWayTransferHandler = {
+interface OneWayTransferHandler {
     name: string;
     workerHandler: TransferHandler<any, any>;
     mainThreadHandler: TransferHandler<any, any>;
-};
-type ExportedTransferHandler = {
+}
+interface ExportedTransferHandler {
     name: string;
     handler: TransferHandler<any, any>;
-};
+}
 
 /**
  * Transfer handlers for data that needs to be transferred only in one direction (e.g. from the worker to the main thread).
@@ -245,7 +245,7 @@ const oneWayTransferHanders: OneWayTransferHandler[] = [
                 bytes,
                 [bytes.buffer], // transferables
             ],
-            deserialize: (bytes) => bytes,
+            deserialize: (bytes: Uint8Array<ArrayBuffer>) => bytes,
         },
         mainThreadHandler: {
             canHandle: (input: any): input is Uint8Array<ArrayBuffer> =>
@@ -254,7 +254,7 @@ const oneWayTransferHanders: OneWayTransferHandler[] = [
                 bytes,
                 [], // transferables: no transferring from main thread
             ],
-            deserialize: (bytes) => bytes,
+            deserialize: (bytes: Uint8Array<ArrayBuffer>) => bytes,
         },
     },
     {
@@ -272,7 +272,7 @@ const oneWayTransferHanders: OneWayTransferHandler[] = [
             } =>
                 typeof input === "object" &&
                 ReadableStreamSerializer.canHandle(input.dataStream),
-            serialize: ({ dataStream, ...rest }) => {
+            serialize: ({ dataStream, ...rest }: any) => {
                 const serializedStreamPort =
                     ReadableStreamSerializer.serialize(dataStream);
                 return [
@@ -291,7 +291,7 @@ const oneWayTransferHanders: OneWayTransferHandler[] = [
                 ResultTranferer.serialize(result),
                 ResultTranferer.getTransferables(result), // transferables
             ],
-            deserialize: (result) => result, // unused
+            deserialize: (result: any) => result, // unused
         },
         mainThreadHandler: {
             canHandle: ResultTranferer.canHandle,

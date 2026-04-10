@@ -49,23 +49,23 @@ export default defineConfig({
             screenshotFailures: false,
             instances: process.env.CI
                 ? [
-                      {
-                          // Custom browser instances must have unique names when used across different Vitest projects;
-                          // randomizing the name here achieves that
-                          name: `chromium-no-sandbox@${crypto.randomUUID()}`,
-                          browser: "chromium",
-                          provider: playwright({
-                              launchOptions: {
-                                  chromiumSandbox: false,
-                              },
-                          }),
-                      },
-                  ]
+                    {
+                        // Custom browser instances must have unique names when used across different Vitest projects;
+                        // randomizing the name here achieves that
+                        name: `chromium-no-sandbox@${crypto.randomUUID()}`,
+                        browser: "chromium",
+                        provider: playwright({
+                            launchOptions: {
+                                chromiumSandbox: false,
+                            },
+                        }),
+                    },
+                ]
                 : [
-                      { browser: "chromium" },
-                      { browser: "firefox" },
-                      { browser: "webkit" },
-                  ],
+                    { browser: "chromium" },
+                    { browser: "firefox" },
+                    { browser: "webkit" },
+                ],
         },
     },
 });

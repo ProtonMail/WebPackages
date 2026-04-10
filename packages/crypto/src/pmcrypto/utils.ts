@@ -1,6 +1,6 @@
-import type { WebStream } from "./pmcrypto";
+import type { WebStream } from "./pmcrypto.js";
 
-export type MaybeArray<T> = T | Array<T>;
+export type MaybeArray<T> = T | T[];
 
 /**
  * Convert a native javascript string to a Uint8Array of utf8 bytes

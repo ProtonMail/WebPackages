@@ -6,7 +6,7 @@ import {
 
 import { serverTime } from "../serverTime.ts";
 import type { ApiInterface } from "./endpoint/api.ts";
-import type { WorkerVerifyOptions } from "./endpoint/api.models";
+import type { WorkerVerifyOptions } from "./endpoint/api.models.ts";
 import type { SentryLogger } from "./sentry.ts";
 
 export type CryptoApiInterface = ApiInterface;

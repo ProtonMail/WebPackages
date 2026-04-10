@@ -19,10 +19,10 @@ import type {
     VerifyCleartextOptionsPmcrypto,
     VerifyMessageResult,
     VerifyOptionsPmcrypto,
-} from "../../pmcrypto";
-import type { PartialConfig, enums } from "../../pmcrypto/openpgp";
+} from "../../pmcrypto/index.ts";
+import type { PartialConfig, enums } from "../../pmcrypto/openpgp.ts";
 
-import type { KeyCompatibilityLevel } from "../../constants";
+import type { KeyCompatibilityLevel } from "../../constants.ts";
 
 export type MaybeArray<T> = T[] | T;
 export type {
@@ -152,7 +152,7 @@ export interface WorkerImportPrivateKeyOptions<T extends Data> {
     checkCompatibility?: KeyCompatibilityLevel;
 }
 
-export type WorkerImportPublicKeyOptions<T extends Data> = {
+export interface WorkerImportPublicKeyOptions<T extends Data> {
     armoredKey?: T extends string ? T : never;
     binaryKey?: T extends Uint8Array<ArrayBuffer> ? T : never;
     /**
@@ -160,7 +160,7 @@ export type WorkerImportPublicKeyOptions<T extends Data> = {
      * This should be used when importing a key that was generate outside of Proton.
      */
     checkCompatibility?: KeyCompatibilityLevel;
-};
+}
 
 export interface WorkerGenerateKeyOptions<
     CustomConfig extends PartialConfig | undefined,
@@ -293,7 +293,6 @@ export interface KeyReference {
         getKeyID(): KeyID;
     }[];
 }
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface PublicKeyReference extends KeyReference {}
 export interface PrivateKeyReference extends PublicKeyReference {
     /** Dummy field needed to distinguish a PrivateKeyReference from  a PublicKeyReference, as they are otherwise seen as equivalent by TS */

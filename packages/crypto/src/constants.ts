@@ -1,7 +1,7 @@
-import type { PartialConfig } from "./pmcrypto";
+import type { PartialConfig } from "./pmcrypto/index.ts";
 import { ARGON2_PARAMS, VERIFICATION_STATUS } from "./pmcrypto/constants.ts";
 
-export const S2kTypeForConfig: { [key: string]: PartialConfig["s2kType"] } = {
+export const S2kTypeForConfig: Record<string, PartialConfig["s2kType"]> = {
     // Cannot access `enums` value directly to avoid importing openpgp in the main thread
     argon2: 4,
     iterated: 3,

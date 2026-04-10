@@ -11,8 +11,8 @@ import {
     type PartialConfig,
     type Signature,
     type Message,
-} from "../openpgp";
-import type { MaybeArray } from "../utils";
+} from "../openpgp.ts";
+import type { MaybeArray } from "../utils.ts";
 
 export { generateKey, reformatKey, type GenerateKeyOptions };
 

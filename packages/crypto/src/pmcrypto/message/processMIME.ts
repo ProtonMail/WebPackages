@@ -9,7 +9,7 @@ import {
     type Signature as OpenPGPSignature,
 } from "../openpgp.ts";
 
-import type { Attachment } from "./parseMail";
+import type { Attachment } from "./parseMail.ts";
 import { uint8ArrayToUtf8String } from "../../utils.ts";
 import type { MaybeArray } from "../utils.ts";
 
@@ -46,7 +46,7 @@ const verifySignature = async (
         };
     }
     const [, rawboundary] =
-        /boundary\s*=\s*([^;]*)\s*(;|$)/gi.exec(contentType) || [];
+        /boundary\s*=\s*([^;]*)\s*(;|$)/gi.exec(contentType) ?? [];
     if (!rawboundary) {
         return {
             subdata: data,
@@ -55,6 +55,7 @@ const verifySignature = async (
         };
     }
     const boundary =
+        // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
         rawboundary[0] === '"'
             ? JSON.parse(rawboundary) || rawboundary
             : rawboundary;
@@ -147,7 +148,7 @@ const parse = async (
     // normalise attachments and look for encrypted subject
     let encryptedSubjectHeader;
     const attachments: MIMEAttachment[] = [];
-    const fileNameCounter: { [key: string]: number } = {}; // track duplicate file names
+    const fileNameCounter: Record<string, number> = {}; // track duplicate file names
     for (const parsedAttachment of parsedAttachments) {
         let generatedFileName = generateFileName(
             parsedAttachment.fileName,

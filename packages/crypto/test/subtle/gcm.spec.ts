@@ -18,7 +18,7 @@ import {
 import { utf8StringToUint8Array } from "../../src/utils.ts";
 
 describe("Subtle - AES-GCM helpers", () => {
-    it("generateKey - key has declared size", async () => {
+    it("generateKey - key has declared size", () => {
         const keyBytes = generateKey();
         expect(keyBytes).to.have.length(KEY_LENGTH_BYTES);
     });
@@ -103,7 +103,7 @@ describe("Subtle - AES-GCM helpers", () => {
         expect(decrypted).to.deep.equal(data);
     });
 
-    it("generateWrappingKey - key has expected size", async () => {
+    it("generateWrappingKey - key has expected size", () => {
         const keyBytes = generateWrappingKey();
         expect(keyBytes).to.have.length(32);
     });

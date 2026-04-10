@@ -155,7 +155,7 @@ export function bigIntToUint8Array(x: bigint, endian = "be", length?: number) {
     }
 
     const rawLength = hex.length / 2;
-    const bytes = new Uint8Array(length || rawLength);
+    const bytes = new Uint8Array(length ?? rawLength);
     // parse hex
     const offset = length ? length - rawLength : 0;
     let i = 0;

@@ -1,4 +1,4 @@
-import type { MaybeWebStream } from "../pmcrypto";
+import type { MaybeWebStream } from "../pmcrypto.js";
 
 export const SHA256 = async (data: Uint8Array<ArrayBuffer>) => {
     const digest = await crypto.subtle.digest("SHA-256", data);

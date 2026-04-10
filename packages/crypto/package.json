@@ -22,7 +22,7 @@
         "src/"
     ],
     "scripts": {
-        "format": "prettier --write .",
+        "format": "",
         "lint": "eslint",
         "test": "vitest --config test/vitest.config.ts --run",
         "test:ci": "CI=true pnpm run test",
@@ -39,8 +39,8 @@
     "devDependencies": {
         "@protontech/eslint-config": "workspace:*",
         "@protontech/global-types": "workspace:*",
-        "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
+        "@stylistic/eslint-plugin": "^5.10.0",
         "@types/bn.js": "^5.2.0",
         "@types/elliptic": "^6.4.18",
         "@types/sinon": "^21.0.0",
@@ -49,9 +49,9 @@
         "elliptic": "^6.6.1",
         "eslint": "^10.2.0",
         "playwright": "^1.58.2",
-        "prettier": "^3.8.1",
         "sinon": "^21.0.1",
         "typescript": "^6.0.2",
+        "typescript-eslint": "^8.57.2",
         "vitest": "^4.1.2",
         "web-streams-polyfill": "^3.3.3"
     }

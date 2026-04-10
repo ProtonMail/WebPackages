@@ -27,9 +27,9 @@ import {
 
 import { VERIFICATION_STATUS, SIGNATURE_TYPES } from "./constants.ts";
 import type {
-    ContextSigningOptions,
+      ContextSigningOptions,
     ContextVerificationOptions,
-} from "./message/context";
+} from "./message/context.ts";
 
 export function init(): void;
 
@@ -50,13 +50,13 @@ export {
     canKeyEncrypt,
     getSHA256Fingerprints,
     getMatchingKey,
-} from "./key/utils.ts";
+} from "./key/utils.js";
 
 export type {
     GenerateKeyOptions,
     ReformatKeyOptions,
     GenerateSessionKeyOptionsPmcrypto,
-} from "./key/utils";
+} from "./key/utils.js";
 
 export {
     decryptKey,
@@ -80,7 +80,6 @@ export {
     isForwardingKey,
 } from "./key/forwarding.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EncryptSessionKeyOptionsPmcrypto extends EncryptSessionKeyOptions {}
 export function encryptSessionKey<
     FormatType extends EncryptSessionKeyOptionsPmcrypto["format"] = "armored",
@@ -255,12 +254,12 @@ export { splitMessage, armorBytes, stripArmor } from "./message/utils.ts";
 export { SHA256, SHA512, unsafeMD5, unsafeSHA1 } from "./crypto/hash.ts";
 export { argon2, type Argon2Options } from "./crypto/argon2.ts";
 
-export { verifyMessage, verifyCleartextMessage } from "./message/verify.ts";
+export { verifyMessage, verifyCleartextMessage } from "./message/verify.js";
 export type {
     VerifyCleartextOptionsPmcrypto,
     VerifyMessageResult,
     VerifyOptionsPmcrypto,
-} from "./message/verify.ts";
+} from "./message/verify.js";
 export type { ContextSigningOptions, ContextVerificationOptions };
 
 export {

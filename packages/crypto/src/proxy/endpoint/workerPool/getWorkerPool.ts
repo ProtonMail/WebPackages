@@ -6,10 +6,9 @@ import type {
     ApiInterface as CryptoApiInterface,
 } from "../api.ts";
 import type { InitOptions } from "../api.models.ts";
-import type { SentryLogger } from "../../sentry";
+import type { SentryLogger } from "../../sentry.ts";
 import { mainThreadTransferHandlers } from "./transferHandlers/index.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface WorkerInitOptions extends InitOptions {}
 
 export interface WorkerPoolInitOptions {
@@ -25,7 +24,7 @@ export interface WorkerPoolInitOptions {
      * it's intended for reporting purposes when using enabling the `awaitOnFirstUse` option,
      * since the errors are not thrown by `init`.
      */
-    awaitOnFirstUseErrorCallback?: (err: Error) => void;
+    awaitOnFirstUseErrorCallback?: (err: unknown) => void;
     poolSize?: number;
     openpgpConfigOptions?: WorkerInitOptions;
     sentryLogger: SentryLogger | null;
@@ -85,8 +84,7 @@ export const getWorkerPoolInstance = (createWorker: () => Worker) => {
             return workerPool[0];
         }
         i = (i + 1) % workerPool.length;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return workerPool[i]!;
+        return workerPool[i];
     };
 
     // The return type is technically `Remote<CryptoApi>` but that removes some type inference capabilities that are
@@ -144,7 +142,7 @@ export const getWorkerPoolInstance = (createWorker: () => Worker) => {
                     transferHandlers.set(name, handler),
                 );
                 return workerPool;
-            })().catch((err) => {
+            })().catch((err: unknown) => {
                 awaitOnFirstUseErrorCallback(err);
                 throw err;
             });

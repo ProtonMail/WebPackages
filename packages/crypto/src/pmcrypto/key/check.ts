@@ -1,4 +1,4 @@
-import { type AlgorithmInfo, type PublicKey, enums } from "../openpgp";
+import { type AlgorithmInfo, type PublicKey, enums } from "../openpgp.ts";
 
 /**
  * Checks whether the primary key and the subkeys meet our recommended security requirements.
@@ -11,7 +11,7 @@ import { type AlgorithmInfo, type PublicKey, enums } from "../openpgp";
  */
 export function checkKeyStrength(publicKey: PublicKey) {
     const minRSABits = 2047; // allow 1-bit short keys due to https://github.com/openpgpjs/openpgpjs/pull/1336
-    const allowedCurves: Set<AlgorithmInfo["curve"]> = new Set([
+    const allowedCurves = new Set<AlgorithmInfo["curve"]>([
         enums.curve.ed25519Legacy,
         enums.curve.curve25519Legacy,
         enums.curve.nistP256,
@@ -101,7 +101,7 @@ export function checkKeyCompatibility(
         ...(keyVersion === 6 ? v6OnlyPublicKeyAlgorithms : []),
     ]);
 
-    const supportedCurves: Set<AlgorithmInfo["curve"]> = new Set([
+    const supportedCurves = new Set<AlgorithmInfo["curve"]>([
         enums.curve.ed25519Legacy,
         enums.curve.curve25519Legacy,
         enums.curve.nistP256,

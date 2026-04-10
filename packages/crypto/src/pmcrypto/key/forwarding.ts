@@ -9,7 +9,7 @@ import {
     type Key,
     config as defaultConfig,
 } from "../openpgp.ts";
-import { generateKey, reformatKey } from "./utils.ts";
+import { generateKey, reformatKey } from "./utils.js";
 import { serverTime } from "../serverTime.ts";
 import {
     bigIntToUint8Array,
@@ -17,7 +17,7 @@ import {
     modInv,
     uint8ArrayToBigInt,
 } from "../bigInteger.ts";
-import type { MaybeArray } from "../utils";
+import type { MaybeArray } from "../utils.ts";
 
 export function computeProxyParameter(
     forwarderSecret: Uint8Array<ArrayBuffer>,
@@ -199,7 +199,7 @@ export async function generateForwardingMaterial(
             // @ts-expect-error `computeFingerprintAndKeyID` not declared
             await forwardeeSubkeyPacket.computeFingerprintAndKeyID();
             const forwardeeKeyFingerprint =
-                forwardeeSubkeyPacket.getFingerprintBytes() as Uint8Array<ArrayBuffer>;
+                forwardeeSubkeyPacket.getFingerprintBytes()!;
 
             return {
                 keyVersion: forwarderSubkeyPacket.version,

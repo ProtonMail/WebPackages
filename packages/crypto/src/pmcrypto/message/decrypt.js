@@ -2,7 +2,7 @@ import { isStream, readToEnd } from "@openpgp/web-stream-tools";
 import { decrypt, readSignature } from "../openpgp.ts";
 import { serverTime } from "../serverTime.ts";
 import { getConfigForContextVerification } from "./context.ts";
-import { handleVerificationResult } from "./verify";
+import { handleVerificationResult } from "./verify.js";
 import { DEFAULT_SIGNATURE_VERIFICATION_OFFSET } from "../constants.ts";
 
 export default async function decryptMessage({

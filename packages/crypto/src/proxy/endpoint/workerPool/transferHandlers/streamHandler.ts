@@ -23,9 +23,7 @@ export const ReadableStreamSerializer = {
         port1.onmessage = async ({ data: { type } }) => {
             switch (type) {
                 case STREAM_CONTROL_TYPE.READ: {
-                    if (reader === null) {
-                        reader = readableStream.getReader();
-                    }
+                    reader ??= readableStream.getReader();
                     const dataChunk = await reader.read();
                     port1.postMessage(dataChunk, []); // no transferables
                     break;

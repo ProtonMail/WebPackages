@@ -4,10 +4,10 @@ import type {
     VerifyMessageResult as openpgp_VerifyMessageResult,
     CleartextMessage,
     Signature as OpenPGPSignature,
-} from "../openpgp";
-import type { VERIFICATION_STATUS } from "../constants";
-import type { ContextVerificationOptions } from "./context";
-import type { Data, MaybeWebStream } from "../pmcrypto";
+} from "../openpgp.ts";
+import type { VERIFICATION_STATUS } from "../constants.ts";
+import type { ContextVerificationOptions } from "./context.ts";
+import type { Data, MaybeWebStream } from "../pmcrypto.js";
 
 // Streaming not supported when verifying detached signatures
 export interface VerifyOptionsPmcrypto<T extends Data> extends Omit<

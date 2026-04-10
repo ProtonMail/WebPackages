@@ -1,4 +1,4 @@
-import { decryptSessionKeys } from "../openpgp";
+import { decryptSessionKeys } from "../openpgp.ts";
 
 export async function decryptSessionKey(options) {
     const result = await decryptSessionKeys(options);

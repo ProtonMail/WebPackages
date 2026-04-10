@@ -33,9 +33,9 @@ export default async function signMessage({
         message: await createMessage({ [dataType]: data, date }),
         signatureNotations: signatureContext
             ? getNotationForContext(
-                  signatureContext.value,
-                  signatureContext.critical,
-              )
+                signatureContext.value,
+                signatureContext.critical,
+            )
             : undefined,
     };
 

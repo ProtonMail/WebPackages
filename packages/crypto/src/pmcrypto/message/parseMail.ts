@@ -14,7 +14,7 @@ export const parseMail = (mail: string | Uint8Array<ArrayBuffer>) =>
 // This is only used if the parsed attachment does not include a filename.
 // For size reasons, we only support a small subset of mime types, that includes primarily standard types
 // and in particular those types for which the web apps display a custom file icon.
-const mimeExtensions: { [type: string]: string } = {
+const mimeExtensions: Record<string, string> = {
     "application/octet-stream": "bin",
     "application/x-rar-compressed": "rar",
     "application/x-zip-compressed": "zip",

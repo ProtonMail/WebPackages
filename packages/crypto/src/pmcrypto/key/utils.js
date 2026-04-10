@@ -30,7 +30,6 @@ export async function generateKey({
  * @returns {Uint8Array} Generated session key
  * @async (might be needed in the future)
  */
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function generateSessionKeyForAlgorithm(algoName) {
     const keySize = getSymmetricKeySize(algoName);
     return getRandomBytes(keySize);
@@ -82,7 +81,7 @@ export async function isExpiredKey(key, date = serverTime()) {
 
 /**
  * Returns whether the primary key is revoked.
- * @param {import('../openpgp').Key} key
+ * @param {import('../openpgp.ts').Key} key
  * @param {Date} date - date to use for signature verification, instead of the server time
  * @returns {Boolean}
  */
@@ -111,7 +110,7 @@ export const canKeyEncrypt = async (publicKey, date = serverTime()) => {
 };
 
 /**
- * @param {import('../openpgp').Key} key
+ * @param {import('../openpgp.ts').Key} key
  */
 export const getSHA256Fingerprints = (key) => {
     return Promise.all(
@@ -121,8 +120,8 @@ export const getSHA256Fingerprints = (key) => {
             return keyFingerprintIsSHA256
                 ? keyOrSubkey.getFingerprint()
                 : (
-                      await SHA256(keyOrSubkey.keyPacket.writeForHash(version))
-                  ).toHex();
+                    await SHA256(keyOrSubkey.keyPacket.writeForHash(version))
+                ).toHex();
         }),
     );
 };
@@ -130,9 +129,9 @@ export const getSHA256Fingerprints = (key) => {
 /**
  * Find the key entity that generated the given signature.
  * If the signature is signed by multiple keys, only one matching key is returned.
- * @param {Signature} signature
- * @param {Array<import('../openpgp').Key>} keys - keys to search
- * @return {Key|undefined} signing key, if found among `keys`
+ * @param {import('../openpgp.ts').Signature} signature
+ * @param {Array<import('../openpgp.ts').Key>} keys - keys to search
+ * @return {import('../openpgp.ts').Key|undefined} signing key, if found among `keys`
  */
 export function getMatchingKey(signature, keys) {
     const keyIDs = signature.getSigningKeyIDs();

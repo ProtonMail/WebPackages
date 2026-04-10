@@ -1,5 +1,5 @@
-import type { enums } from "../openpgp";
-const SYMMETRIC_KEY_SIZES: { [label: string]: number } = {
+import type { enums } from "../openpgp.ts";
+const SYMMETRIC_KEY_SIZES: Record<string, number> = {
     aes128: 16,
     aes192: 24,
     aes256: 32,

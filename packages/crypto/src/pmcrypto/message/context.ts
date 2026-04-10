@@ -3,7 +3,7 @@
  * It's implemented by adding notation data to signatures, which may be marked as critical, so that
  * the resulting signature can only be verified by a verifier who expects the context to be present.
  */
-import type { SignaturePacket, RawNotation, PartialConfig } from "../openpgp";
+import type { SignaturePacket, RawNotation, PartialConfig } from "../openpgp.ts";
 import { normalizeDate } from "../utils.ts";
 
 // Different contexts will affect the notation's value, not the name
@@ -23,24 +23,24 @@ export interface ContextSigningOptions {
 
 export type ContextVerificationOptions =
     | {
-          value: string;
-          /**
-           * Whether the signature must include context info for verification to succeed:
-           * if `true`, a signature with no context won't verify. If `false`, it will.
-           * Note: if the context is not required, but a different context is found in the signature, verification will always fail.
-           */
-          required: boolean;
-          requiredAfter?: undefined;
-      }
-    | {
-          value: string;
-          required?: undefined;
-          /**
-           * Signatures created after this date must include context info for verification to succeed (same as `required: true`).
-           * For signatures created before the given date, the verification behavior is equivalent to `required: false`
-           * */
-          requiredAfter: Date;
-      };
+        value: string;
+        /**
+         * Whether the signature must include context info for verification to succeed:
+         * if `true`, a signature with no context won't verify. If `false`, it will.
+         * Note: if the context is not required, but a different context is found in the signature, verification will always fail.
+         */
+        required: boolean;
+        requiredAfter?: undefined;
+    }
+| {
+    value: string;
+    required?: undefined;
+    /**
+     * Signatures created after this date must include context info for verification to succeed (same as `required: true`).
+     * For signatures created before the given date, the verification behavior is equivalent to `required: false`
+     * */
+    requiredAfter: Date;
+};
 
 /**
  * Translate a `contextID` string into an OpenPGP notation object, which can be signed as part of the message

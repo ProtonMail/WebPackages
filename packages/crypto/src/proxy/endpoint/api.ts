@@ -71,16 +71,16 @@ import type {
     WorkerSignOptions,
     WorkerVerifyCleartextOptions,
     WorkerVerifyOptions,
-} from "./api.models";
+} from "./api.models.ts";
 
 // Note:
 // - streams are currently not supported since they are not Transferable (not in all browsers).
 // - when returning binary data, the values are always transferred.
 
-type SerializedSignatureOptions = {
+interface SerializedSignatureOptions {
     armoredSignature?: string;
     binarySignature?: Uint8Array<ArrayBuffer>;
-};
+}
 const getSignature = async ({
     armoredSignature,
     binarySignature,
@@ -93,10 +93,10 @@ const getSignature = async ({
     throw new Error("Must provide `armoredSignature` or `binarySignature`");
 };
 
-type SerializedMessageOptions = {
+interface SerializedMessageOptions {
     armoredMessage?: string;
     binaryMessage?: Uint8Array<ArrayBuffer>;
-};
+}
 const getMessage = async ({
     armoredMessage,
     binaryMessage,
@@ -109,10 +109,10 @@ const getMessage = async ({
     throw new Error("Must provide `armoredMessage` or `binaryMessage`");
 };
 
-type SerializedKeyOptions = {
+interface SerializedKeyOptions {
     armoredKey?: string;
     binaryKey?: Uint8Array<ArrayBuffer>;
-};
+}
 const getKey = async ({ armoredKey, binaryKey }: SerializedKeyOptions) => {
     if (armoredKey) {
         return readKey({ armoredKey });
@@ -225,7 +225,7 @@ class KeyStore {
      * NB: key references may be stored by webapps even after the worker has been destroyed (e.g. after closing the browser window),
      * hence we want to keep using different identifiers even after restarting the worker, to also invalidate those stale key references.
      */
-    private nextIdx = crypto.getRandomValues(new Uint32Array(1))[0] as number;
+    private nextIdx = crypto.getRandomValues(new Uint32Array(1))[0];
 
     /**
      * Add a key to the key store.
@@ -236,7 +236,7 @@ class KeyStore {
      * @returns key identifier to retrieve the key from the store
      */
     add(key: Key, customIdx?: number) {
-        const idx = customIdx !== undefined ? customIdx : this.nextIdx;
+        const idx = customIdx ?? this.nextIdx;
         if (this.store.has(idx)) {
             throw new Error(`Idx ${idx} already in use`);
         }
@@ -279,8 +279,8 @@ type SerialisedOutputTypeFromFormat<F extends SerialisedOutputFormat> =
     F extends "armored"
         ? string
         : F extends "binary"
-          ? Uint8Array<ArrayBuffer>
-          : never;
+            ? Uint8Array<ArrayBuffer>
+            : never;
 
 class KeyManagementApi {
     static test = 1;
@@ -327,7 +327,7 @@ class KeyManagementApi {
         // Typescript guards against a passphrase input, but it's best to ensure the option wasn't given since for API simplicity we assume any PrivateKeyReference points to a decrypted key.
         if (!privateKey.isDecrypted()) {
             throw new Error(
-                'Unexpected "passphrase" option on key generation. Use "exportPrivateKey" after key generation to obtain a transferable encrypted key.',
+                "Unexpected 'passphrase' option on key generation. Use 'exportPrivateKey' after key generation to obtain a transferable encrypted key.",
             );
         }
         const keyStoreID = this.keyStore.add(privateKey);
@@ -355,7 +355,7 @@ class KeyManagementApi {
         // Typescript guards against a passphrase input, but it's best to ensure the option wasn't given since for API simplicity we assume any PrivateKeyReference points to a decrypted key.
         if (!privateKey.isDecrypted()) {
             throw new Error(
-                'Unexpected "passphrase" option on key reformat. Use "exportPrivateKey" after key reformatting to obtain a transferable encrypted key.',
+                "Unexpected 'passphrase' option on key reformat. Use 'exportPrivateKey' after key reformatting to obtain a transferable encrypted key.",
             );
         }
         const keyStoreID = this.keyStore.add(privateKey);
@@ -387,8 +387,7 @@ class KeyManagementApi {
         const expectDecrypted = passphrase === null;
         const maybeEncryptedKey = binaryKey
             ? await readPrivateKey({ binaryKey })
-            : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              await readPrivateKey({ armoredKey: armoredKey! });
+            : await readPrivateKey({ armoredKey: armoredKey as string });
         if (checkCompatibility !== KeyCompatibilityLevel.NONE) {
             checkKeyCompatibility(
                 maybeEncryptedKey,
@@ -409,9 +408,7 @@ class KeyManagementApi {
             const usesArgon2 = maybeEncryptedKey.getKeys().some(
                 (keyOrSubkey) =>
                     // @ts-expect-error s2k field not declared
-                    keyOrSubkey.keyPacket.s2k &&
-                    // @ts-expect-error s2k field not declared
-                    keyOrSubkey.keyPacket.s2k.type === "argon2",
+                    keyOrSubkey.keyPacket.s2k?.type === "argon2",
             );
             if (usesArgon2) {
                 // TODO: Argon2 uses Wasm which requires special bundling
@@ -537,6 +534,7 @@ export class Api extends KeyManagementApi {
     async encryptMessage<
         DataType extends Data,
         FormatType extends WorkerEncryptOptions<DataType>["format"] = "armored",
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
         DetachedType extends boolean = false,
     >({
         encryptionKeys: encryptionKeyRefs = [],
@@ -640,7 +638,7 @@ export class Api extends KeyManagementApi {
     >({
         armoredSignature,
         binarySignature,
-        verificationKeys: verificationKeyRefs = [],
+        verificationKeys: verificationKeyRefs,
         ...options
     }: WorkerVerifyOptions<DataType> & { format?: FormatType }) {
         const verificationKeys = toArray(verificationKeyRefs).map(
@@ -677,7 +675,7 @@ export class Api extends KeyManagementApi {
      */
     async verifyCleartextMessage({
         armoredCleartextMessage,
-        verificationKeys: verificationKeyRefs = [],
+        verificationKeys: verificationKeyRefs,
         ...options
     }: WorkerVerifyCleartextOptions) {
         const verificationKeys = toArray(verificationKeyRefs).map(
@@ -747,9 +745,9 @@ export class Api extends KeyManagementApi {
         const encryptedSignature =
             binaryEncSingature || armoredEncSignature
                 ? await getMessage({
-                      binaryMessage: binaryEncSingature,
-                      armoredMessage: armoredEncSignature,
-                  })
+                    binaryMessage: binaryEncSingature,
+                    armoredMessage: armoredEncSignature,
+                })
                 : undefined;
 
         const {
@@ -1235,5 +1233,4 @@ export class Api extends KeyManagementApi {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ApiInterface extends Omit<Api, "keyStore"> {}

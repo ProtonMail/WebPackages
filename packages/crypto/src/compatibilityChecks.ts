@@ -11,7 +11,7 @@ export const isBigIntSupported = () => {
     try {
         // The Palemoon browser v32.4.0.x supports BigInts but not increment/decrements;
         // We check support for these operations to avoid unexpected errors in e.g. OpenPGP.js, pmcrypto and the KT VRF.
-        let check = BigInt("0x1"); // eslint-disable-line @typescript-eslint/no-unused-vars
+        let check = BigInt("0x1");
         check--; // eslint-disable-line @typescript-eslint/no-unused-vars
         return true;
     } catch {

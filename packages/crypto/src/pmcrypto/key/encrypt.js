@@ -1,8 +1,8 @@
 import {
     encryptSessionKey as openpgp_encryptSessionKey,
     encryptKey as openpgp_encryptKey,
-} from "../openpgp";
-import { serverTime } from "../serverTime";
+} from "../openpgp.ts";
+import { serverTime } from "../serverTime.ts";
 
 export const encryptSessionKey = ({ date = serverTime(), ...rest }) =>
     openpgp_encryptSessionKey({ date, ...rest });

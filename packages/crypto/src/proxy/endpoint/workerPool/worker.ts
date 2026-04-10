@@ -1,7 +1,5 @@
 import { expose, transferHandlers } from "comlink";
-// apply polyfills
-import "core-js/stable";
-import "core-js/proposals/array-buffer-base64";
+import "../../../polyfill.ts";
 
 import { Api as WorkerApi } from "../api.ts";
 import { workerTransferHandlers } from "./transferHandlers/index.ts";

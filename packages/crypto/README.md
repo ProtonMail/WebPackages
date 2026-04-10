@@ -8,6 +8,8 @@ The utils functions that `pmcrypto` exported (e.g. `uint8ArrayToBinaryString`) a
 
 Crypto-related functions runnable in web workers are handled by the `CryptoProxy`, which should be initialized together with the apps (see [this section](web-worker-integration) for more info on the setup).
 
+The library uses some syntax and helpers that may not be available in older browsers; polyfill should be manually loaded by the library users if needed, by importing `@protontech/crypto/polyfill`.  NB: polyfills should be loaded only once in a given global JS context. The web-clients apps already include the necessary polyfills in the main thread, but not in workers.
+
 ### Examples
 
 <details>

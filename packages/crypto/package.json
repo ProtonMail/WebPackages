@@ -11,6 +11,7 @@
         "./compatibilityChecks": "./src/compatibilityChecks.ts",
         "./constants": "./src/constants.ts",
         "./internals/message/parseMail.ts": "./src/pmcrypto/message/parseMail.ts",
+        "./polyfill": "./src/polyfill.ts",
         "./proxy/endpoint/api.ts": "./src/proxy/endpoint/api.ts",
         "./proxy/endpoint/workerPool/transferHandlers/*": "./src/proxy/endpoint/workerPool/transferHandlers/*",
         "./proxy/endpoint/workerPool/*": "./src/proxy/endpoint/workerPool/bundlers/*",

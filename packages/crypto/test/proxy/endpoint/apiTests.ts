@@ -266,9 +266,7 @@ yGZuVVMAK/ypFfebDf4D/rlEw3cysv213m8aoK8nAUO8xQX3XQq3Sg+EGm0BNV8E
             armoredMessage: armoredEncryptedWithSEIPDv1,
         });
         expect(encryptedWithSEIPDv1.packets).to.have.length(2);
-        // @ts-expect-error https://github.com/openpgpjs/openpgpjs/pull/1991
-        const seipdV1 = encryptedWithSEIPDv1
-            .packets[1] as SymEncryptedIntegrityProtectedDataPacket;
+        const seipdV1 = encryptedWithSEIPDv1.packets[1] as SymEncryptedIntegrityProtectedDataPacket;
         expect(seipdV1).to.be.instanceOf(
             SymEncryptedIntegrityProtectedDataPacket,
         );
@@ -845,14 +843,12 @@ fLz+Lk0ZkB4L3nhM/c6sQKSsI9k2Tptm1VZ5+Qo=
         const seipdv2Message = await openpgp_readMessage({
             armoredMessage: seipdv2ArmoredMessage,
         });
-        // @ts-expect-error https://github.com/openpgpjs/openpgpjs/pull/1991
         const seipdv2Packet = seipdv2Message.packets.findPacket(
             enums.packet.symEncryptedIntegrityProtectedData,
         ) as SymEncryptedIntegrityProtectedDataPacket;
         expect(
             // @ts-expect-error missing field declaration for SymEncryptedIntegrityProtectedDataPacket
-            seipdv2Packet.version === 2 &&
-                seipdv2Message.packets[0].aeadAlgorithm === enums.aead.gcm,
+            seipdv2Packet.version === 2 && seipdv2Message.packets[0].aeadAlgorithm === enums.aead.gcm,
         );
     });
 

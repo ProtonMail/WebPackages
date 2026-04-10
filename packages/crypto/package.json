@@ -34,7 +34,7 @@
         "comlink": "^4.4.2",
         "core-js": "^3.49.0",
         "jsmimeparser": "npm:@protontech/jsmimeparser@^3.0.2",
-        "openpgp": "npm:@protontech/openpgp@~6.3.0"
+        "openpgp": "npm:@protontech/openpgp@~6.3.1-0"
     },
     "devDependencies": {
         "@protontech/eslint-config": "workspace:*",

@@ -153,12 +153,10 @@ yGZuVVMAK/ypFfebDf4D/rlEw3cysv213m8aoK8nAUO8xQX3XQq3Sg+EGm0BNV8E
             enums.keyFlags.forwardedCommunication,
         );
         // @ts-expect-error oid field not defined
-        expect(charlieSubkey.keyPacket.publicParams.oid).to.deep.equal(
-            bobSubkey.keyPacket.publicParams.oid,
-        );
+        expect(charlieSubkey.keyPacket.publicParams.oid).to.deep.equal(bobSubkey.keyPacket.publicParams.oid);
         // Check KDF params
-        // @ts-expect-error kdfParams field not defined
         const charlieSubkeyKDFParams =
+            // @ts-expect-error kdfParams field not defined
             charlieSubkey.keyPacket.publicParams.kdfParams;
         // @ts-expect-error kdfParams field not defined
         const bobSubkeyKDFParams = bobSubkey.keyPacket.publicParams.kdfParams;
@@ -205,13 +203,11 @@ P0GnopWOyFNNFWK77LQN
             enums.keyFlags.forwardedCommunication,
         );
         // @ts-expect-error oid field not defined
-        expect(charlieSubkey.keyPacket.publicParams.oid).to.deep.equal(
-            bobSubkey.keyPacket.publicParams.oid,
-        );
+        expect(charlieSubkey.keyPacket.publicParams.oid).to.deep.equal(bobSubkey.keyPacket.publicParams.oid);
 
         // Check KDF params
-        // @ts-expect-error kdfParams field not defined
         const charlieSubkeyKDFParams =
+            // @ts-expect-error kdfParams field not defined
             charlieSubkey.keyPacket.publicParams.kdfParams;
         // @ts-expect-error kdfParams field not defined
         const bobSubkeyKDFParams = bobSubkey.keyPacket.publicParams.kdfParams;

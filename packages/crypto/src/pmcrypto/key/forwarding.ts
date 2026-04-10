@@ -8,15 +8,15 @@ import {
     SecretSubkeyPacket,
     type Key,
     config as defaultConfig,
-} from "../openpgp";
-import { generateKey, reformatKey } from "./utils";
-import { serverTime } from "../serverTime";
+} from "../openpgp.ts";
+import { generateKey, reformatKey } from "./utils.ts";
+import { serverTime } from "../serverTime.ts";
 import {
     bigIntToUint8Array,
     mod,
     modInv,
     uint8ArrayToBigInt,
-} from "../bigInteger";
+} from "../bigInteger.ts";
 import type { MaybeArray } from "../utils";
 
 export function computeProxyParameter(
@@ -189,17 +189,17 @@ export async function generateForwardingMaterial(
 
             // Generate proxy factor k (server secret)
             const proxyParameter = computeProxyParameter(
-                // @ts-ignore privateParams fields are not defined
-                forwarderSubkeyPacket.privateParams!.d,
-                // @ts-ignore privateParams fields are not defined
-                forwardeeSubkeyPacket.privateParams!.d,
+                // @ts-expect-error privateParams fields are not defined
+                forwarderSubkeyPacket.privateParams?.d,
+                // @ts-expect-error privateParams fields are not defined
+                forwardeeSubkeyPacket.privateParams?.d,
             );
 
             // fingerprint to be updated with the new KDFParams
             // @ts-expect-error `computeFingerprintAndKeyID` not declared
             await forwardeeSubkeyPacket.computeFingerprintAndKeyID();
             const forwardeeKeyFingerprint =
-                forwardeeSubkeyPacket.getFingerprintBytes()!;
+                forwardeeSubkeyPacket.getFingerprintBytes() as Uint8Array<ArrayBuffer>;
 
             return {
                 keyVersion: forwarderSubkeyPacket.version,

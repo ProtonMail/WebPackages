@@ -97,8 +97,8 @@ importers:
         specifier: npm:@protontech/jsmimeparser@^3.0.2
         version: '@protontech/jsmimeparser@3.0.2'
       openpgp:
-        specifier: npm:@protontech/openpgp@~6.3.0
-        version: '@protontech/openpgp@6.3.0'
+        specifier: npm:@protontech/openpgp@~6.3.1-0
+        version: '@protontech/openpgp@6.3.1-0'
     devDependencies:
       '@protontech/eslint-config':
         specifier: workspace:*
@@ -782,8 +782,8 @@ packages:
   '@protontech/jsmimeparser@3.0.2':
     resolution: {integrity: sha512-PConkdRdY8xc1A8+oEmQ2pGC7nnJPqWwkUb/+odjFPbof2w3zpIws77D9J9assvZg8OdB8dRe/cZdBU+BCijgA==}
 
-  '@protontech/openpgp@6.3.0':
-    resolution: {integrity: sha512-30dFyC2OUSlA8p5EYv+57pANFE9sZ71Koh24i69WrEmqGTsNIhPZmbCMhmLETdd6ZBMnXItYmumWY+CxKoYh+w==}
+  '@protontech/openpgp@6.3.1-0':
+    resolution: {integrity: sha512-TA4wAE86bxYKxrULnnv8Uepu9hKi0e0M/zn4cwiDdgVhEzsqhaKnn3uRSY8Ba9wNcD6gSVALMlUDXdd94k85rA==}
     engines: {node: '>= 18.0.0'}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.11':
@@ -3640,7 +3640,7 @@ snapshots:
 
   '@protontech/jsmimeparser@3.0.2': {}
 
-  '@protontech/openpgp@6.3.0': {}
+  '@protontech/openpgp@6.3.1-0': {}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.11':
     optional: true

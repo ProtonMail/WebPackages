@@ -11,7 +11,7 @@ export default defineConfig({
         // Without this, these worker dependencies are discovered "too late" and trigger a test reload,
         // which causes issues with the worker dynamic imports since the corresponding chunk names
         // become stale
-        include: ["core-js/proposals/array-buffer-base64", "core-js/stable"],
+        include: ["core-js/proposals/array-buffer-base64", "core-js/stable", "bcryptjs"],
     },
     test: {
         projects: [

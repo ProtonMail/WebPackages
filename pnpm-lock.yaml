@@ -45,7 +45,7 @@ importers:
       '@protontech/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@protontech/global-types-monorepo':
+      '@protontech/global-types':
         specifier: workspace:*
         version: link:../global-types
       '@protontech/prettier-config':
@@ -75,7 +75,7 @@ importers:
       '@protontech/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@protontech/global-types-monorepo':
+      '@protontech/global-types':
         specifier: workspace:*
         version: link:../global-types
       '@protontech/prettier-config':

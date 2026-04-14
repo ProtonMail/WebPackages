@@ -16,7 +16,7 @@
     },
     "devDependencies": {
         "@protontech/eslint-config": "workspace:*",
-        "@protontech/global-types-monorepo": "workspace:*",
+        "@protontech/global-types": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
         "eslint": "^10.2.0",

@@ -2,6 +2,6 @@
     "extends": "@protontech/typescript-config/package-config.json",
     "include": ["src"],
     "compilerOptions": {
-        "types": ["@protontech/global-types-monorepo"]
+        "types": ["@protontech/global-types"]
     }
 }

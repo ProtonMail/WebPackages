@@ -20,8 +20,3 @@ export type MiddlewareFn = (
     next: FetchLike,
     context: ProtonFetchContext,
 ) => FetchLike;
-
-export interface Options {
-    middlewares?: MiddlewareFn[];
-    fetchFn?: FetchLike;
-}

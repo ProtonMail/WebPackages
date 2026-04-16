@@ -7,10 +7,11 @@
     "author": "",
     "type": "module",
     "exports": {
-        "./session-bootstrap": "./src/session-bootstrap.ts",
-        "./session-persistence": "./src/session-persistence.ts",
-        "./authorize-client": "./src/authorize-client.ts",
-        "./local-id": "./src/local-id.ts"
+        "./session/session-bootstrap.ts": "./src/session/session-bootstrap.ts",
+        "./session/session-persistence.ts": "./src/session/session-persistence.ts",
+        "./session/authorize-client.ts": "./src/session/authorize-client.ts",
+        "./session/local-id.ts": "./src/session/local-id.ts",
+        "./session/client-key.ts": "./src/session/client-key.ts"
     },
     "scripts": {
         "format": "prettier --write .",

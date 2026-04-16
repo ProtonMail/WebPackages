@@ -12,27 +12,3 @@ export class TimeoutError extends BaseError {
         super("TimeoutError", message, cause);
     }
 }
-
-export class AbortError extends BaseError {
-    constructor(message = "Request was aborted", cause?: unknown) {
-        super("AbortError", message, cause);
-    }
-}
-
-export class RetryLimitError extends BaseError {
-    constructor(message = "Retry limit reached", cause?: unknown) {
-        super("RetryLimitError", message, cause);
-    }
-}
-
-export class NetworkError extends BaseError {
-    constructor(message = "Network error occurred", cause?: unknown) {
-        super("NetworkError", message, cause);
-    }
-}
-
-export class HttpError extends BaseError {
-    constructor(message = "HTTP error occurred", cause?: unknown) {
-        super("HttpError", message, cause);
-    }
-}

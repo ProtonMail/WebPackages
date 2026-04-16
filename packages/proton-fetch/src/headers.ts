@@ -1,8 +1,4 @@
-export interface ProtonConfig {
-    uid?: string;
-    appVersion?: string;
-    locale?: string;
-}
+import type { ProtonConfig } from "./interface.ts";
 
 const headerNameMap = new Map<keyof ProtonConfig, string>([
     ["uid", "x-pm-uid"],

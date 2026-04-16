@@ -1,18 +1,16 @@
 {
   "name": "packages",
   "version": "1.0.0",
-  "description": "",
-  "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "private": true,
+  "license": "GPL-3.0",
   "type": "module",
-  "main": "index.js",
   "scripts": {
     "changeset": "changeset",
     "changeset:comment": "changesets-gitlab comment",
     "changeset:publish": "changeset publish",
     "changeset:release": "changesets-gitlab",
     "changeset:version": "changeset version",
+    "knip": "knip",
     "lint": "pnpm run -r lint",
     "prepare": "husky",
     "test": "pnpm run -r test",
@@ -20,13 +18,19 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
+    "@types/node": "^24",
     "changesets-gitlab": "^0.13.4",
     "husky": "^9.1.7",
+    "knip": "^6.4.1",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
-    "sort-package-json": "^3.6.1"
+    "sort-package-json": "^3.6.1",
+    "typescript": "^6.0.2"
   },
   "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": "^24"
+  },
   "pnpm": {
     "overrides": {
       "undici": "^8.0.2"

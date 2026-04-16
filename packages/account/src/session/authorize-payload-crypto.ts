@@ -1,6 +1,6 @@
 import { decryptData } from "@protontech/crypto/aes-gcm";
 
-export type PayloadBlob =
+type PayloadBlob =
     | {
           type: "default";
           keyPassword: string;

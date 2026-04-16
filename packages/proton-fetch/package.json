@@ -8,6 +8,7 @@
     "type": "module",
     "exports": {
         "./fetch": "./src/protonFetch.ts",
+        "./error": "./src/error.ts",
         "./errors": "./src/errors.ts",
         "./middleware/*": "./src/middleware/*.ts"
     },

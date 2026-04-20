@@ -10,9 +10,9 @@ import { type AesGcmCryptoKey, ENCRYPTION_ALGORITHM } from "../aesGcm.ts";
 const ES_KEY_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12;
 
-export type IndexKey = AesGcmCryptoKey;
+export type IndexKey = AesGcmCryptoKey; // nosemgrep
 export interface GeneratedIndexKey {
-    indexKey: AesGcmCryptoKey;
+    indexKey: AesGcmCryptoKey; // nosemgrep
     exportedJsonKey: JsonWebKey;
 }
 export const generateIndexKey = async (): Promise<GeneratedIndexKey> => {

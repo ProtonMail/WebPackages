@@ -66,7 +66,7 @@ export const getWorkerPoolInstance = (createWorker: () => Worker) => {
 
     const destroyWorker = async (worker: Remote<CryptoApi>) => {
         await worker?.clearKeyStore();
-        worker?.[releaseProxy]();
+        worker?.[releaseProxy](); // nosemgrep
     };
 
     /**

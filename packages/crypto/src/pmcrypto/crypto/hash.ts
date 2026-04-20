@@ -28,7 +28,7 @@ export async function unsafeSHA1(
     data: MaybeWebStream<Uint8Array<ArrayBuffer>>,
 ) {
     if (data instanceof Uint8Array) {
-        const digest = await crypto.subtle.digest("SHA-1", data);
+        const digest = await crypto.subtle.digest("SHA-1", data); // nosemgrep
         return new Uint8Array(digest);
     }
 

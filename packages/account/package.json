@@ -27,11 +27,11 @@
         "@protontech/global-types": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
-        "eslint": "^10.2.0",
+        "eslint": "^10.2.1",
         "fake-indexeddb": "^6.2.5",
-        "prettier": "^3.8.1",
-        "typescript": "^6.0.2",
-        "vitest": "^4.1.2"
+        "prettier": "^3.8.3",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.4"
     },
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",

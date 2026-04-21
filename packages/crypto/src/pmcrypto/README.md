@@ -75,7 +75,7 @@ to encrypt (and/or sign), pass the stream to `textData` or `binaryData` based on
 ```js
 // explicitly loading stream polyfills for legacy browsers is required since v7.2.2
 if (!globalThis.TransformStream) {
-  await import('web-streams-polyfill/es6');
+  await import('web-streams-polyfill/polyfill');
 }
 
 const { data: dataStream, verificationStatus: verifiedPromise } = await decryptMessage({

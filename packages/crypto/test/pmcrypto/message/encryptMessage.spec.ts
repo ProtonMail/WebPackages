@@ -54,7 +54,7 @@ describe("message encryption and decryption", () => {
 
         // load stream polyfills if needed
         if (!globalThis.TransformStream) {
-            await import("web-streams-polyfill/es6");
+            await import("web-streams-polyfill/polyfill");
         }
     });
     // restore openpgp config

@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "@noble/hashes": "^2.2.0",
-        "@openpgp/web-stream-tools": "~0.3.0",
+        "@openpgp/web-stream-tools": "~0.3.1",
         "bcryptjs": "^3.0.3",
         "comlink": "^4.4.2",
         "core-js": "^3.49.0",

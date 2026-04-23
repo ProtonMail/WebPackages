@@ -4,7 +4,7 @@ import {
     mod,
     modExp,
     uint8ArrayToBigInt,
-} from "../bigInteger.ts";
+} from "../pmcrypto/bigInteger.ts";
 import { uint8ArrayToBinaryString, mergeUint8Arrays } from "../utils.ts";
 
 import { AUTH_VERSION, MAX_VALUE_ITERATIONS, SRP_LEN } from "./constants.ts";

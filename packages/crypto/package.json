@@ -7,7 +7,6 @@
     "type": "module",
     "exports": {
         ".": "./src/index.ts",
-        "./bigInteger": "./src/bigInteger.ts",
         "./compatibilityChecks": "./src/compatibilityChecks.ts",
         "./constants": "./src/constants.ts",
         "./internals/message/parseMail.ts": "./src/pmcrypto/message/parseMail.ts",

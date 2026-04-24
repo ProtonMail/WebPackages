@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.0.1
+
+### Patch Changes
+
+- 2440b8c: Fix some exported types used by web-clients and drop unused bigInteger export
+
 ## 2.0.0
 
 ### Major Changes

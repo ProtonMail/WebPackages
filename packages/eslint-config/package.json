@@ -13,16 +13,16 @@
     "dependencies": {
         "@eslint/js": "^10.0.1",
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "^2.0.0",
-        "@typescript-eslint/parser": "^8.58.2",
-        "eslint": "^10.2.1",
+        "@typescript-eslint/parser": "^8.59.3",
+        "eslint": "^10.4.0",
         "eslint-import-resolver-typescript": "4.4.4",
         "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-refresh": "^0.5.2",
-        "globals": "^17.5.0",
+        "globals": "^17.6.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.58.2"
+        "typescript-eslint": "^8.59.3"
     },
     "devDependencies": {
         "@protontech/prettier-config": "workspace:*",

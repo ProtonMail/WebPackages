@@ -1,5 +1,8 @@
 packages:
-    - "packages/*"
+  - "packages/*"
+allowBuilds:
+  core-js: false
+  unrs-resolver: false
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@protontech/*'

@@ -553,7 +553,7 @@ export class Api extends KeyManagementApi {
                 this.keyStore.get(keyReference._idx) as PrivateKey,
         );
         const encryptionKeys = toArray(encryptionKeyRefs).map(
-            (keyReference) => this.keyStore.get(keyReference._idx) as PublicKey,
+            (keyReference) => this.keyStore.get(keyReference._idx),
         );
         const inputSignature =
             binarySignature || armoredSignature
@@ -910,7 +910,7 @@ export class Api extends KeyManagementApi {
         SerialisedOutputTypeFromFormat<FormatType>
     > {
         const encryptionKeys = toArray(encryptionKeyRefs).map(
-            (keyReference) => this.keyStore.get(keyReference._idx) as PublicKey,
+            (keyReference) => this.keyStore.get(keyReference._idx),
         );
         const encryptedData = await encryptSessionKey<FormatType>({
             ...options,

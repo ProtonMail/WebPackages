@@ -1,33 +1,38 @@
-# Packages
+# Web packages
 
-## Releasing changes
+This project is a monorepo hosting Proton web packages that are used across web codebases.
 
-This repo uses [Changesets](https://github.com/changesets/changesets) with [changesets-gitlab](https://github.com/un-ts/changesets-gitlab) to automate versioning and publishing.
+Technically, this monorepo is based on pnpm Workspaces, with separate versioning for all packages inside (via [Changesets](https://github.com/changesets/changesets)).
 
-### As a contributor
+## Getting Started
 
-Every MR that changes a package should include a changeset describing what changed and how it affects the public API.
+### Prerequisites
 
-1. Run `pnpm changeset` and follow the prompts — select the affected packages and bump type (`major`, `minor`, or `patch`)
-2. Commit the generated `.changeset/*.md` file along with your changes
-3. Open your MR — a bot will comment on it confirming the changeset was found
+You'll need to have the following environment to work with this project:
 
-If you forget, the CI `changeset:comment` job will warn you (it's non-blocking, but please add one).
+- Node.js LTS
+- pnpm (or corepack)
+- git
 
-### How releases work
+See `package.json` for specific version requirements.
 
-When your MR is merged into `main`, CI automatically runs `changesets-gitlab`, which does one of two things depending on the state of pending changesets:
+### Installation
 
-- **Pending changesets exist** — it creates (or updates) a "Version Packages" MR that bumps all affected package versions and updates changelogs
-- **"Version Packages" MR was just merged** — it publishes the updated packages to the registry
+```shell
+# Clone the project
+git clone https://github.com/ProtonMail/WebPackages.git
+git clone git@github.com:ProtonMail/WebPackages.git
 
-So the flow is:
-
-```
-feature MR (with changeset) → merge to main
-  → CI creates "Version Packages" MR
-  → merge "Version Packages" MR
-  → CI publishes packages
+# Install all dependencies for the entire monorepo
+pnpm install
 ```
 
-You do not need to manually run `changeset version` or `changeset publish`.
+## Help us to translate the project
+
+You can learn more about it on [our blog post](https://proton.me/blog/translation-community).
+
+## License
+
+The code and data files in this distribution are licensed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See https://www.gnu.org/licenses/ for a copy of this license.
+
+See [LICENSE](LICENSE) file

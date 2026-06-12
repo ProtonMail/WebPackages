@@ -14,7 +14,7 @@ export interface ProtonFetchContext {
     [key: string]: any;
 }
 
-export type FetchResponse = ReturnType<typeof fetch>;
+type FetchResponse = ReturnType<typeof fetch>;
 export type FetchLike = (request: Request) => FetchResponse;
 export type MiddlewareFn = (
     next: FetchLike,

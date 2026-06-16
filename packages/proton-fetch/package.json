@@ -3,7 +3,7 @@
     "version": "1.0.4",
     "description": "",
     "keywords": [],
-    "license": "ISC",
+    "license": "GPL-3.0",
     "author": "",
     "type": "module",
     "exports": {

@@ -46,15 +46,15 @@
         "@types/bn.js": "^5.2.0",
         "@types/elliptic": "^6.4.18",
         "@types/sinon": "^21.0.1",
-        "@vitest/browser-playwright": "^4.1.6",
+        "@vitest/browser-playwright": "^4.1.8",
         "bn.js": "^5.2.3",
         "elliptic": "^6.6.1",
-        "eslint": "^10.4.0",
+        "eslint": "^10.5.0",
         "playwright": "^1.60.0",
         "sinon": "^21.1.2",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.59.3",
-        "vitest": "^4.1.6",
+        "typescript-eslint": "^8.61.0",
+        "vitest": "^4.1.8",
         "web-streams-polyfill": "^4.3.0"
     }
 }

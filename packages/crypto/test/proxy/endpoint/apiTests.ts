@@ -6,6 +6,7 @@ import {
 import {
     type CompressedDataPacket,
     SymEncryptedIntegrityProtectedDataPacket,
+    type WebStream,
     enums,
     config as openpgp_config,
     decryptKey as openpgp_decryptKey,
@@ -51,6 +52,8 @@ import {
     multipartSignedMessage,
     multipartSignedMessageBody,
 } from "./processMIME.data.ts";
+import { readToEnd } from "@openpgp/web-stream-tools";
+import { chunkUint8Array, streamFromChunks } from "../../streamingHelpers.ts";
 
 export const runApiTests = (CryptoApiImplementation: CryptoApiInterface) => {
     it("OpenPGP grammar is enforced", async () => {
@@ -318,6 +321,71 @@ yGZuVVMAK/ypFfebDf4D/rlEw3cysv213m8aoK8nAUO8xQX3XQq3Sg+EGm0BNV8E
         expect(binaryDecryptionResult.verificationStatus).to.equal(
             VERIFICATION_STATUS.NOT_SIGNED,
         );
+    });
+
+    it("encryptMessageStream/decryptMessageStream - should encrypt and decrypt streamed data (AEAD)", async () => {
+        const generateStreamOfData = (): {
+            stream: WebStream<Uint8Array<ArrayBuffer>>;
+            data: Uint8Array<ArrayBuffer>;
+        } => {
+            const data = crypto.getRandomValues(new Uint8Array(10000));
+            const chunks = chunkUint8Array(data, 100);
+
+            return {
+                stream: streamFromChunks(chunks),
+                data
+            };
+        }
+
+        const { stream: inputStream, data: inputData } = generateStreamOfData();
+
+        const privateKeyRef = await CryptoApiImplementation.generateKey({
+            userIDs: { name: "name", email: "email@test.com" },
+            config: { aeadProtect: true }
+        });
+        const { messageStream: encryptedBinaryMessageStream } =
+            await CryptoApiImplementation.encryptMessageStream({
+                binaryDataStream: inputStream,
+                encryptionKeys: privateKeyRef,
+                signingKeys: privateKeyRef,
+                signatureContext: { value: "test-context", critical: true },
+                config: { ignoreSEIPDv2FeatureFlag: false },
+                format: "binary"
+            });
+        expect(encryptedBinaryMessageStream).toBeInstanceOf(ReadableStream);
+        const binaryMessage = await readToEnd(encryptedBinaryMessageStream);
+
+        const { dataStream: decryptedStream } = await CryptoApiImplementation.decryptMessageStream({
+            binaryMessageStream: streamFromChunks(
+                chunkUint8Array(binaryMessage, 100)
+            ),
+            decryptionKeys: privateKeyRef,
+            format: "binary"
+        });
+        expect(await readToEnd(decryptedStream).then(bytes => bytes.toHex())).to.equal(
+            inputData.toHex(),
+        );
+
+        // Test that partial AEAD decryption error is propagated to the transferred stream, to be handled
+        // on the main thread
+        const corruptedBinaryMessage = binaryMessage.slice(); corruptedBinaryMessage[corruptedBinaryMessage.length - 1]++;
+        const { dataStream: decryptedStreamWithError } = await CryptoApiImplementation.decryptMessageStream({
+            binaryMessageStream: streamFromChunks(
+                chunkUint8Array(corruptedBinaryMessage, 100)
+            ),
+            decryptionKeys: privateKeyRef
+        });
+        await expect(readToEnd(decryptedStreamWithError)).rejects.toThrow("Authentication tag mismatch")
+
+        // Check message signature (verification not currently implemented in decryptMessageStream)
+        const { verificationStatus } = await CryptoApiImplementation.decryptMessage({
+            binaryMessage,
+            decryptionKeys: privateKeyRef,
+            verificationKeys: privateKeyRef,
+            signatureContext: { value: "test-context", required: true },
+            format: "binary"
+        });
+        expect(verificationStatus).toBe(VERIFICATION_STATUS.SIGNED_AND_VALID);
     });
 
     it("encryptMessage/decryptMessage - with elgamal key", async () => {

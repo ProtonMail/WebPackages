@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TransferHandler } from "comlink";
 
-import type { ComputeHashStreamOptions, KeyReference } from "../../api.models.ts";
+import type { KeyReference } from "../../api.models.ts";
 import {
     type SerializeWebStreamTypes,
     ReadableStreamSerializer,
@@ -78,28 +78,33 @@ const KeyReferenceSerializer = {
         }) as KeyReference,
 };
 
+const keyOptionNames = [
+    "verificationKeys",
+    "signingKeys",
+    "encryptionKeys",
+    "decryptionKeys",
+    "privateKey",
+    "key",
+    "recipientKeys",
+    "targetKey",
+    "sourceKey",
+    "forwarderKey",
+] as const;
+type SerializedKeyOptions = Record<typeof keyOptionNames[number], SerializedKeyReference | SerializedKeyReference[]>;
+type KeyOptions = Partial<Record<typeof keyOptionNames[number], KeyReference | KeyReference[]>> & Record<string, unknown>;
 const KeyOptionsSerializer = {
-    _optionNames: [
-        "verificationKeys",
-        "signingKeys",
-        "encryptionKeys",
-        "decryptionKeys",
-        "privateKey",
-        "key",
-        "recipientKeys",
-        "targetKey",
-        "sourceKey",
-        "forwarderKey",
-    ],
-    canHandle: (options: any): options is KeyReference | KeyReference[] => {
+    _optionNames: keyOptionNames,
+    canHandle: (options: any): options is KeyOptions => {
         if (typeof options !== "object") {
             return false;
         }
-        return KeyOptionsSerializer._optionNames.some((name) => options[name]);
+        return KeyOptionsSerializer._optionNames.some(
+            (name) => options[name] && KeyReferenceSerializer.canHandle(options[name])
+        );
     },
 
-    serialize: (options: any) => {
-        const serializedOptions = { ...options };
+    serialize: (options: KeyOptions & Record<string, unknown>) => {
+        const serializedOptions = { ...options } as unknown as SerializedKeyOptions & Record<string, unknown>;
         KeyOptionsSerializer._optionNames.forEach((name) => {
             if (options[name]) {
                 serializedOptions[name] = Array.isArray(options[name])
@@ -109,12 +114,12 @@ const KeyOptionsSerializer = {
         });
         return serializedOptions;
     },
-
-    deserialize: (serializedOptions: any) => {
-        const options = { ...serializedOptions };
+    getTransferables: () => [],
+    deserialize: (serializedOptions: SerializedKeyOptions) => {
+        const options = { ...serializedOptions } as unknown as KeyOptions & Record<string, unknown>;
         KeyOptionsSerializer._optionNames.forEach((name) => {
             if (serializedOptions[name]) {
-                options[name] = Array.isArray(options[name])
+                options[name] = Array.isArray(serializedOptions[name])
                     ? serializedOptions[name].map(
                         KeyReferenceSerializer.deserialize,
                     )
@@ -128,29 +133,46 @@ const KeyOptionsSerializer = {
     },
 };
 
-type SerializedComputeHashStreamOptions =
-    SerializeWebStreamTypes<ComputeHashStreamOptions>;
-const ComputeHashStreamOptionsSerializer = {
-    canHandle: (input: any): input is ComputeHashStreamOptions =>
+const streamOptionNames = [
+    // "dataStream", // computeHashStream
+    "binaryDataStream",
+    "binaryMessageStream"
+] as const;
+type StreamOptions = Partial<Record<typeof streamOptionNames[number], ReadableStream>>// & Record<string, unknown>;
+type SerializedStreamOptions = SerializeWebStreamTypes<StreamOptions> & Record<string, unknown>//Partial<Record<typeof streamOptionNames[number], MessagePort>> & Record<string, unknown>;
+
+const StreamOptionsSerializer = {
+    _optionNames: streamOptionNames,
+    canHandle: (input: any): input is StreamOptions =>
         typeof input === "object" &&
-        input.algorithm &&
-        ReadableStreamSerializer.canHandle(input.dataStream),
+        StreamOptionsSerializer._optionNames.some(
+            (name) => ReadableStreamSerializer.canHandle(input[name])),
 
-    serialize: ({
-        dataStream,
-        ...rest
-    }: ComputeHashStreamOptions): SerializedComputeHashStreamOptions => ({
-        ...rest,
-        dataStream: ReadableStreamSerializer.serialize(dataStream),
-    }),
-
-    deserialize: ({
-        dataStream,
-        ...rest
-    }: SerializedComputeHashStreamOptions): ComputeHashStreamOptions => ({
-        ...rest,
-        dataStream: ReadableStreamSerializer.deserialize(dataStream),
-    }),
+    serialize: (data: StreamOptions): SerializedStreamOptions => {
+        const serializedOptions = { ...data } as unknown as SerializedStreamOptions;
+        StreamOptionsSerializer._optionNames.forEach((name) => {
+            if (data[name]) {
+                serializedOptions[name] = ReadableStreamSerializer.serialize(data[name]);
+            }
+        });
+        return serializedOptions;
+    },
+    getTransferables: (input: SerializedStreamOptions) => {
+        const transferables = StreamOptionsSerializer._optionNames
+            .filter((name) => input[name] instanceof MessagePort)
+            .map((name) => input[name]);
+        // 'signatures' are always in binary form
+        return transferables;
+    },
+    deserialize: (serializedOptions: SerializedStreamOptions): StreamOptions & Record<string, unknown> => {
+        const options = { ...serializedOptions } as unknown as StreamOptions;
+        StreamOptionsSerializer._optionNames.forEach((name) => {
+            if (serializedOptions[name]) {
+                options[name] = ReadableStreamSerializer.deserialize(serializedOptions[name]);
+            }
+        });
+        return options;
+    },
 };
 
 interface SerializedError {
@@ -176,15 +198,24 @@ const ResultTranferer = {
         "encryptedSignature",
         "sessionKey",
     ],
+    _streamFieldNames: ["messageStream", "dataStream"],
     _errorFieldNames: ["errors", "verificationErrors"],
     canHandle: (result: any): result is any => {
         if (typeof result !== "object") {
             return false;
         }
-        return ResultTranferer._binaryFieldNames.some((name) => result[name]);
+        return ResultTranferer._binaryFieldNames.some((name) => result[name]) ||
+            ResultTranferer._streamFieldNames.some(
+                (name) => result[name] && ReadableStreamSerializer.canHandle(result[name])
+            );
     },
     serialize: (result: any) => {
         const serializedResult = { ...result };
+        ResultTranferer._streamFieldNames.forEach((name) => {
+            if (result[name]) {
+                serializedResult[name] = ReadableStreamSerializer.serialize(result[name]);
+            }
+        });
         ResultTranferer._errorFieldNames.forEach((name) => {
             if (result[name]) {
                 serializedResult[name] = result[name].map(
@@ -195,11 +226,15 @@ const ResultTranferer = {
         return serializedResult;
     },
     getTransferables: (result: any) => {
-        const transferables = ResultTranferer._binaryFieldNames
+        const transferablesBuffers = ResultTranferer._binaryFieldNames
             .filter((name) => result[name] instanceof Uint8Array)
             .map((name) => result[name].buffer);
+        const transferablesStreams = ResultTranferer._streamFieldNames
+            .filter((name) => result[name] instanceof MessagePort)
+            .map((name) => result[name]);
         // 'signatures' are always in binary form
-        return transferables.concat(
+        return transferablesBuffers.concat(
+            transferablesStreams,
             result.signatures
                 ? result.signatures.map(
                     (sig: Uint8Array<ArrayBuffer>) => sig.buffer,
@@ -209,6 +244,11 @@ const ResultTranferer = {
     },
     deserialize: (serializedResult: any) => {
         const result = { ...serializedResult };
+        ResultTranferer._streamFieldNames.forEach((name) => {
+            if (serializedResult[name]) {
+                result[name] = ReadableStreamSerializer.deserialize(serializedResult[name]);
+            }
+        });
         ResultTranferer._errorFieldNames.forEach((name) => {
             if (serializedResult[name]) {
                 result[name] = serializedResult[name].map(
@@ -216,10 +256,42 @@ const ResultTranferer = {
                 );
             }
         });
-
         return result;
     },
 };
+
+type SerializedOptions = SerializedKeyOptions & SerializedStreamOptions
+/**
+ * NB: only one transfer handle is applied per input, hence transferer are needed to combine multiple serializers.
+ * Currently the logic is bundled together since we don't have overlapping option names with
+ * types that require different serialization (e.g. for streams we use specific option names).
+ */
+const OptionTransferer = {
+    _combinedSerializers: [KeyOptionsSerializer, StreamOptionsSerializer],
+    canHandle: (options: any): options is KeyOptions | StreamOptions => {
+        if (typeof options !== "object") {
+            return false;
+        }
+        return OptionTransferer._combinedSerializers.some(
+            (serializer) => serializer.canHandle(options)
+        );
+    },
+    serialize: (options: any): SerializedOptions => OptionTransferer._combinedSerializers.reduce(
+        // avoid calling the serializer unnecessarily
+        (partiallySerialized, serializer) => serializer.canHandle(partiallySerialized) ? serializer.serialize(partiallySerialized) : partiallySerialized,
+        options
+    ),
+    getTransferables: (serializedOptions: SerializedOptions) => OptionTransferer._combinedSerializers.reduce<Transferable[]>(
+        (partialTransferables, serializer) => partialTransferables.concat(
+            serializer.getTransferables(serializedOptions) ?? []
+        ),
+        []
+    ),
+    deserialize: (serializedOptions: any): KeyOptions | StreamOptions => OptionTransferer._combinedSerializers.reduce(
+        (partiallyDeserialized, serializer) => serializer.deserialize(partiallyDeserialized),
+        serializedOptions
+    )
+}
 
 interface OneWayTransferHandler {
     name: string;
@@ -258,45 +330,42 @@ const oneWayTransferHanders: OneWayTransferHandler[] = [
         },
     },
     {
-        name: "ComputeHashStreamOptions", // takes stream as input but returns a Uint8Array (responsibility of a different handler)
-        workerHandler: {
-            canHandle: ComputeHashStreamOptionsSerializer.canHandle,
-            serialize: () => [undefined, []], // unused on worker side
-            deserialize: ComputeHashStreamOptionsSerializer.deserialize,
-        },
-        mainThreadHandler: {
-            canHandle: (
-                input: any,
-            ): input is {
-                dataStream: ReadableStream<Uint8Array<ArrayBuffer>>;
-            } =>
-                typeof input === "object" &&
-                ReadableStreamSerializer.canHandle(input.dataStream),
-            serialize: ({ dataStream, ...rest }: any) => {
-                const serializedStreamPort =
-                    ReadableStreamSerializer.serialize(dataStream);
-                return [
-                    { dataStream: serializedStreamPort, ...rest },
-                    [serializedStreamPort], // transferables
-                ];
-            },
-            deserialize: () => {}, // unused on main thread side
-        },
-    },
-    {
         name: "encrypt/decrypt/sign/verifyResult", // result objects are already serialised, but we need to transfer all Uint8Arrays fields from worker
         workerHandler: {
             canHandle: ResultTranferer.canHandle,
-            serialize: (result: any) => [
-                ResultTranferer.serialize(result),
-                ResultTranferer.getTransferables(result), // transferables
-            ],
+            serialize: (result: any) => {
+                const serializedResult = ResultTranferer.serialize(result);
+                return [
+                    serializedResult,
+                    ResultTranferer.getTransferables(serializedResult), // transferables
+                ]
+            },
             deserialize: (result: any) => result, // unused
         },
         mainThreadHandler: {
             canHandle: ResultTranferer.canHandle,
             serialize: (result: any) => [result, []], // unused
             deserialize: ResultTranferer.deserialize,
+        },
+    },
+    {
+        name: "Options",
+        workerHandler: {
+            canHandle: OptionTransferer.canHandle,
+            serialize: () => [undefined, []], // unused on worker side
+            deserialize: OptionTransferer.deserialize,
+        },
+        mainThreadHandler: {
+            canHandle: OptionTransferer.canHandle,
+            serialize: (options: StreamOptions | KeyOptions) => {
+                const serializedOptions =
+                    OptionTransferer.serialize(options);
+                return [
+                    serializedOptions,
+                    OptionTransferer.getTransferables(serializedOptions)
+                ];
+            },
+            deserialize: () => {}, // unused on main thread side
         },
     },
 ];
@@ -315,17 +384,6 @@ const sharedTransferHandlers: ExportedTransferHandler[] = [
                 [], // transferables
             ],
             deserialize: KeyReferenceSerializer.deserialize,
-        },
-    },
-    {
-        name: "KeyOptions", // only passed by the main thread, but it's harmless to declare the same handler on both sides
-        handler: {
-            canHandle: KeyOptionsSerializer.canHandle,
-            serialize: (options: object) => [
-                KeyOptionsSerializer.serialize(options),
-                [], // transferables
-            ],
-            deserialize: KeyOptionsSerializer.deserialize,
         },
     },
 ];

@@ -20,7 +20,7 @@ import type {
     VerifyMessageResult,
     VerifyOptionsPmcrypto,
 } from "../../pmcrypto/index.ts";
-import type { PartialConfig, enums } from "../../pmcrypto/openpgp.ts";
+import type { PartialConfig, WebStream, enums } from "../../pmcrypto/openpgp.ts";
 
 import type { KeyCompatibilityLevel } from "../../constants.ts";
 
@@ -56,6 +56,12 @@ export interface WorkerDecryptionOptions extends Omit<
     decryptionKeys?: MaybeArray<PrivateKeyReference>;
     sessionKeys?: MaybeArray<SessionKey>;
     config?: PartialConfig;
+}
+export interface WorkerStreamDecryptionOptions extends WorkerDecryptionOptions {
+    armoredMessage?: undefined;
+    binaryMessage?: undefined;
+    verificationKeys?: never[];
+    binaryMessageStream: WebStream<Uint8Array<ArrayBuffer>>;
 }
 export interface WorkerDecryptionResult<T extends Data> extends Omit<
     DecryptResultPmcrypto<T>,
@@ -107,6 +113,14 @@ export interface WorkerEncryptOptions<T extends Data> extends Omit<
     signingKeys?: MaybeArray<PrivateKeyReference>;
     compress?: boolean;
     config?: PartialConfig;
+}
+export interface WorkerStreamEncryptOptions extends WorkerEncryptOptions<Uint8Array<ArrayBuffer> /* unused */ > {
+    textData?: undefined,
+    binaryData?: undefined,
+    // only binary streams are supported, to simplify transferHandler implementation
+    binaryDataStream: WebStream<Uint8Array<ArrayBuffer>>
+    // for simplicity, avoid returning detached signatures until we have a use-case
+    detached?: false
 }
 
 export interface WorkerProcessMIMEOptions extends Omit<

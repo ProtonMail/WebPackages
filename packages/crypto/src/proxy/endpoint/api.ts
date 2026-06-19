@@ -38,10 +38,11 @@ import {
     type Argon2Options,
     type Data,
     type Key,
+    type MaybeWebStream,
     type PrivateKey,
     type PublicKey,
 } from "../../pmcrypto/index.ts";
-import { type UserID, enums } from "../../pmcrypto/openpgp.ts";
+import { type UserID, type WebStream, enums } from "../../pmcrypto/openpgp.ts";
 
 import { ARGON2_PARAMS, KeyCompatibilityLevel } from "../../constants.ts";
 import type {
@@ -68,12 +69,14 @@ import type {
     WorkerProcessMIMEOptions,
     WorkerReformatKeyOptions,
     WorkerSignOptions,
+    WorkerStreamDecryptionOptions,
+    WorkerStreamEncryptOptions,
     WorkerVerifyCleartextOptions,
     WorkerVerifyOptions,
 } from "./api.models.ts";
 
 // Note:
-// - streams are currently not supported since they are not Transferable (not in all browsers).
+// - streams require special handing since they are not Transferable (not in all browsers).
 // - when returning binary data, the values are always transferred.
 
 interface SerializedSignatureOptions {
@@ -92,14 +95,20 @@ const getSignature = async ({
     throw new Error("Must provide `armoredSignature` or `binarySignature`");
 };
 
-interface SerializedMessageOptions {
-    armoredMessage?: string;
-    binaryMessage?: Uint8Array<ArrayBuffer>;
+interface SerializedMessageOptions<
+    Armored extends MaybeWebStream<string>,
+    Binary extends MaybeWebStream<Uint8Array<ArrayBuffer>>
+> {
+    armoredMessage?: Armored;
+    binaryMessage?: Binary;
 }
-const getMessage = async ({
+const getMessage = async <
+    Armored extends MaybeWebStream<string>,
+    Binary extends MaybeWebStream<Uint8Array<ArrayBuffer>>
+>({
     armoredMessage,
     binaryMessage,
-}: SerializedMessageOptions) => {
+}: SerializedMessageOptions<Armored, Binary>) => {
     if (armoredMessage) {
         return readMessage({ armoredMessage });
     } else if (binaryMessage) {
@@ -586,7 +595,73 @@ export class Api extends KeyManagementApi {
     }
 
     /**
-     * Create a signature over the given data using `signingKeys`.
+     * Similar to `encryptMessage` but for ReadableStream inputs of `binaryData`.
+     * Options remain the same, expect for the following enforced ones (for simplicity):
+     * - `detached: false`
+     */
+    async encryptMessageStream<
+        FormatType extends WorkerStreamEncryptOptions["format"] = "armored"
+    >({
+        binaryDataStream,
+        binaryData,
+        textData,
+        encryptionKeys: encryptionKeyRefs = [],
+        signingKeys: signingKeyRefs = [],
+        armoredSignature,
+        binarySignature,
+        compress = false,
+        config = {},
+        ...options
+    }: WorkerStreamEncryptOptions  & {
+        format?: FormatType;
+    }) {
+        if (binaryData || textData) {
+            // safety check if TS errors are ignored
+            throw new Error("Input data must be passed to `binaryDataStream`.");
+        }
+        if (options.detached) {
+            throw new Error("Detached signatures not supported with streamed encryption");
+        }
+        const signingKeys = toArray(signingKeyRefs).map(
+            (keyReference) =>
+                this.keyStore.get(keyReference._idx) as PrivateKey,
+        );
+        const encryptionKeys = toArray(encryptionKeyRefs).map(
+            (keyReference) => this.keyStore.get(keyReference._idx),
+        );
+        const inputSignature =
+            binarySignature || armoredSignature
+                ? await getSignature({ armoredSignature, binarySignature })
+                : undefined;
+
+        if (config.preferredCompressionAlgorithm) {
+            throw new Error(
+                "Passing `config.preferredCompressionAlgorithm` is not supported. Use `compress` option instead.",
+            );
+        }
+
+        const { message: messageStream } = await encryptMessage<
+            WebStream<Uint8Array<ArrayBuffer>>,
+            FormatType
+        >({
+            ...options,
+            binaryData: binaryDataStream,
+            encryptionKeys,
+            signingKeys,
+            signature: inputSignature,
+            config: {
+                ...config,
+                preferredCompressionAlgorithm: compress
+                    ? enums.compression.zlib
+                    : enums.compression.uncompressed,
+            },
+        });
+
+        return { messageStream } as { messageStream: WebStream<SerialisedOutputTypeFromFormat<FormatType>> };
+    }
+
+    /**
+* Create a signature over the given data using `signingKeys`.
      * Either `textData` or `binaryData` must be given.
      * @param options.textData - text data to sign
      * @param options.binaryData - binary data to sign
@@ -776,6 +851,57 @@ export class Api extends KeyManagementApi {
         // the decrypted signatures after decryption.
         // Note: asking the apps to call `verifyMessage` separately is not an option, since
         // the verification result is to be considered invalid outside of the encryption context if the intended recipient is present, see: https://datatracker.ietf.org/doc/html/draft-ietf-openpgp-crypto-refresh#section-5.2.3.32
+    }
+
+    /**
+     * Similar to `decryptMessage` but for ReadableStream inputs for armoredMessage/binaryMessage.
+     * Options remain the same, except for verification being unsupported
+     */
+    async decryptMessageStream<
+        FormatType extends WorkerStreamDecryptionOptions["format"] = "utf8",
+    >({
+        decryptionKeys: decryptionKeyRefs = [],
+        verificationKeys: verificationKeyRefs = [],
+        binaryMessageStream,
+        armoredMessage,
+        binaryMessage,
+        armoredSignature,
+        binarySignature,
+        armoredEncryptedSignature: armoredEncSignature,
+        binaryEncryptedSignature: binaryEncSingature,
+        ...options
+    }: WorkerStreamDecryptionOptions & { format?: FormatType }) {
+
+        if (binaryMessage || armoredMessage) {
+            // safety check if TS errors are ignored
+            throw new Error("Input data must be passed to `binaryMessageStream`.");
+        }
+
+        if (verificationKeyRefs.length > 0 ||
+            binarySignature || armoredSignature || binaryEncSingature || armoredEncSignature) {
+            // verification not supported for now for simplicity, since there is no use-case (more details below)
+            throw new Error("Signature verification is not supported with streamed decryption");
+        }
+
+        const decryptionKeys = toArray(decryptionKeyRefs).map(
+            (keyReference) =>
+                this.keyStore.get(keyReference._idx) as PrivateKey,
+        );
+
+        const message = await readMessage({ binaryMessage: binaryMessageStream });
+
+        // Do not return signatures, verificationErrors, verificationStatus for now since they are all
+        // Promises and require new a custom transfer handler
+        const { data: dataStream } = await decryptMessage<WebStream<Uint8Array<ArrayBuffer>>, FormatType>({
+            ...options,
+            message,
+            decryptionKeys,
+            verificationKeys: [],
+        });
+
+        return {
+            dataStream
+        } as { dataStream: WebStream<FormatType extends "binary" ? Uint8Array<ArrayBuffer> : string> };
     }
 
     /**

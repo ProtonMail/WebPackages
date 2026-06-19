@@ -140,10 +140,16 @@ export const CryptoProxy: CryptoProxyInterface = {
 
     encryptMessage: async ({ date = serverTime(), ...opts }) =>
         assertNotNull(endpoint).encryptMessage({ ...opts, date }),
+    encryptMessageStream: async ({ date = serverTime(), ...opts }) =>
+        assertNotNull(endpoint).encryptMessageStream({ ...opts, date }),
     decryptMessage: async ({
         date = new Date(+serverTime() + DEFAULT_SIGNATURE_VERIFICATION_OFFSET),
         ...opts
     }) => assertNotNull(endpoint).decryptMessage({ ...opts, date }),
+    decryptMessageStream: async ({
+        date = new Date(+serverTime() + DEFAULT_SIGNATURE_VERIFICATION_OFFSET),
+        ...opts
+    }) => assertNotNull(endpoint).decryptMessageStream({ ...opts, date }),
     signMessage: async ({ date = serverTime(), ...opts }) =>
         assertNotNull(endpoint).signMessage({ ...opts, date }),
     verifyMessage: async ({

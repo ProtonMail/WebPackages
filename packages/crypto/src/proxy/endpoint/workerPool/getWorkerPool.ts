@@ -161,8 +161,12 @@ export const getWorkerPoolInstance = (createWorker: () => Worker) => {
         encryptMessage: async (opts) =>
             // @ts-expect-error marked as non-callable, unclear why, might be due to a limitation of type Remote
             (await getWorker()).encryptMessage(opts).catch(errorReporter),
+        encryptMessageStream: async (opts) =>
+            (await getWorker()).encryptMessageStream(opts).catch(errorReporter),
         decryptMessage: async (opts) =>
             (await getWorker()).decryptMessage(opts).catch(errorReporter),
+        decryptMessageStream: async (opts) =>
+            (await getWorker()).decryptMessageStream(opts).catch(errorReporter),
         signMessage: async (opts) =>
             // @ts-expect-error marked as non-callable, unclear why, might be due to a limitation of type Remote
             (await getWorker()).signMessage(opts).catch(errorReporter),

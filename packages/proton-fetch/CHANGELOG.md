@@ -1,5 +1,11 @@
 # @protontech/fetch
 
+## 1.1.0
+
+### Minor Changes
+
+- aa3e772: Add in app account switcher
+
 ## 1.0.4
 
 ### Patch Changes

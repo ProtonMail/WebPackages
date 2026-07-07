@@ -1,5 +1,17 @@
 # @protontech/account
 
+## 3.0.0
+
+### Minor Changes
+
+- aa3e772: Add in app account switcher
+
+### Patch Changes
+
+- Updated dependencies [aa3e772]
+    - @protontech/fetch@1.1.0
+    - @protontech/web-utils@0.0.2
+
 ## 2.0.0
 
 ### Minor Changes

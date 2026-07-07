@@ -153,7 +153,9 @@ export class SessionBootstrapClient {
                             }
                             return undefined;
                         })(error.code),
-                        localId: error.sessionDbDto?.data.localId,
+                        localId:
+                            authorizeParameters.localId ??
+                            error.sessionDbDto?.data.localId,
                     }),
                 );
                 return {

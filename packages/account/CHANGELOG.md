@@ -1,5 +1,13 @@
 # @protontech/account
 
+## 3.0.1
+
+### Patch Changes
+
+- acf481c: Fix fallback in bootstrap
+- Updated dependencies [4f6d734]
+    - @protontech/fetch@1.1.1
+
 ## 3.0.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @protontech/fetch
 
+## 1.1.1
+
+### Patch Changes
+
+- 4f6d734: Fix unauthorized handler
+
 ## 1.1.0
 
 ### Minor Changes

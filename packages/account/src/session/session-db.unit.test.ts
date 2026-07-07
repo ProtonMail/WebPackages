@@ -26,17 +26,17 @@ function makeDto(
     };
 }
 
-describe("SessionDb.save / load", () => {
+describe("SessionDb.save / get", () => {
     it("returns undefined for a missing localId", async () => {
         const db = new SessionDb();
-        expect(await db.load(99)).toBeUndefined();
+        expect(await db.get(99)).toBeUndefined();
     });
 
     it("round-trips a saved session", async () => {
         const db = new SessionDb();
         const dto = makeDto(1);
         await db.save(dto);
-        expect(await db.load(1)).toEqual(dto);
+        expect(await db.get(1)).toEqual(dto);
     });
 
     it("overwrites an existing entry on re-save", async () => {
@@ -44,7 +44,7 @@ describe("SessionDb.save / load", () => {
         await db.save(makeDto(1, 1000));
         const updated = makeDto(1, 9999);
         await db.save(updated);
-        expect(await db.load(1)).toEqual(updated);
+        expect(await db.get(1)).toEqual(updated);
     });
 });
 
@@ -54,7 +54,7 @@ describe("SessionDb.delete", () => {
         const dto = makeDto(2);
         await db.save(dto);
         await db.delete(dto);
-        expect(await db.load(2)).toBeUndefined();
+        expect(await db.get(2)).toBeUndefined();
     });
 
     it("is a no-op when the session does not exist", async () => {
@@ -93,7 +93,7 @@ describe("SessionDb.setLastUsed", () => {
         const dto = makeDto(1, 1000);
         await db.save(dto);
         await db.setLastUsed(dto, 9999);
-        const loaded = await db.load(1);
+        const loaded = await db.get(1);
         expect(loaded?.meta.usedAt).toBe(9999);
     });
 
@@ -102,7 +102,7 @@ describe("SessionDb.setLastUsed", () => {
         const dto = makeDto(1, 1000, 42);
         await db.save(dto);
         await db.setLastUsed(dto, 9999);
-        const loaded = await db.load(1);
+        const loaded = await db.get(1);
         expect(loaded?.meta.persistedAt).toBe(42);
     });
 

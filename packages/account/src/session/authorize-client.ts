@@ -8,6 +8,7 @@ import {
     decryptPayload,
     type PayloadResult,
 } from "./authorize-payload-crypto.ts";
+import { serializeUsers } from "./signout-parameters.ts";
 
 export const AccountAuthorizeQueryParameters = {
     App: "app",
@@ -42,24 +43,25 @@ export interface AuthorizeParametersOptions {
     forkVersion?: number;
     payloadType?: "offline";
     payloadVersion?: ForkPayloadVersion;
-    reason?: "sign-out" | "expired" | "not-found" | "corrupted";
+    reason?: "signout" | "expired" | "not-found" | "corrupted";
     unauthenticatedReturnUrl?: string;
     redirectUrl?: string;
     localId?: number;
     email?: string;
+    users?: string[];
 }
 
 export class AuthorizeParameters {
-    private options: AuthorizeParametersOptions;
+    #options: AuthorizeParametersOptions;
 
     constructor(options: AuthorizeParametersOptions) {
-        this.options = options;
-        this.options.payloadVersion = options.payloadVersion ?? 3;
+        this.#options = options;
+        this.#options.payloadVersion = options.payloadVersion ?? 3;
     }
 
     serialize() {
         const searchParams = new URLSearchParams();
-        const options = this.options;
+        const options = this.#options;
 
         searchParams.append(AccountAuthorizeQueryParameters.App, options.app);
 
@@ -119,13 +121,21 @@ export class AuthorizeParameters {
                 options.redirectUrl,
             );
         }
+        if (options.email !== undefined) {
+            searchParams.append("email", options.email);
+        }
+        const hashParams = new URLSearchParams();
+        if (options.users !== undefined && options.users.length > 0) {
+            hashParams.append("sessions", serializeUsers(options.users));
+        }
 
-        return searchParams.toString();
+        return `?${searchParams.toString()}${hashParams.size > 0 ? `#${hashParams.toString()}` : ""}`;
     }
 }
 
 export class AuthorizeState<T> {
-    public data: T | null;
+    data: T | null;
+
     constructor(data: T | null) {
         this.data = data;
     }
@@ -174,7 +184,7 @@ interface AuthorizeCallbackParametersDto {
 }
 
 export class AuthorizeCallbackParameters {
-    public dto: AuthorizeCallbackParametersDto;
+    dto: AuthorizeCallbackParametersDto;
 
     constructor(dto: AuthorizeCallbackParametersDto) {
         this.dto = dto;
@@ -254,8 +264,9 @@ interface PostCookiesDto {
 }
 
 export class AuthorizeError extends Error {
-    public status: number;
-    public json: unknown;
+    status: number;
+    json: unknown;
+
     constructor(status: number, json: unknown) {
         super("Something went wrong authorizing the user");
         this.name = "AuthorizeError";
@@ -267,13 +278,13 @@ export class AuthorizeError extends Error {
 export class AuthorizeUnprocessableError extends AuthorizeError {}
 
 export class AuthorizeClient {
-    private fetch: typeof window.fetch;
+    #fetch: typeof window.fetch;
 
     constructor({ fetch }: { fetch: typeof window.fetch }) {
-        this.fetch = fetch;
+        this.#fetch = fetch;
     }
 
-    public getCallbackParameters(url: URL) {
+    getCallbackParameters(url: URL) {
         if (url.pathname === "/login") {
             const hashParameters = new URLSearchParams(url.hash.slice(1));
             return AuthorizeCallbackParameters.parse(hashParameters);
@@ -281,14 +292,14 @@ export class AuthorizeClient {
         return null;
     }
 
-    public static generateAuthorizePath(parameters: AuthorizeParameters) {
-        return `/authorize?${parameters.serialize()}`;
+    static generateAuthorizePath(parameters: AuthorizeParameters) {
+        return `/authorize${parameters.serialize()}`;
     }
 
-    public async initialize(
+    async initialize(
         authorizeCallbackParameters: AuthorizeCallbackParameters,
     ): Promise<SaveSessionParams> {
-        const getForkResponse = await this.fetch(
+        const getForkResponse = await this.#fetch(
             new Request(
                 `/auth/v4/sessions/forks/${authorizeCallbackParameters.dto.selector}`,
                 {
@@ -338,7 +349,7 @@ export class AuthorizeClient {
             ResponseType: "token",
             GrantType: "refresh_token",
         };
-        const postCookiesResponse = await this.fetch(
+        const postCookiesResponse = await this.#fetch(
             new Request(`/core/v4/auth/cookies`, {
                 method: "POST",
                 body: JSON.stringify(cookiesData),

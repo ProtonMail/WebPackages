@@ -27,7 +27,7 @@ interface Store {
     clearItem: typeof clearItem;
 }
 export class SessionMem {
-    private store: Store;
+    #store: Store;
 
     constructor(
         store: Store = {
@@ -36,18 +36,20 @@ export class SessionMem {
             clearItem,
         },
     ) {
-        this.store = store;
+        this.#store = store;
     }
 
-    private key() {
+    #key() {
         return `session`;
     }
 
-    public async load(
-        localId: number | undefined,
-    ): Promise<SessionMemDto | undefined> {
+    async clear() {
+        await this.#store.clearItem(this.#key()).catch(() => {});
+    }
+
+    async get(localId: number | undefined): Promise<SessionMemDto | undefined> {
         try {
-            const data = await this.store.getItem(this.key());
+            const data = await this.#store.getItem(this.#key());
             if (!data) {
                 return undefined;
             }
@@ -62,12 +64,12 @@ export class SessionMem {
             }
             return result;
         } catch {
-            await this.store.clearItem(this.key()).catch(() => {});
+            await this.clear();
             return undefined;
         }
     }
 
-    public async save(data: SessionMemDto) {
-        await this.store.setItem(this.key(), JSON.stringify(data));
+    async save(data: SessionMemDto) {
+        await this.#store.setItem(this.#key(), JSON.stringify(data));
     }
 }

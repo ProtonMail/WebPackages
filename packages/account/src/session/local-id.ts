@@ -6,7 +6,7 @@ export const stripLeadingAndTrailingSlash = (str: string) =>
 export const getLocalIdPath = (u?: number) =>
     u === undefined ? undefined : `u/${u}`;
 
-export const getValidLocalId = (localID = "") => {
+export const getValidLocalId = (localID = ""): number | undefined => {
     if (!localID) {
         return;
     }
@@ -22,7 +22,9 @@ export const getValidLocalId = (localID = "") => {
     }
 };
 
-export const getLocalIdFromPathname = (pathname: string) => {
+export const getLocalIdFromPathname = (
+    pathname: string,
+): number | undefined => {
     const maybeLocalID = /^\/?u\/([^/]+)\/?/.exec(pathname)?.[1];
     return getValidLocalId(maybeLocalID);
 };
@@ -73,9 +75,9 @@ export const getPathWithoutLocalId = (url: string) => {
 };
 
 export class LocalIdUrl {
-    public localId: number | undefined;
-    public url: URL;
-    public basename: string;
+    localId: number | undefined;
+    url: URL;
+    basename: string;
 
     constructor(localId: number | undefined, basename: string, url: URL) {
         this.url = url;

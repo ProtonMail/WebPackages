@@ -31,7 +31,7 @@ interface SessionDbSchema extends DBSchema {
     };
 }
 export class SessionDb {
-    private async db() {
+    async #db() {
         return await openDB<SessionDbSchema>("sessions", 1, {
             upgrade(db) {
                 const sessionStore = db.createObjectStore("sessions");
@@ -40,30 +40,35 @@ export class SessionDb {
         });
     }
 
-    public async load(localId: number): Promise<SessionDbDto | undefined> {
-        const db = await this.db();
+    async getAll(): Promise<SessionDbDto[]> {
+        const db = await this.#db();
+        return await db.getAll("sessions");
+    }
+
+    async get(localId: number): Promise<SessionDbDto | undefined> {
+        const db = await this.#db();
         return await db.get("sessions", `${localId}`);
     }
 
-    public async save(dto: SessionDbDto) {
-        const db = await this.db();
+    async save(dto: SessionDbDto) {
+        const db = await this.#db();
         await db.put("sessions", dto, `${dto.data.localId}`);
     }
 
-    public async delete(dto: SessionDbDto) {
-        const db = await this.db();
+    async delete(dto: SessionDbDto) {
+        const db = await this.#db();
         await db.delete("sessions", `${dto.data.localId}`);
     }
 
-    public async getLastUsed(): Promise<SessionDbDto | undefined> {
-        const db = await this.db();
+    async getLastUsed(): Promise<SessionDbDto | undefined> {
+        const db = await this.#db();
         const tx = db.transaction("sessions");
         const index = tx.store.index("by-used-at");
         const cursor = await index.openCursor(null, "prev");
         return cursor?.value;
     }
 
-    public async setLastUsed(sessionDbDto: SessionDbDto, date: number) {
+    async setLastUsed(sessionDbDto: SessionDbDto, date: number) {
         const updated: SessionDbDto = {
             ...sessionDbDto,
             meta: { ...sessionDbDto.meta, usedAt: date },

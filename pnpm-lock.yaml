@@ -44,6 +44,9 @@ importers:
       '@protontech/fetch':
         specifier: workspace:^
         version: link:../proton-fetch
+      '@protontech/web-utils':
+        specifier: workspace:*
+        version: link:../web-utils
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -244,6 +247,33 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  packages/web-utils:
+    devDependencies:
+      '@protontech/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@protontech/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      '@protontech/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^10.5.0
+        version: 10.5.0(jiti@2.7.0)
+      happy-dom:
+        specifier: ^20.10.3
+        version: 20.10.6
+      prettier:
+        specifier: ^3.8.4
+        version: 3.8.4
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.9(@types/node@24.13.2)(@vitest/browser-playwright@4.1.9)(happy-dom@20.10.6)(vite@8.1.0(@types/node@24.13.2)(jiti@2.7.0)(yaml@2.9.0))
 
 packages:
 

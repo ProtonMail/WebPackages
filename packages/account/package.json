@@ -7,11 +7,15 @@
     "author": "",
     "type": "module",
     "exports": {
-        "./session/session-bootstrap.ts": "./src/session/session-bootstrap.ts",
+        "./client/account-client.ts": "./src/client/account-client.ts",
+        "./session/session-bootstrap-client.ts": "./src/session/session-bootstrap-client.ts",
         "./session/session-persistence.ts": "./src/session/session-persistence.ts",
         "./session/authorize-client.ts": "./src/session/authorize-client.ts",
+        "./session/signout-parameters.ts": "./src/session/signout-parameters.ts",
         "./session/local-id.ts": "./src/session/local-id.ts",
-        "./session/client-key.ts": "./src/session/client-key.ts"
+        "./session/client-key.ts": "./src/session/client-key.ts",
+        "./sessions/sessions-client.ts": "./src/sessions/sessions-client.ts",
+        "./sessions/sessions-storage.ts": "./src/sessions/sessions-storage.ts"
     },
     "scripts": {
         "format": "prettier --write .",
@@ -35,6 +39,7 @@
     },
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",
-        "@protontech/fetch": "workspace:^"
+        "@protontech/fetch": "workspace:^",
+        "@protontech/web-utils": "workspace:*"
     }
 }

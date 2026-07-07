@@ -24,11 +24,10 @@ export type SessionErrorCode =
     (typeof SessionErrorCode)[keyof typeof SessionErrorCode];
 
 export class SessionError extends Error {
-    public code: SessionErrorCode;
-    public sessionDbDto: SessionDbDto | null;
-    public status: number;
-    public json: unknown;
-    public originalError: unknown;
+    code: SessionErrorCode;
+    sessionDbDto: SessionDbDto | null;
+    status: number;
+    json: unknown;
     constructor(
         code: SessionErrorCode,
         sessionDbDto: SessionDbDto | null,
@@ -37,21 +36,21 @@ export class SessionError extends Error {
         originalError: unknown,
     ) {
         super("Session error occurred");
-        this.name = "SessionError";
+        this.name = new.target.name;
         this.code = code;
         this.sessionDbDto = sessionDbDto;
         this.status = status;
         this.json = json;
-        this.originalError = originalError;
+        this.cause = originalError;
     }
 }
 
 export class SessionAuthError extends SessionError {}
 
 export class SessionPersistence {
-    private fetch: typeof window.fetch;
-    private sessionDb: SessionDb;
-    private sessionMem: SessionMem;
+    #fetch: typeof window.fetch;
+    #sessionDb: SessionDb;
+    #sessionMem: SessionMem;
 
     constructor({
         fetch,
@@ -62,18 +61,18 @@ export class SessionPersistence {
         sessionDb?: SessionDb;
         sessionMem?: SessionMem;
     }) {
-        this.fetch = fetch;
-        this.sessionDb = sessionDb;
-        this.sessionMem = sessionMem;
+        this.#fetch = fetch;
+        this.#sessionDb = sessionDb;
+        this.#sessionMem = sessionMem;
     }
 
-    public async getSessionFromMemory(
+    async getSessionFromMemory(
         localId?: number,
     ): Promise<SessionDto | undefined> {
-        const memSession = await this.sessionMem.load(localId);
+        const memSession = await this.#sessionMem.get(localId);
 
         if (memSession) {
-            const sessionDbDto = await this.sessionDb.load(memSession.localId);
+            const sessionDbDto = await this.#sessionDb.get(memSession.localId);
             if (sessionDbDto) {
                 const accountSessionDto: SessionDto = {
                     sessionDbDto,
@@ -85,10 +84,10 @@ export class SessionPersistence {
         }
     }
 
-    public async getSessionFromStorage(
+    async getSessionFromStorage(
         sessionDbDto: SessionDbDto,
     ): Promise<SessionDto> {
-        const response = await this.fetch(
+        const response = await this.#fetch(
             new Request("/auth/v4/sessions/local/key", {
                 method: "get",
                 headers: {
@@ -98,7 +97,7 @@ export class SessionPersistence {
         );
         if (response.status === 401) {
             // TODO: Was a refresh attempted?
-            await this.sessionDb.delete(sessionDbDto).catch(() => {});
+            await this.#sessionDb.delete(sessionDbDto).catch(() => {});
             throw new SessionAuthError(
                 SessionErrorCode.SessionExpired,
                 sessionDbDto,
@@ -132,7 +131,7 @@ export class SessionPersistence {
             };
             return sessionDto;
         } catch (error) {
-            await this.sessionDb.delete(sessionDbDto).catch(() => {});
+            await this.#sessionDb.delete(sessionDbDto).catch(() => {});
             throw new SessionAuthError(
                 SessionErrorCode.Decryption,
                 sessionDbDto,
@@ -143,7 +142,7 @@ export class SessionPersistence {
         }
     }
 
-    private async useSession(sessionDto: SessionDto) {
+    async #useSession(sessionDto: SessionDto) {
         const now = Date.now();
         const memorySessionDto: SessionMemDto = {
             localId: sessionDto.sessionDbDto.data.localId,
@@ -151,17 +150,17 @@ export class SessionPersistence {
             clientKey: sessionDto.clientKey,
         };
         await Promise.all([
-            this.sessionDb.setLastUsed(sessionDto.sessionDbDto, now),
-            this.sessionMem.save(memorySessionDto),
+            this.#sessionDb.setLastUsed(sessionDto.sessionDbDto, now),
+            this.#sessionMem.save(memorySessionDto),
         ]);
     }
 
-    public async saveSession(data: SaveSessionParams): Promise<SessionDto> {
+    async saveSession(data: SaveSessionParams): Promise<SessionDto> {
         const { serializedData, key } = await generateClientKey();
 
         let response: Response;
         try {
-            response = await this.fetch(
+            response = await this.#fetch(
                 new Request("/auth/v4/sessions/local/key", {
                     method: "put",
                     headers: {
@@ -214,29 +213,29 @@ export class SessionPersistence {
                 usedAt: now,
             },
         };
-        await this.sessionDb.save(sessionDbDto);
+        await this.#sessionDb.save(sessionDbDto);
         const sessionDto: SessionDto = {
             sessionDbDto: sessionDbDto,
             keyPassword: data.keyPassword,
             clientKey: serializedData,
         };
-        await this.useSession(sessionDto);
+        await this.#useSession(sessionDto);
         return sessionDto;
     }
 
-    public async getSession(localId: number | undefined): Promise<SessionDto> {
+    async getSession(localId: number | undefined): Promise<SessionDto> {
         const memoryAccountSessionDto =
             await this.getSessionFromMemory(localId);
         if (memoryAccountSessionDto) {
-            await this.useSession(memoryAccountSessionDto);
+            await this.#useSession(memoryAccountSessionDto);
             return memoryAccountSessionDto;
         }
         const sessionDbDto = await (localId === undefined
-            ? this.sessionDb.getLastUsed()
-            : this.sessionDb.load(localId));
+            ? this.#sessionDb.getLastUsed()
+            : this.#sessionDb.get(localId));
         if (sessionDbDto) {
             const sessionDto = await this.getSessionFromStorage(sessionDbDto);
-            await this.useSession(sessionDto);
+            await this.#useSession(sessionDto);
             return sessionDto;
         }
         throw new SessionAuthError(
@@ -246,5 +245,44 @@ export class SessionPersistence {
             null,
             null,
         );
+    }
+
+    async signOutSession({
+        localId,
+        type,
+    }: {
+        localId: number;
+        type: "unauthorized" | "signOut";
+    }): Promise<"ok" | "fail"> {
+        try {
+            const sessionDb = await this.#sessionDb.get(localId);
+            if (!sessionDb) {
+                return "fail";
+            }
+            // The in-memory cache holds a single session. Only evict it when it
+            // belongs to the account being signed out, otherwise signing out one
+            // account would needlessly drop another account's cached session.
+            const memSession = await this.#sessionMem.get(localId);
+            if (memSession) {
+                await this.#sessionMem.clear();
+            }
+            await this.#sessionDb.delete(sessionDb);
+            if (type === "signOut") {
+                await this.#fetch(
+                    new Request(`/core/v4/auth`, {
+                        method: "DELETE",
+                        headers: {
+                            "x-pm-uid": sessionDb.data.uid,
+                        },
+                    }),
+                ).catch(() => {});
+            }
+            // The session has been torn down locally; that is what consumers
+            // care about, so report success regardless of the server's response
+            // to the revocation call.
+            return "ok";
+        } catch {
+            return "fail";
+        }
     }
 }

@@ -62,7 +62,9 @@ export const createRefreshMiddleware = (
                 }
                 // Refresh failed, return 401 to consumers
                 else if (refreshResponse === "fail") {
-                    onUnauthorized?.();
+                    if (uid === context.config.uid) {
+                        onUnauthorized?.();
+                    }
                     return response;
                 }
                 // Other network error

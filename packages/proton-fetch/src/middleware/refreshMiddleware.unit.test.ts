@@ -277,7 +277,7 @@ describe("refreshMiddleware", () => {
     });
 
     describe("onUnauthorized callback", () => {
-        it("invokes the callback with the original request when refresh fails", async () => {
+        it("invokes the callback when refresh fails for the config's uid", async () => {
             const onUnauthorized = vi.fn();
             const terminal: FetchLike = vi
                 .fn()
@@ -293,6 +293,28 @@ describe("refreshMiddleware", () => {
             )(req);
 
             expect(onUnauthorized).toHaveBeenCalledOnce();
+            // The listener takes no arguments.
+            expect(onUnauthorized).toHaveBeenCalledWith();
+            expect(result.status).toBe(401);
+        });
+
+        it("does not invoke the callback when the failed refresh is for a different uid than the config", async () => {
+            const onUnauthorized = vi.fn();
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+            vi.mocked(refreshOnce).mockResolvedValue("fail");
+            // A secondary session's uid, not the one in the config.
+            const req = new Request("https://api.proton.me/test", {
+                headers: { "x-pm-uid": "user-999" },
+            });
+
+            const result = await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext({ createFetch: vi.fn().mockReturnValue(vi.fn()) }),
+            )(req);
+
+            expect(onUnauthorized).not.toHaveBeenCalled();
             expect(result.status).toBe(401);
         });
 

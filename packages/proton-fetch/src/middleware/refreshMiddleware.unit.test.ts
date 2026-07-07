@@ -4,8 +4,10 @@ import type {
     ProtonConfig,
     ProtonFetchContext,
 } from "../interface.ts";
-import { refreshMiddleware } from "./refreshMiddleware.ts";
+import { createRefreshMiddleware } from "./refreshMiddleware.ts";
 import { getRefresh, refreshOnce } from "../refreshManager.ts";
+
+const refreshMiddleware = createRefreshMiddleware();
 
 vi.mock("../requestLock.ts", () => ({
     requestLock: vi.fn((_id: string, cb: () => Promise<unknown>) => cb()),
@@ -144,15 +146,14 @@ describe("refreshMiddleware", () => {
     });
 
     it("retries the request after a successful refresh", async () => {
-        const retryResponse = new Response(null, { status: 200 });
-        const retryFetch = vi.fn().mockResolvedValue(retryResponse);
+        // The retry is re-sent downstream via `next` (the terminal), not the
+        // rebuilt chain — so the terminal is hit twice: 401 then 200.
         const terminal: FetchLike = vi
             .fn()
-            .mockResolvedValue(new Response(null, { status: 401 }));
+            .mockResolvedValueOnce(new Response(null, { status: 401 }))
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
         vi.mocked(refreshOnce).mockResolvedValue("ok");
-        const ctx = makeContext({
-            createFetch: vi.fn().mockReturnValue(retryFetch),
-        });
+        const ctx = makeContext();
         const result = await refreshMiddleware(
             terminal,
             ctx,
@@ -161,8 +162,25 @@ describe("refreshMiddleware", () => {
                 headers: { "x-pm-uid": "user-123" },
             }),
         );
-        expect(retryFetch).toHaveBeenCalledOnce();
+        expect(terminal).toHaveBeenCalledTimes(2);
         expect(result.status).toBe(200);
+    });
+
+    it("retries a body-less request with the same object (no clone)", async () => {
+        const terminal: FetchLike = vi
+            .fn()
+            .mockResolvedValueOnce(new Response(null, { status: 401 }))
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
+        vi.mocked(refreshOnce).mockResolvedValue("ok");
+        const req = new Request("https://api.proton.me/test", {
+            headers: { "x-pm-uid": "user-123" },
+        });
+
+        await createRefreshMiddleware()(terminal, makeContext())(req);
+
+        // GET has no body, so there is nothing to replay — the retry re-sends
+        // the very same request object downstream.
+        expect(terminal).toHaveBeenNthCalledWith(2, req);
     });
 
     it("returns the original 401 response when refresh fails", async () => {
@@ -256,5 +274,125 @@ describe("refreshMiddleware", () => {
         expect(createFetch).toHaveBeenCalledWith(
             expect.objectContaining({ refresh: true }),
         );
+    });
+
+    describe("onUnauthorized callback", () => {
+        it("invokes the callback with the original request when refresh fails", async () => {
+            const onUnauthorized = vi.fn();
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+            vi.mocked(refreshOnce).mockResolvedValue("fail");
+            const req = new Request("https://api.proton.me/test", {
+                headers: { "x-pm-uid": "user-123" },
+            });
+
+            const result = await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext({ createFetch: vi.fn().mockReturnValue(vi.fn()) }),
+            )(req);
+
+            expect(onUnauthorized).toHaveBeenCalledOnce();
+            expect(result.status).toBe(401);
+        });
+
+        it("does not invoke the callback when the retry after refresh still returns 401", async () => {
+            const onUnauthorized = vi.fn();
+            const retryFetch = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+            vi.mocked(refreshOnce).mockResolvedValue("ok");
+
+            await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext({
+                    createFetch: vi.fn().mockReturnValue(retryFetch),
+                }),
+            )(
+                new Request("https://api.proton.me/test", {
+                    headers: { "x-pm-uid": "user-123" },
+                }),
+            );
+
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
+
+        it("does not invoke the callback on a 401 with no uid (no refresh attempted)", async () => {
+            const onUnauthorized = vi.fn();
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+
+            await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext(),
+            )(new Request("https://api.proton.me/test"));
+
+            expect(refreshOnce).not.toHaveBeenCalled();
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
+
+        it("does not invoke the callback when the refresh retry succeeds", async () => {
+            const onUnauthorized = vi.fn();
+            const retryFetch = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 200 }));
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+            vi.mocked(refreshOnce).mockResolvedValue("ok");
+
+            await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext({
+                    createFetch: vi.fn().mockReturnValue(retryFetch),
+                }),
+            )(
+                new Request("https://api.proton.me/test", {
+                    headers: { "x-pm-uid": "user-123" },
+                }),
+            );
+
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
+
+        it("does not invoke the callback on a non-401 response", async () => {
+            const onUnauthorized = vi.fn();
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 200 }));
+
+            await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext(),
+            )(
+                new Request("https://api.proton.me/test", {
+                    headers: { "x-pm-uid": "user-123" },
+                }),
+            );
+
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
+
+        it("does not invoke the callback on the internal refresh retry (context.refresh=true)", async () => {
+            const onUnauthorized = vi.fn();
+            const terminal: FetchLike = vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 401 }));
+
+            await createRefreshMiddleware(onUnauthorized)(
+                terminal,
+                makeContext({ refresh: true }),
+            )(
+                new Request("https://api.proton.me/test", {
+                    headers: { "x-pm-uid": "user-123" },
+                }),
+            );
+
+            expect(onUnauthorized).not.toHaveBeenCalled();
+        });
     });
 });

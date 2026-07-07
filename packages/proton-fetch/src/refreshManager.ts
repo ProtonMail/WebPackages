@@ -9,10 +9,14 @@ const runner = new KeyedSingleRunner();
 export async function handleRefresh(
     httpFetch: (request: Request) => Promise<Response>,
     uid: string,
+    baseUrl: string | URL,
 ): Promise<"ok" | "fail" | Response> {
     return requestLock(`refresh-${uid}`, async () => {
         const refreshResponse = await httpFetch(
-            new Request(`/auth/refresh`, {
+            // Resolve against the configured base URL so the Request can be
+            // constructed even where there is no document origin to resolve a
+            // relative path against (e.g. a blob worker).
+            new Request(new URL("/auth/refresh", baseUrl), {
                 method: "post",
                 headers: {
                     "x-pm-uid": uid,
@@ -20,9 +24,19 @@ export async function handleRefresh(
             }),
         );
 
-        if (refreshResponse.status === 200) return "ok";
-        if (refreshResponse.status >= 400 && refreshResponse.status < 500)
+        // Just a little delay to ensure no issue with cookies
+        await new Promise((resolve) => {
+            setTimeout(resolve, 50);
+        });
+
+        if (refreshResponse.status === 200) {
+            return "ok";
+        }
+        if (refreshResponse.status >= 400 && refreshResponse.status < 500) {
+            // Try to get the json to help debugging in dev tools
+            await refreshResponse.json().catch(() => {});
             return "fail";
+        }
 
         return refreshResponse;
     });
@@ -31,8 +45,9 @@ export async function handleRefresh(
 export async function refreshOnce(
     httpFetch: Parameters<typeof handleRefresh>[0],
     uid: Parameters<typeof handleRefresh>[1],
+    baseUrl: Parameters<typeof handleRefresh>[2],
 ) {
-    return runner.run(uid, () => handleRefresh(httpFetch, uid));
+    return runner.run(uid, () => handleRefresh(httpFetch, uid, baseUrl));
 }
 
 export function getRefresh(uid: string) {

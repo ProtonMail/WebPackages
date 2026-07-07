@@ -125,6 +125,66 @@ describe("ProtonFetch", () => {
         await pf.fetch("https://api.proton.me/events");
         expect(capturedRequest?.signal).toBeDefined();
     });
+
+    it("replays the request body when retrying after a refresh", async () => {
+        let call = 0;
+        // Simulate the network layer consuming the request body when sending,
+        // as the real fetch does. The first send is unauthorized; the retry
+        // after a successful refresh must run against a fresh body — otherwise
+        // originMiddleware's copyRequest throws "body stream already read".
+        const fetchFn = vi.fn().mockImplementation(async (req: Request) => {
+            call += 1;
+            await req.arrayBuffer();
+            return new Response(null, { status: call === 1 ? 401 : 200 });
+        });
+        vi.mocked(refreshOnce).mockResolvedValue("ok");
+
+        const pf = new ProtonFetch({
+            fetchFn,
+            config: {
+                ...baseConfig,
+                url: new URL("https://api.proton.me/api"),
+            },
+        });
+        const result = await pf.fetch("https://placeholder.local/events", {
+            method: "POST",
+            body: "payload",
+        });
+
+        expect(result.status).toBe(200);
+        expect(fetchFn).toHaveBeenCalledTimes(2);
+    });
+
+    it("retries downstream without re-running originMiddleware", async () => {
+        let call = 0;
+        const seenUrls: string[] = [];
+        const fetchFn = vi.fn().mockImplementation((req: Request) => {
+            call += 1;
+            seenUrls.push(req.url);
+            return Promise.resolve(
+                new Response(null, { status: call === 1 ? 401 : 200 }),
+            );
+        });
+        vi.mocked(refreshOnce).mockResolvedValue("ok");
+
+        const pf = new ProtonFetch({
+            fetchFn,
+            config: {
+                ...baseConfig,
+                url: new URL("https://api.proton.me/api/v1"),
+            },
+        });
+        const result = await pf.fetch("https://placeholder.local/events");
+
+        expect(result.status).toBe(200);
+        // The retry re-sends the already-rewritten URL as-is. If
+        // originMiddleware ran a second time it would prepend the path prefix
+        // again (…/api/v1/v1/events), so both sends must see the identical URL.
+        expect(seenUrls).toEqual([
+            "https://api.proton.me/api/v1/events",
+            "https://api.proton.me/api/v1/events",
+        ]);
+    });
 });
 
 // ─────────────────────────────────────────────

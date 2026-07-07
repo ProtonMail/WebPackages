@@ -7,6 +7,7 @@ vi.mock("./requestLock", () => ({
 }));
 
 const uid = "user-123";
+const baseUrl = new URL("https://api.proton.me");
 
 function mockFetch(status: number) {
     return vi.fn().mockResolvedValue(new Response(null, { status }));
@@ -19,18 +20,20 @@ describe("handleRefresh", () => {
 
     it("makes a POST to /auth/refresh with uid and appversion headers", async () => {
         const fetch = mockFetch(200);
-        await handleRefresh(fetch, uid);
+        await handleRefresh(fetch, uid, baseUrl);
 
         expect(fetch).toHaveBeenCalledOnce();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const request: Request = fetch.mock?.calls?.[0]?.[0];
         expect(request.method).toBe("POST");
-        expect(request.url).toContain("/auth/refresh");
+        // Resolved against baseUrl so the Request is absolute (works without a
+        // document origin, e.g. in a blob worker).
+        expect(request.url).toBe("https://api.proton.me/auth/refresh");
         expect(request.headers.get("x-pm-uid")).toBe(uid);
     });
 
     it("acquires a lock scoped to the uid", async () => {
-        await handleRefresh(mockFetch(200), uid);
+        await handleRefresh(mockFetch(200), uid, baseUrl);
 
         expect(requestLock).toHaveBeenCalledWith(
             `refresh-${uid}`,
@@ -39,33 +42,33 @@ describe("handleRefresh", () => {
     });
 
     it("returns 'ok' for a 200 response", async () => {
-        const result = await handleRefresh(mockFetch(200), uid);
+        const result = await handleRefresh(mockFetch(200), uid, baseUrl);
         expect(result).toBe("ok");
     });
 
     it("returns 'fail' for a 400 response", async () => {
-        const result = await handleRefresh(mockFetch(400), uid);
+        const result = await handleRefresh(mockFetch(400), uid, baseUrl);
         expect(result).toBe("fail");
     });
 
     it("returns 'fail' for a 401 response", async () => {
-        const result = await handleRefresh(mockFetch(401), uid);
+        const result = await handleRefresh(mockFetch(401), uid, baseUrl);
         expect(result).toBe("fail");
     });
 
     it("returns 'fail' for a 499 response (upper 4xx boundary)", async () => {
-        const result = await handleRefresh(mockFetch(499), uid);
+        const result = await handleRefresh(mockFetch(499), uid, baseUrl);
         expect(result).toBe("fail");
     });
 
     it("returns the Response for a 500 error", async () => {
-        const result = await handleRefresh(mockFetch(500), uid);
+        const result = await handleRefresh(mockFetch(500), uid, baseUrl);
         expect(result).toBeInstanceOf(Response);
         expect((result as Response).status).toBe(500);
     });
 
     it("returns the Response for non-200, non-4xx status (e.g. 503)", async () => {
-        const result = await handleRefresh(mockFetch(503), uid);
+        const result = await handleRefresh(mockFetch(503), uid, baseUrl);
         expect(result).toBeInstanceOf(Response);
         expect((result as Response).status).toBe(503);
     });
@@ -77,7 +80,7 @@ describe("refreshOnce", () => {
     });
 
     it("runs a refresh and returns 'ok'", async () => {
-        const result = await refreshOnce(mockFetch(200), uid);
+        const result = await refreshOnce(mockFetch(200), uid, baseUrl);
         expect(result).toBe("ok");
     });
 
@@ -93,8 +96,8 @@ describe("refreshOnce", () => {
                 }),
         );
 
-        const p1 = refreshOnce(pendingFetch, "uid-dedup");
-        const p2 = refreshOnce(pendingFetch, "uid-dedup");
+        const p1 = refreshOnce(pendingFetch, "uid-dedup", baseUrl);
+        const p2 = refreshOnce(pendingFetch, "uid-dedup", baseUrl);
 
         expect(pendingFetch).toHaveBeenCalledOnce();
 
@@ -122,8 +125,8 @@ describe("refreshOnce", () => {
                 }),
         );
 
-        const p1 = refreshOnce(fetch1, "uid-sep-a");
-        const p2 = refreshOnce(fetch2, "uid-sep-b");
+        const p1 = refreshOnce(fetch1, "uid-sep-a", baseUrl);
+        const p2 = refreshOnce(fetch2, "uid-sep-b", baseUrl);
 
         // Each uid gets its own fetch call immediately.
         expect(fetch1).toHaveBeenCalledOnce();
@@ -140,8 +143,8 @@ describe("refreshOnce", () => {
     it("allows a new refresh after the previous one completes", async () => {
         const fetch = mockFetch(200);
 
-        await refreshOnce(fetch, "uid-sequential");
-        await refreshOnce(fetch, "uid-sequential");
+        await refreshOnce(fetch, "uid-sequential", baseUrl);
+        await refreshOnce(fetch, "uid-sequential", baseUrl);
 
         expect(fetch).toHaveBeenCalledTimes(2);
     });
@@ -167,7 +170,11 @@ describe("getRefresh", () => {
                 }),
         );
 
-        const refreshPromise = refreshOnce(pendingFetch, "uid-in-progress");
+        const refreshPromise = refreshOnce(
+            pendingFetch,
+            "uid-in-progress",
+            baseUrl,
+        );
         const pending = getRefresh("uid-in-progress");
 
         expect(pending).toBeInstanceOf(Promise);
@@ -179,7 +186,7 @@ describe("getRefresh", () => {
     });
 
     it("returns undefined after the refresh completes", async () => {
-        await refreshOnce(mockFetch(200), "uid-done");
+        await refreshOnce(mockFetch(200), "uid-done", baseUrl);
         expect(getRefresh("uid-done")).toBeUndefined();
     });
 });

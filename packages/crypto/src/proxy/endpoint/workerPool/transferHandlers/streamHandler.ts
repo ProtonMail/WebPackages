@@ -43,6 +43,7 @@ export const ReadableStreamSerializer = {
         // Transfer the message channel to the caller's execution context
         return port2; // NB: the port is transferable and must be transferred
     },
+    getTransferables: (port: MessagePort): Transferable[] => [port],
     deserialize: <T extends Data>(port: MessagePort): ReadableStream<T> => {
         // Convenience function to allow us to use async/await for messages coming down the port
         const nextPortMessage = () =>

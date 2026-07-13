@@ -204,8 +204,6 @@ export const CryptoProxy: CryptoProxyInterface = {
     canKeyEncrypt: async ({ date = serverTime(), ...opts }) =>
         assertNotNull(endpoint).canKeyEncrypt({ ...opts, date }),
     computeHash: async (opts) => assertNotNull(endpoint).computeHash(opts),
-    computeHashStream: async (opts) =>
-        assertNotNull(endpoint).computeHashStream(opts),
     computeArgon2: (opts) => assertNotNull(endpoint).computeArgon2(opts),
 
     getArmoredMessage: async (opts) =>

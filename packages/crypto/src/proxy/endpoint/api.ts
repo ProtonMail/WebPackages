@@ -45,7 +45,6 @@ import { type UserID, enums } from "../../pmcrypto/openpgp.ts";
 
 import { ARGON2_PARAMS, KeyCompatibilityLevel } from "../../constants.ts";
 import type {
-    ComputeHashStreamOptions,
     InitOptions,
     KeyInfo,
     KeyReference,
@@ -1132,21 +1131,6 @@ export class Api extends KeyManagementApi {
             case "unsafeMD5":
                 hash = await unsafeMD5(data);
                 return hash;
-            default:
-                throw new Error(`Unsupported algorithm: ${algorithm}`);
-        }
-    }
-
-    // this function may be merged with `computeHash` once we add streaming support to all/most hash algos
-    async computeHashStream({
-        algorithm,
-        dataStream,
-    }: ComputeHashStreamOptions) {
-        let hashStream;
-        switch (algorithm) {
-            case "unsafeSHA1":
-                hashStream = await unsafeSHA1(dataStream);
-                return hashStream;
             default:
                 throw new Error(`Unsupported algorithm: ${algorithm}`);
         }

@@ -25,6 +25,11 @@ export default async function decryptMessage({
         );
     }
 
+    if (options.expectSigned && options.message.fromStream) {
+        // with streaming, errors returned by handleVerificationResult need to be handled by linking them to the output stream;
+        // otherwise, only errors returned by openpgpjs cause a stream rejection
+        throw new Error("`expectSigned: true` is currently not supported with streamed inputs");
+    }
     const sanitizedOptions = {
         ...options,
         date,

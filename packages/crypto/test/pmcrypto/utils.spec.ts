@@ -4,21 +4,7 @@ import {
     streamedUint8ArrayToUtf8String,
     streamedUtf8StringToUint8Array,
 } from "../../src/pmcrypto/utils.ts";
-import type { Data } from "../../src/pmcrypto/index.ts";
-
-const streamFromChunks = <T extends Data>(chunks: T[]) => {
-    const it = chunks.values();
-    return new ReadableStream<T>({
-        pull: (controller) => {
-            const { value, done } = it.next();
-            if (done) {
-                controller.close();
-            } else {
-                controller.enqueue(value);
-            }
-        },
-    });
-};
+import { streamFromChunks } from "../streamingHelpers.ts";
 
 describe("utils", () => {
     it("streamedUtf8StringToUint8Array - it can encode a stream", async () => {

@@ -12,6 +12,7 @@ import {
     serverTime,
 } from "../../../src/pmcrypto/index.ts";
 import { VERIFICATION_STATUS } from "../../../src/pmcrypto/constants.ts";
+import { streamFromChunks } from "../../streamingHelpers.ts";
 
 // verification without passing context should fail
 // verification passing wrong context should fail
@@ -178,6 +179,14 @@ describe("context", () => {
             verificationKeys: publicKey,
             signatureContext: { value: "unexpected-context", required: true },
         });
+
+        await expect(decryptMessage({
+            message: await readMessage({ armoredMessage: streamFromChunks([armoredMessage]) }),
+            decryptionKeys: privateKey,
+            verificationKeys: publicKey,
+            signatureContext: { value: "unexpected-context", required: true },
+            expectSigned: true
+        })).rejects.toThrow("`expectSigned: true` is currently not supported with streamed inputs")
 
         const decryptionMissingContext = await decryptMessage({
             message: await readMessage({ armoredMessage }),

@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.1.0
+
+### Minor Changes
+
+- c1c0825: CryptoProxy: implement `encryptMessageStream`/`decryptMessageStream`.
+
 ## 2.0.1
 
 ### Patch Changes

@@ -1,0 +1,4 @@
+# The crypto package has no prettier config and its sources use 4-space
+# indentation (formerly enforced via eslint @stylistic). Prettier's default
+# (2-space) would reformat everything, so exclude the whole package.
+*

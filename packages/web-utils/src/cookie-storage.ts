@@ -59,15 +59,19 @@ export class CookieStorage {
         });
     }
 
-    public getCookies = (): string[] => {
+    public getCookies = (cookies = document.cookie): string[] => {
         try {
-            return document.cookie.split(";").map((item) => item.trim());
+            return cookies.split(";").map((item) => item.trim());
         } catch {
             return [];
         }
     };
 
     public getCookie = (name: string, cookies = document.cookie) => {
-        return `; ${cookies}`.match(`;\\s*${name}=([^;]+)`)?.[1];
+        const prefix = `${name}=`;
+        const match = this.getCookies(cookies).find((item) =>
+            item.startsWith(prefix),
+        );
+        return match?.slice(prefix.length);
     };
 }

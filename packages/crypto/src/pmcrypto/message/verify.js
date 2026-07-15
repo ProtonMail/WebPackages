@@ -46,7 +46,7 @@ export async function handleVerificationResult(
     let verificationStatus = NOT_SIGNED;
     let signatureTimestamp = null;
 
-    if (sigsInfo && sigsInfo.length) {
+    if (sigsInfo?.length) {
         verificationStatus = SIGNED_AND_INVALID;
         for (let i = 0; i < sigsInfo.length; i++) {
             const { signature: signaturePromise, verified: verifiedPromise } =

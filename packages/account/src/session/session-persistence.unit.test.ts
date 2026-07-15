@@ -59,9 +59,8 @@ function makeDbDto(localId: number): SessionDbDto {
 function makeMemStore() {
     const map = new Map<string, string>();
     return {
-        getItem: vi.fn(
-            (key: string): Promise<string | null> =>
-                Promise.resolve(map.get(key) ?? null),
+        getItem: vi.fn((key: string): Promise<string | null> =>
+            Promise.resolve(map.get(key) ?? null),
         ),
         setItem: vi.fn((key: string, data: string): Promise<void> => {
             map.set(key, data);

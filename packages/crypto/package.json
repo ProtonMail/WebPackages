@@ -1,9 +1,14 @@
 {
     "name": "@protontech/crypto",
     "version": "2.1.0",
-    "description": "",
+    "description": "Cryptography library for web projects across Proton",
     "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
     "license": "GPL-3.0",
+    "author": "Proton AG",
     "type": "module",
     "exports": {
         ".": "./src/index.ts",

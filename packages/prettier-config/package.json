@@ -1,7 +1,12 @@
 {
     "name": "@protontech/prettier-config",
     "version": "1.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
     "license": "GPL-3.0",
+    "author": "Proton AG",
     "type": "module",
     "exports": {
         "./prettier.config": "./prettier.config.js"

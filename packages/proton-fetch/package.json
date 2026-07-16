@@ -3,8 +3,12 @@
     "version": "1.1.1",
     "description": "",
     "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
     "license": "GPL-3.0",
-    "author": "",
+    "author": "Proton AG",
     "type": "module",
     "exports": {
         "./fetch.ts": "./src/protonFetch.ts",

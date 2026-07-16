@@ -1,7 +1,12 @@
 {
     "name": "@protontech/typescript-config",
     "version": "1.1.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
     "license": "GPL-3.0",
+    "author": "Proton AG",
     "type": "module",
     "exports": {
         "./node.json": "./node.json",

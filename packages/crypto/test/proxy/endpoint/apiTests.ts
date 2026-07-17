@@ -1264,6 +1264,53 @@ Z3SSOseslp6+4nnQ3zOqnisO
         );
     });
 
+    it("computeHashStream", async () => {
+        const emptyDataStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+            start: (controller) => {
+                for (let i = 0; i < 100; i++) {
+                    controller.enqueue(new Uint8Array());
+                }
+                controller.close();
+            },
+        });
+        const testHashSHA1Empty =
+            await CryptoApiImplementation.computeHashStream({
+                algorithm: "unsafeSHA1",
+                binaryDataStream: emptyDataStream,
+            })
+                .then(({ hashedDataStream }) => readToEnd(hashedDataStream))
+                .then((bytes) => bytes.toHex());
+        expect(testHashSHA1Empty).to.equal(
+            "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        );
+
+        // `data` and `dataStream` share the underlying buffer: this is to test that no byte transferring is taking place
+        const data = new Uint8Array(100).fill(1);
+        const dataStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+            pull: (controller) => {
+                for (let i = 0; i < 10; i++) {
+                    controller.enqueue(data.subarray(i, i + 10));
+                }
+                controller.close();
+            },
+        });
+        const testHashSHA1Streamed =
+            await CryptoApiImplementation.computeHashStream({
+                algorithm: "unsafeSHA1",
+                binaryDataStream: dataStream,
+            })
+                .then(({ hashedDataStream }) => readToEnd(hashedDataStream))
+                .then((bytes) => bytes.toHex());
+        const testHashSHA1 = await CryptoApiImplementation.computeHash({
+            algorithm: "unsafeSHA1",
+            data,
+        }).then((bytes) => bytes.toHex());
+        expect(testHashSHA1).to.equal(
+            "3f3feea4f73d400fe98b7518a4b21ad4fc80476d",
+        );
+        expect(testHashSHA1Streamed).to.equal(testHashSHA1);
+    });
+
     it("computeArgon2", async () => {
         const expected =
             "6904f1422410f8360c6538300210a2868f5e80cd88606ec7d6e7e93b49983cea";

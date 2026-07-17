@@ -319,3 +319,7 @@ export interface PrivateKeyReferenceV6 extends PrivateKeyReference {
     getVersion(): 6;
 }
 
+export interface ComputeHashStreamOptions {
+    algorithm: "unsafeSHA1";
+    binaryDataStream: WebStream<Uint8Array<ArrayBuffer>>;
+}

@@ -180,6 +180,8 @@ export const getWorkerPoolInstance = (createWorker: () => Worker) => {
             (await getWorker()).processMIME(opts).catch(errorReporter),
         computeHash: async (opts) =>
             (await getWorker()).computeHash(opts).catch(errorReporter),
+        computeHashStream: async (opts) =>
+            (await getWorker()).computeHashStream(opts).catch(errorReporter),
         computeArgon2: async (opts) =>
             (await getWorker(true)).computeArgon2(opts).catch(errorReporter),
 

@@ -8,6 +8,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { VERIFICATION_STATUS } from "../../../../src/index.ts";
 import { CryptoWorkerPool } from "../../../../src/proxy/endpoint/workerPool/bundlers/genericProvider.ts";
+import { readToEnd } from "@openpgp/web-stream-tools";
 
 describe("Worker Pool", () => {
     const poolSize = 2;
@@ -72,6 +73,47 @@ describe("Worker Pool", () => {
         expect(binaryDecryptionResult.verificationStatus).to.equal(
             VERIFICATION_STATUS.SIGNED_AND_VALID,
         );
+    });
+
+    it("computeHashStream - the hash instance should not disrupt nor be disrupted by multiple workers", async () => {
+        const data = new Uint8Array(100).fill(1);
+
+        const { promise: streamPulledPromise, resolve: streamPulledResolve } = Promise.withResolvers();
+        let streamedPulled = false;
+        // hangingDataStream will stay open until `streamController.close()` is called
+        let streamController: ReadableStreamDefaultController | undefined;
+        const hangingDataStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+            start(controller) {
+                streamController = controller;
+            },
+            pull: (controller) => {
+                if (streamedPulled) return;
+                streamedPulled = true;
+                for (let i = 0; i < 10; i++) {
+                    controller.enqueue(data.subarray(i * 10, i * 10 + 10));
+                }
+                streamPulledResolve(true)
+                // do not close the controller, defer to `streamController.close()` later on
+            },
+        });
+
+        const { hashedDataStream: testHashSHA1Stream } = await CryptoWorkerPool.computeHashStream({
+            algorithm: "unsafeSHA1",
+            binaryDataStream: hangingDataStream,
+        });
+
+        // test that key syncing across workers still works, to confirm that the hash computation above
+        // does not block the worker
+        await expect(CryptoWorkerPool.generateKey({ userIDs: { email: "alice@test.com" } })).resolves.toBeDefined();
+        // signal end of input stream
+        await streamPulledPromise.then(() => streamController?.close());
+
+        const testHashSHA1 = await CryptoWorkerPool.computeHash({
+            algorithm: "unsafeSHA1",
+            data,
+        }).then((bytes) => bytes.toHex());
+
+        expect(await readToEnd(testHashSHA1Stream).then(bytes => bytes.toHex())).to.equal(testHashSHA1);
     });
 
     it("replaceUserIDs - the target key should be updated in all workers", async () => {

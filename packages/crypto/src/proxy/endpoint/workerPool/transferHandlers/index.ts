@@ -163,6 +163,7 @@ const ResultTranferer = createTransferer({
     sessionKey: transferableUint8ArraySerializer,
     messageStream: ReadableStreamSerializer,
     dataStream: ReadableStreamSerializer,
+    hashedDataStream: ReadableStreamSerializer,
     errors: { ...ErrorSerializer, maybeArray: true },
     verificationErrors: { ...ErrorSerializer, maybeArray: true },
 });

@@ -46,6 +46,7 @@ import { type UserID, type WebStream, enums } from "../../pmcrypto/openpgp.ts";
 
 import { ARGON2_PARAMS, KeyCompatibilityLevel } from "../../constants.ts";
 import type {
+    ComputeHashStreamOptions,
     InitOptions,
     KeyInfo,
     KeyReference,
@@ -1256,6 +1257,34 @@ export class Api extends KeyManagementApi {
             case "unsafeMD5":
                 hash = await unsafeMD5(data);
                 return hash;
+            default:
+                throw new Error(`Unsupported algorithm: ${algorithm}`);
+        }
+    }
+
+    // this function may be merged with `computeHash` once we add streaming support to all/most hash algos
+    async computeHashStream({
+        algorithm,
+        binaryDataStream,
+    }: ComputeHashStreamOptions): Promise<{
+        // returning an object instead of the ReadableStream directly makes it safer to assert the ReadableStream
+        // data type (Uint8Array vs string)
+        hashedDataStream: WebStream<Uint8Array<ArrayBuffer>>
+    }> {
+        switch (algorithm) {
+            case "unsafeSHA1": {
+                // unsafeSha1 returns a Promise, not a stream;
+                // we need to return a stream to avoid blocking the worker for as long as the
+                // input stream is being passed.
+                return {
+                    hashedDataStream: new ReadableStream<Uint8Array<ArrayBuffer>>({
+                        async start(controller) {
+                            controller.enqueue(await unsafeSHA1(binaryDataStream));
+                            controller.close();
+                        }
+                    })
+                }
+            }
             default:
                 throw new Error(`Unsupported algorithm: ${algorithm}`);
         }

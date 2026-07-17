@@ -132,13 +132,13 @@ const createTransferer = (fieldSerializers: Record<string, Serializer<any, any> 
  * This is safe to use for values returned by the worker, but not sent from the main thread.
  * NB: no need to use serializer if Uint8Arrays don't need transferring.
  */
-const transferableUint8ArraySerializer: Serializer<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>> = {
+const transferableUint8ArraySerializer = {
     canHandle: (value: any): value is Uint8Array<ArrayBuffer> =>
         value instanceof Uint8Array,
     serialize: (value) => value,
     deserialize: (value) => value,
     getTransferables: (value) => [value.buffer],
-};
+} satisfies Serializer<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>;
 
 interface SerializedError {
     isError: true;
@@ -205,18 +205,20 @@ const oneWayTransferHanders = [
     {
         name: "Uint8Array", // automatically transfer Uint8Arrays from worker (but not vice versa)
         workerHandler: {
-            canHandle: transferableUint8ArraySerializer.canHandle,
-            serialize: (bytes: Uint8Array<ArrayBuffer>) => [
-                bytes,
-                [bytes.buffer], // transferables
-            ],
+            canHandle: transferableUint8ArraySerializer.canHandle, // unused
+            serialize: (bytes: Uint8Array<ArrayBuffer>) => {
+                const serialized = transferableUint8ArraySerializer.serialize(bytes);
+                return [
+                    serialized,
+                    transferableUint8ArraySerializer.getTransferables(serialized), // transferables
+                ]
+            },
             deserialize: transferableUint8ArraySerializer.deserialize
         },
         mainThreadHandler: {
-            canHandle: (input: any): input is Uint8Array<ArrayBuffer> =>
-                input instanceof Uint8Array,
+            canHandle: transferableUint8ArraySerializer.canHandle,
             serialize: (bytes: Uint8Array<ArrayBuffer>) => [
-                bytes,
+                transferableUint8ArraySerializer.serialize(bytes),
                 [], // transferables: no transferring from main thread
             ],
             deserialize: (bytes: Uint8Array<ArrayBuffer>) => bytes,
@@ -230,7 +232,7 @@ const oneWayTransferHanders = [
             deserialize: (result: any) => result, // unused
         },
         mainThreadHandler: {
-            canHandle: ResultTranferer.canHandle,
+            canHandle: ResultTranferer.canHandle, // unused
             serialize: (result: any) => [result, []], // unused
             deserialize: ResultTranferer.deserialize,
         },
@@ -238,7 +240,7 @@ const oneWayTransferHanders = [
     {
         name: "Options",
         workerHandler: {
-            canHandle: OptionTransferer.canHandle,
+            canHandle: OptionTransferer.canHandle, // unused
             serialize: () => [undefined, []], // unused on worker side
             deserialize: OptionTransferer.deserialize,
         },

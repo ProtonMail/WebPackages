@@ -5,24 +5,34 @@
     "author": "Proton AG",
     "type": "module",
     "exports": {
-        "./package-config.ts": "./configs/package-config.ts",
-        "./package-config-react.ts": "./configs/package-config-react.ts"
+        "./*.ts": "./configs/*.ts"
     },
     "files": [
-        "configs/"
+        "dist/"
     ],
     "scripts": {
-        "format": "prettier --write ."
+        "build": "tsc -p tsconfig.build.json",
+        "format": "prettier --write .",
+        "prepack": "pnpm run build"
     },
     "devDependencies": {
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
         "oxlint": "^1.74.0",
-        "prettier": "^3.9.5"
+        "prettier": "^3.9.5",
+        "typescript": "^6.0.3"
     },
     "peerDependencies": {
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:^",
         "oxlint": "^1.74.0"
+    },
+    "publishConfig": {
+        "exports": {
+            "./*.ts": {
+                "types": "./dist/*.d.ts",
+                "default": "./dist/*.js"
+            }
+        }
     }
 }

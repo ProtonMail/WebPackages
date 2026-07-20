@@ -34,15 +34,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^8.43.0"
+    "@typescript-eslint/utils": "^8.64.0"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^8.43.0",
-    "@typescript-eslint/rule-tester": "^8.43.0",
+    "@typescript-eslint/parser": "^8.64.0",
+    "@typescript-eslint/rule-tester": "^8.64.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@typescript-eslint/parser": "^8.43.0",
+    "@typescript-eslint/parser": "^8.64.0",
     "typescript": "^6.0.3"
   },
   "publishConfig": {

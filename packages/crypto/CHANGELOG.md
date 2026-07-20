@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.1.1
+
+### Patch Changes
+
+- d57b179: CryptoProxy: add back `computeHashStream` (fix blocking behavior); this is technically a breaking API change for the specific function, but since it fixes an issue with it, we just mark it as a patch
+
 ## 2.1.0
 
 ### Minor Changes

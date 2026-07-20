@@ -21,9 +21,9 @@ module.exports = {
     // Count `import type` edges; several modules are consumed type-only and
     // would otherwise show up as false "orphans".
     tsPreCompilationDeps: true,
-    // dist/ is generated build output; eslint.config.js files are tooling config,
-    // neither belongs in the source dependency graph.
-    exclude: "(^|/)(dist|eslint\\.config\\.js$)",
+    // dist/ is generated build output; oxlint/eslint config files are tooling
+    // config, neither belongs in the source dependency graph.
+    exclude: "(^|/)(dist|oxlint\\.config\\.ts$|eslint\\.config\\.js$)",
     enhancedResolveOptions: {
       // Honor package.json "exports" maps (workspace packages + subpath deps
       // like openpgp/lightweight are exposed through them).

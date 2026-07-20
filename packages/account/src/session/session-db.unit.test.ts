@@ -4,7 +4,6 @@ import { SessionDb } from "./session-db.ts";
 import type { SessionDbDto } from "./session-db.ts";
 
 beforeEach(() => {
-    // eslint-disable-next-line no-global-assign
     indexedDB = new IDBFactory();
 });
 

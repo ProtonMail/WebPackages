@@ -29,7 +29,7 @@
     ],
     "scripts": {
         "format": "",
-        "lint": "eslint",
+        "lint": "oxlint && eslint",
         "test": "vitest --config test/vitest.config.ts --run",
         "test:ci": "CI=true pnpm run test",
         "typecheck": "tsc -b"
@@ -44,8 +44,9 @@
         "openpgp": "npm:@protontech/openpgp@~6.3.1-0"
     },
     "devDependencies": {
-        "@protontech/eslint-config": "workspace:*",
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
         "@protontech/global-types": "workspace:*",
+        "@protontech/oxlint-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/bn.js": "^5.2.0",
@@ -55,6 +56,8 @@
         "bn.js": "^5.2.4",
         "elliptic": "^6.6.1",
         "eslint": "^10.6.0",
+        "oxlint": "^1.73.0",
+        "oxlint-tsgolint": "^0.24.0",
         "playwright": "^1.61.1",
         "sinon": "^21.1.2",
         "typescript": "^6.0.3",

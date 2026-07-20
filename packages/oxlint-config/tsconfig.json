@@ -1,0 +1,4 @@
+{
+    "extends": "@protontech/typescript-config/package-config.json",
+    "include": ["configs"]
+}

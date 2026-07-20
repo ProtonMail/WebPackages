@@ -110,7 +110,6 @@ function setup(fetchImpl?: (request: Request) => Promise<Response>) {
 }
 
 beforeEach(() => {
-    // eslint-disable-next-line no-global-assign
     indexedDB = new IDBFactory();
     vi.stubGlobal("Request", FakeRequest);
 

@@ -116,7 +116,6 @@ async function setupClient(opts: {
 }
 
 beforeEach(() => {
-    // eslint-disable-next-line no-global-assign
     indexedDB = new IDBFactory();
     vi.stubGlobal("Request", FakeRequest);
     // Skip the fire-and-forget cleanup by default so it can't affect fetch

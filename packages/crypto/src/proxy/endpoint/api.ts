@@ -542,7 +542,6 @@ export class Api extends KeyManagementApi {
     async encryptMessage<
         DataType extends Data,
         FormatType extends WorkerEncryptOptions<DataType>["format"] = "armored",
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
         DetachedType extends boolean = false,
     >({
         encryptionKeys: encryptionKeyRefs = [],

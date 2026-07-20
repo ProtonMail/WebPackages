@@ -9,6 +9,7 @@ import { SessionDb, type SessionDbDto } from "../session/session-db.ts";
 export const getLocalIdSessionString = (array: number[]) => {
     // Sorted only to produce a stable, canonical key; the exact ordering is
     // irrelevant as long as it is deterministic.
+    // oxlint-disable-next-line typescript/require-array-sort-compare
     return array.sort().join(",");
 };
 

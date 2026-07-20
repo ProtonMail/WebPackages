@@ -15,16 +15,18 @@
     },
     "scripts": {
         "format": "prettier --write .",
-        "lint": "eslint",
+        "lint": "oxlint",
         "test": "vitest",
         "typecheck": "tsc -b"
     },
     "devDependencies": {
-        "@protontech/eslint-config": "workspace:*",
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
+        "@protontech/oxlint-config": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
-        "eslint": "^10.6.0",
         "happy-dom": "^20.10.6",
+        "oxlint": "^1.73.0",
+        "oxlint-tsgolint": "^0.24.0",
         "prettier": "^3.9.4",
         "typescript": "^6.0.3",
         "vitest": "^4.1.10"

@@ -6,10 +6,9 @@ const config: KnipConfig = {
     ".": {},
   },
   ignoreDependencies: [
-    // TODO:
-    // Remove this when removing/resolving eslint import
-    // eslint-import-resolver-typescript  packages/eslint-config/package.json:18:10
-    "eslint-import-resolver-typescript",
+    // Consumed by oxlint as a JS plugin via a `jsPlugins` specifier string in
+    // @protontech/oxlint-config, so it is not statically importable/detectable.
+    "@protontech/eslint-plugin-enforce-uint8array-arraybuffer",
   ],
 };
 

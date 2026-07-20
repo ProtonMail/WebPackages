@@ -1,5 +1,13 @@
 # @protontech/oxlint-config
 
+## 1.1.1
+
+### Patch Changes
+
+- 152a8c1: Ship the config as compiled JavaScript instead of raw TypeScript.
+
+    The published package now contains `dist/` (compiled `.js` plus `.d.ts`) built with `tsc` at `prepack`, and its `exports` point there via `publishConfig` — so consumers no longer need to strip types at runtime to load the config. Development within the monorepo continues to resolve to the TypeScript source.
+
 ## 1.1.0
 
 ### Minor Changes

@@ -83,6 +83,7 @@ export const packageConfig = defineConfig({
         "typescript/no-misused-promises": "error",
         "typescript/no-namespace": "error",
         "typescript/no-non-null-asserted-optional-chain": "error",
+        "typescript/no-non-null-assertion": "error",
         "typescript/no-redundant-type-constituents": "error",
         "typescript/no-require-imports": "error",
         "typescript/no-this-alias": "error",

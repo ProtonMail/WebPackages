@@ -27,6 +27,7 @@ export default defineConfig({
         "typescript/no-unsafe-argument": "off",
         "typescript/no-unsafe-assignment": "off",
         "typescript/no-unsafe-return": "off",
+        "typescript/no-non-null-assertion": "off",
         "typescript/require-await": "off",
         "typescript/ban-ts-comment": "off",
         "typescript/prefer-for-of": "off",

@@ -1,5 +1,13 @@
 # @protontech/oxlint-config
 
+## 1.1.2
+
+### Patch Changes
+
+- 8fc862b: Enable the recommended React rules in `packageReactConfig`.
+
+    The React config now explicitly enables the `eslint-plugin-react-hooks` `recommended` set (`react/rules-of-hooks`, `react/exhaustive-deps`) and the `eslint-plugin-react` `recommended` set (`react/display-name`, `react/jsx-no-target-blank`, `react/no-unescaped-entities`, `react/no-unknown-property`, `react/require-render-return`, and others), mapped to oxlint's rule names. Notably this adds `react/rules-of-hooks`, which oxlint places outside the `correctness` category and so was not previously enforced. `react/react-in-jsx-scope` is intentionally omitted as it is incompatible with the automatic JSX transform.
+
 ## 1.1.1
 
 ### Patch Changes

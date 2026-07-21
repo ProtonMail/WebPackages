@@ -137,6 +137,7 @@ export const packageConfig = defineConfig({
         "typescript/prefer-optional-chain": "error",
         "typescript/prefer-regexp-exec": "error",
         "typescript/prefer-string-starts-ends-with": "error",
+        "typescript/consistent-type-imports": "error",
 
         "enforce-uint8array-arraybuffer/enforce-uint8array-arraybuffer":
             "error",

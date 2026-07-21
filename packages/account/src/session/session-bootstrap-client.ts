@@ -1,19 +1,19 @@
 import { parseErrorBody } from "@protontech/fetch/errors.ts";
 import {
-    SessionPersistence,
+    type SessionPersistence,
     type SessionDto,
     SessionAuthError,
     SessionErrorCode,
     SessionError,
 } from "./session-persistence.ts";
 import {
+    type AuthorizeCallbackParameters,
     AuthorizeClient,
     AuthorizeState,
     AuthorizeParameters,
     type AuthorizeParametersOptions,
     AuthorizeUnprocessableError,
     AuthorizeError,
-    AuthorizeCallbackParameters,
 } from "./authorize-client.ts";
 
 export class SessionBootstrapError extends Error {
@@ -48,8 +48,7 @@ export interface SessionBootstrapErrorResult {
 }
 
 export type SessionBootstrapResult<T> =
-    | SessionBootstrapSuccessResult<T>
-    | SessionBootstrapErrorResult;
+    SessionBootstrapSuccessResult<T> | SessionBootstrapErrorResult;
 
 export interface SessionBootstrapParameters<T> {
     url: URL;

@@ -107,8 +107,7 @@ export class SessionPersistence {
             );
         }
         const json = (await response.json().catch(() => {})) as
-            | GetClientKeyDto
-            | undefined;
+            GetClientKeyDto | undefined;
         if (response.status !== 200 || typeof json?.ClientKey !== "string") {
             throw new SessionError(
                 SessionErrorCode.Network,

@@ -18,6 +18,7 @@ import {
     type AuthorizeParametersOptions,
 } from "./authorize-client.ts";
 import type { SessionDbDto } from "./session-db.ts";
+import type * as AuthorizeClientModule from "./authorize-client.ts";
 import type { SaveSessionParams } from "./interface.ts";
 
 // Replace only AuthorizeState (its real write()/fromKey() depend on sessionStorage
@@ -43,8 +44,7 @@ const { MockAuthorizeState } = vi.hoisted(() => {
 });
 
 vi.mock("./authorize-client.ts", async (importOriginal) => {
-    const actual =
-        await importOriginal<typeof import("./authorize-client.ts")>();
+    const actual = await importOriginal<typeof AuthorizeClientModule>();
     return { ...actual, AuthorizeState: MockAuthorizeState };
 });
 

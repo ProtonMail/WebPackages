@@ -33,7 +33,7 @@ import { packageConfig } from "./package-config.ts";
  */
 export const packageReactConfig = defineConfig({
     ...packageConfig,
-    plugins: [...packageConfig.plugins, "react"],
+    plugins: [...packageConfig.plugins, "react", "jsx-a11y"],
     rules: {
         ...packageConfig.rules,
 
@@ -58,5 +58,23 @@ export const packageReactConfig = defineConfig({
         "react/no-unescaped-entities": "error",
         "react/no-unknown-property": "error",
         "react/require-render-return": "error",
+
+        // --- jsx a11y ---
+        "jsx-a11y/anchor-ambiguous-text": "warn",
+        "jsx-a11y/anchor-is-valid": "warn",
+        "jsx-a11y/click-events-have-key-events": "warn",
+        "jsx-a11y/control-has-associated-label": "warn",
+        "jsx-a11y/interactive-supports-focus": "warn",
+        "jsx-a11y/label-has-associated-control": "warn",
+        "jsx-a11y/media-has-caption": "warn",
+        "jsx-a11y/mouse-events-have-key-events": "warn",
+        "jsx-a11y/no-static-element-interactions": "warn",
+        "jsx-a11y/no-interactive-element-to-noninteractive-role": "warn",
+        "jsx-a11y/no-noninteractive-element-interactions": "warn",
+        "jsx-a11y/no-noninteractive-tabindex": "warn",
+        "jsx-a11y/no-aria-hidden-on-focusable": "warn",
+        "jsx-a11y/prefer-tag-over-role": "warn",
+        "jsx-a11y/img-redundant-alt": "off",
+        "jsx-a11y/no-autofocus": "off",
     },
 });

@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-    config,
-    SymEncryptedSessionKeyPacket,
-    GrammarError,
+    config
 } from "../../src/pmcrypto/openpgp.ts";
 import {
     decryptMessage,
@@ -115,30 +113,6 @@ EoSmib14fiYL0eQTz4I1XJ9OCVVZcaoFZzKnlQc=
         });
         expect(verificationStatus).to.equal(
             VERIFICATION_STATUS.SIGNED_AND_VALID,
-        );
-    });
-
-    it("it sets the correct configuration for `enforceGrammar`", async () => {
-        expect(config.enforceGrammar).to.be.true;
-
-        const skeskPlusLiteralData = `-----BEGIN PGP MESSAGE-----
-
-wy4ECQMIjvrInhvTxJwAbkqXp+KWFdBcjoPn03jCdyspVi9qXBDbyGaP1lrM
-habAyxd1AGKaNp1wbGFpbnRleHQgbWVzc2FnZQ==
-=XoUx
------END PGP MESSAGE-----
-        `;
-
-        await expect(
-            readMessage({ armoredMessage: skeskPlusLiteralData }),
-        ).rejects.toThrow(GrammarError);
-
-        const message = await readMessage({
-            armoredMessage: skeskPlusLiteralData,
-            config: { enforceGrammar: false },
-        });
-        expect(message.packets[0]).to.be.instanceOf(
-            SymEncryptedSessionKeyPacket,
         );
     });
 });

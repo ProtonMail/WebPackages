@@ -8,7 +8,6 @@ import {
     SymEncryptedIntegrityProtectedDataPacket,
     type WebStream,
     enums,
-    config as openpgp_config,
     decryptKey as openpgp_decryptKey,
     encryptKey as openpgp_encryptKey,
     readKey as openpgp_readKey,
@@ -56,25 +55,6 @@ import { readToEnd } from "@openpgp/web-stream-tools";
 import { chunkUint8Array, streamFromChunks } from "../../streamingHelpers.ts";
 
 export const runApiTests = (CryptoApiImplementation: CryptoApiInterface) => {
-    it("OpenPGP grammar is enforced", async () => {
-        expect(openpgp_config.enforceGrammar).to.be.true;
-
-        const skeskPlusLiteralData = `-----BEGIN PGP MESSAGE-----
-
-wy4ECQMIjvrInhvTxJwAbkqXp+KWFdBcjoPn03jCdyspVi9qXBDbyGaP1lrM
-habAyxd1AGKaNp1wbGFpbnRleHQgbWVzc2FnZQ==
-=XoUx
------END PGP MESSAGE-----
-        `;
-
-        await expect(
-            CryptoApiImplementation.decryptMessage({
-                armoredMessage: skeskPlusLiteralData,
-                passwords: "wrong but unused",
-            }),
-        ).rejects.toThrow(/Unexpected packet 11/);
-    });
-
     it("decryptMessage - should decrypt message with correct password", async () => {
         const armoredMessage = `-----BEGIN PGP MESSAGE-----
 

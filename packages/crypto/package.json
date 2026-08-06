@@ -57,7 +57,7 @@
         "elliptic": "^6.6.1",
         "eslint": "^10.7.0",
         "oxlint": "^1.74.0",
-        "oxlint-tsgolint": "^0.25.0",
+        "oxlint-tsgolint": "^7.0.2001",
         "playwright": "^1.61.1",
         "sinon": "^22.0.0",
         "typescript": "^6.0.3",

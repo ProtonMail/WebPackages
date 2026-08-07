@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.1.2
+
+### Patch Changes
+
+- 4410c84: update to Update to OpenPGP.js v6.3.1: Minor internal improvements and cleanups
+
 ## 2.1.1
 
 ### Patch Changes

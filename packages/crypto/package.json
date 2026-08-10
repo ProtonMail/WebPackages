@@ -35,11 +35,11 @@
         "typecheck": "tsc -b"
     },
     "dependencies": {
-        "@noble/hashes": "^2.2.0",
+        "@noble/hashes": "^2.3.0",
         "@openpgp/web-stream-tools": "~0.3.1",
         "bcryptjs": "^3.0.3",
         "comlink": "^4.4.2",
-        "core-js": "^3.49.0",
+        "core-js": "^3.50.0",
         "jsmimeparser": "npm:@protontech/jsmimeparser@^3.0.2",
         "openpgp": "npm:@protontech/openpgp@~6.3.1"
     },
@@ -55,7 +55,7 @@
         "@vitest/browser-playwright": "^4.1.10",
         "bn.js": "^5.2.5",
         "elliptic": "^6.6.1",
-        "eslint": "^10.8.0",
+        "eslint": "^10.8.1",
         "oxlint": "^1.77.0",
         "oxlint-tsgolint": "^7.0.2001",
         "playwright": "^1.62.1",

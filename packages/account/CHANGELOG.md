@@ -1,5 +1,14 @@
 # @protontech/account
 
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies [e592f83]
+- Updated dependencies [e592f83]
+- Updated dependencies [e592f83]
+    - @protontech/web-utils@0.0.4
+
 ## 3.0.2
 
 ### Patch Changes

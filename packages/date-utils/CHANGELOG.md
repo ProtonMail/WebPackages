@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.0.3
+
+### Patch Changes
+
+- cbdc95e: Add isDateWithinRange helper
+
 ## 0.0.2
 
 ### Patch Changes

@@ -1,0 +1,32 @@
+Subject: attachment with ContentID
+Content-Type: multipart/mixed; boundary="vungrzvzr"
+
+--vungrzvzr
+Content-Type: text/plain;
+Content-Transfer-Encoding: 8bit
+
+the first attachment has a Content-ID set, the second does not.
+
+--vungrzvzr
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-ID: <001110.102211@siebel.com>
+
+iVBORw0KGgoAAAANSUhEUgAAAIAAAABECAIAAADGJao+AAAAwklEQVR4Xu3UgQbDMBRA0bc03f//
+b7N0VuqJEmwoc+KqNEkDh9b+2HuJu1KNO4f+AQCAAAAQAAACAEAAAAgAAAEAIAAABACAAAAQAAAC
+AEAAAAgAAAEAIAAAANReamRLlPWYfNH0klxcPs+cP3NxWF+vi3lb7pa2R+vx6tHOtuN1O+a5lY3H
+zgM5ya/GM5N7ZjfPq7/5yS8IgAAAEAAAAgBAAAAIAAABACAAAAQAgAAAEAAAAgBAAAAIAAABACAA
+AIw322gDIPvtlmUAAAAASUVORK5CYII=
+
+--vungrzvzr
+Content-Disposition: attachment; filename="test.png"
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAIAAAABECAIAAADGJao+AAAAwklEQVR4Xu3UgQbDMBRA0bc03f//
+b7N0VuqJEmwoc+KqNEkDh9b+2HuJu1KNO4f+AQCAAAAQAAACAEAAAAgAAAEAIAAABACAAAAQAAAC
+AEAAAAgAAAEAIAAAANReamRLlPWYfNH0klxcPs+cP3NxWF+vi3lb7pa2R+vx6tHOtuN1O+a5lY3H
+zgM5ya/GM5N7ZjfPq7/5yS8IgAAAEAAAAgBAAAAIAAABACAAAAQAgAAAEAAAAgBAAAAIAAABACAA
+AIw322gDIPvtlmUAAAAASUVORK5CYII=
+--vungrzvzr--
+

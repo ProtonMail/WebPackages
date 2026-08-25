@@ -1,0 +1,15 @@
+Subject: binary attachment
+Content-Type: multipart/mixed; boundary="vungrzvzr"
+
+--vungrzvzr
+Content-Type: text/plain;
+Content-Transfer-Encoding: 8bit
+
+see binary attachment
+
+--vungrzvzr
+Content-Type: application/octect-stream
+Content-Transfer-Encoding: binary
+
+
+--vungrzvzr--

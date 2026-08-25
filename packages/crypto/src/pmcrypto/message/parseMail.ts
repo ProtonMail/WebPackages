@@ -1,12 +1,12 @@
 // NB: using `export type` is important to ensure we do not import the library unless parseMail (below) is called
-export type { Attachment } from "jsmimeparser";
+export type { Attachment } from "../../jsmimeparser/index.ts";
 
 /**
  * Parse a mail into an object format, splitting, headers, html, text/plain and attachments.
  * As jsmime is not a small library, we only want to import it if it's actually used.
  */
 export const parseMail = (mail: string | Uint8Array<ArrayBuffer>) =>
-    import("jsmimeparser").then(({ parseMail: jsmimeParseEmail }) =>
+    import("../../jsmimeparser/index.js").then(({ parseMail: jsmimeParseEmail }) =>
         jsmimeParseEmail(mail),
     );
 

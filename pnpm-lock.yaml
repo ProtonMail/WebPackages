@@ -105,9 +105,6 @@ importers:
       core-js:
         specifier: ^3.50.0
         version: 3.50.0
-      jsmimeparser:
-        specifier: npm:@protontech/jsmimeparser@^3.0.2
-        version: '@protontech/jsmimeparser@3.0.2'
       openpgp:
         specifier: npm:@protontech/openpgp@~6.3.1
         version: '@protontech/openpgp@6.3.1(@openpgp/web-stream-tools@0.3.1(@types/node@24.13.3)(typescript@6.0.3))'
@@ -975,9 +972,6 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
-
-  '@protontech/jsmimeparser@3.0.2':
-    resolution: {integrity: sha512-PConkdRdY8xc1A8+oEmQ2pGC7nnJPqWwkUb/+odjFPbof2w3zpIws77D9J9assvZg8OdB8dRe/cZdBU+BCijgA==}
 
   '@protontech/openpgp@6.3.1':
     resolution: {integrity: sha512-+NUfnF0rbw553xwT09YROb3TBmitumSSgOEx3eQh8LOx7CAKQzo2CLfsbBQz7KFc3+d9iMIMOKLrLzerYCtLIw==}
@@ -3290,8 +3284,6 @@ snapshots:
     optional: true
 
   '@polka/url@1.0.0-next.29': {}
-
-  '@protontech/jsmimeparser@3.0.2': {}
 
   '@protontech/openpgp@6.3.1(@openpgp/web-stream-tools@0.3.1(@types/node@24.13.3)(typescript@6.0.3))':
     optionalDependencies:

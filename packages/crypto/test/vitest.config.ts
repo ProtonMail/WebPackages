@@ -1,4 +1,5 @@
 import { playwright } from "@vitest/browser-playwright";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 // Firefox CI settings
@@ -10,10 +11,15 @@ if (process.env.CI) {
 
 const testFilesToInclude = {
     pmcrypto: ["test/pmcrypto/**/*.spec.ts"],
-    allExceptPmcrypto: ["test/!(pmcrypto)/**/*.spec.ts"],
+    allExceptPmcrypto: ["test/!(pmcrypto)/**/*.spec.{js,ts}"],
 };
 
+// Serve the test fixtures verbatim (no Vite transforms): files under `publicDir`
+// are served as-is at the server root, so `fetch('/<name>')` returns the raw bytes.
+const publicDir = fileURLToPath(new URL("./jsmimeparser/data", import.meta.url));
+
 export default defineConfig({
+    publicDir,
     optimizeDeps: {
         // Without this, these worker dependencies are discovered "too late" and trigger a test reload,
         // which causes issues with the worker dynamic imports since the corresponding chunk names

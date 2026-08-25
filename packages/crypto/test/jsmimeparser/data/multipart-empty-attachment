@@ -1,0 +1,24 @@
+Content-Type: multipart/mixed; protected-headers="v1"; boundary="===============3607788715713061906=="
+MIME-Version: 1.0
+From: sender <sender@test.com>
+Subject: encryption test
+To: receiver@test.com
+Date: Sun, 12 Jun 2022 17:21:02 +0200
+Content-Language: en-US
+
+--===============3607788715713061906==
+Content-Type: text/rfc822-headers; protected-headers="v1"
+Content-Disposition: inline
+Subject: encryption test
+To: receiver@test.com
+From: sender <sender@test.com>
+Date: Sun, 12 Jun 2022 17:21:02 +0200
+
+
+--===============3607788715713061906==
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+test body
+
+--===============3607788715713061906==--

@@ -8,14 +8,14 @@ import RawMimeParser from "./rawMimeParser.js";
 import { mergeUint8Arrays, binaryStringToUint8Array, uint8ArrayToBinaryString } from "./utils.js";
 
 // Emitter helpers, for internal functions later on.
-var ExtractMimeMsgEmitter = {
+const ExtractMimeMsgEmitter = {
     getAttachmentName(part) {
-        if (!part || !part["headers"]) {
+        if (!part?.headers) {
             return "";
         }
 
         if (part.headers["content-disposition"]) {
-            let filename = MimeParser.getParameter(
+            const filename = MimeParser.getParameter(
                 part.headers["content-disposition"][0],
                 "filename"
             );
@@ -25,7 +25,7 @@ var ExtractMimeMsgEmitter = {
         }
 
         if (part.headers["content-type"]) {
-            let name = MimeParser.getParameter(
+            const name = MimeParser.getParameter(
                 part.headers["content-type"][0],
                 "name"
             );
@@ -45,7 +45,7 @@ var ExtractMimeMsgEmitter = {
             return false;
         }
 
-        let contentType = part.contentType || "text/plain";
+        const contentType = part.contentType || "text/plain";
         if (contentType.search(/^multipart\//i) === 0) {
             return false;
         }
@@ -111,31 +111,31 @@ var ExtractMimeMsgEmitter = {
     },
 
     startPart(partNum, headerMap) {
-        let utf8Encoder = new TextEncoder();
+        const utf8Encoder = new TextEncoder();
 
-        let contentType = headerMap.contentType && headerMap.contentType.type
+        const contentType = headerMap.contentType?.type
             ? headerMap.contentType.type
             : "text/plain";
 
         let rawHeaderText = headerMap.rawHeaderText;
 
         let headers = {};
-        for (let [headerName, headerValue] of headerMap._rawHeaders) {
+        for (const [headerName, headerValue] of headerMap._rawHeaders) {
             // MsgHdrToMimeMessage always returns an array, even for single values.
-            let valueArray = Array.isArray(headerValue) ? headerValue : [headerValue];
+            const valueArray = Array.isArray(headerValue) ? headerValue : [headerValue];
             // Return a binary string, to mimic MsgHdrToMimeMessage.
             headers[headerName] = valueArray.map(value => {
-                let utf8ByteArray = utf8Encoder.encode(value);
+                const utf8ByteArray = utf8Encoder.encode(value);
                 return uint8ArrayToBinaryString(utf8ByteArray);
             });
         }
 
         // Get the most recent part from the hierarchical parts stack, which is the
         // parent of the new part to by added.
-        let currentPart = this.partsPath[this.partsPath.length - 1];
+        const currentPart = this.partsPath[this.partsPath.length - 1];
 
         // Add a leading 1 to the partNum.
-        let partName = "1" + (partNum !== "" ? "." : "") + partNum;
+        const partName = "1" + (partNum !== "" ? "." : "") + partNum;
         if (partName == "1") {
             // MsgHdrToMimeMessage differentiates between the message headers and the
             // headers of the first part. jsmime.js however returns all headers of
@@ -163,7 +163,7 @@ var ExtractMimeMsgEmitter = {
             headers["content-type"] = ["text/plain"];
         }
 
-        let newPart = {
+        const newPart = {
             partName,
             rawBody: null, // Uint8Array
             body: "", // string, coerced based on options
@@ -189,13 +189,13 @@ var ExtractMimeMsgEmitter = {
         let currentPart = this.partsPath[this.partsPath.length - 1];
 
         // Add size.
-        let size = currentPart.body.length;
+        const size = currentPart.body.length;
         currentPart.size += size;
 
         if (this.isAttachment(currentPart)) {
             currentPart.fileName = this.getAttachmentName(currentPart);
-            const contentDispositionHeader = currentPart.headers["content-disposition"] && currentPart.headers["content-disposition"][0];
-            const contentIdHeader = currentPart.headers["content-id"] && currentPart.headers["content-id"][0];
+            const contentDispositionHeader = currentPart.headers["content-disposition"]?.[0];
+            const contentIdHeader = currentPart.headers["content-id"]?.[0];
 
             // the content-disposition header, as parsed by jsmime, also contains the filename
             currentPart.contentDisposition = contentDispositionHeader ? contentDispositionHeader.split(";").shift() : undefined;
@@ -247,7 +247,7 @@ var ExtractMimeMsgEmitter = {
    */
     deliverPartData(partNum, data, rawData) {
     // Get the most recent part from the hierarchical parts stack.
-        let currentPart = this.partsPath[this.partsPath.length - 1];
+        const currentPart = this.partsPath[this.partsPath.length - 1];
 
         if (typeof data === "string") {
             currentPart.body += data;
@@ -264,7 +264,7 @@ var ExtractMimeMsgEmitter = {
     },
 };
 
-var ExtractHeadersEmitter = {
+const ExtractHeadersEmitter = {
     startPart(partNum, headers) {
         if (partNum == "") {
             this.headers = headers;
@@ -272,7 +272,7 @@ var ExtractHeadersEmitter = {
     },
 };
 
-var ExtractHeadersAndBodyEmitter = {
+const ExtractHeadersAndBodyEmitter = {
     body: "",
     // eslint-disable-next-line @typescript-eslint/unbound-method
     startPart: ExtractHeadersEmitter.startPart,
@@ -300,13 +300,13 @@ export const MimeParser = {
         parameter = parameter.toLowerCase();
         headerStr = headerStr.replace(/[\r\n]+[ \t]+/g, "");
 
-        let hdrMap = headerParser.parseParameterHeader(
+        const hdrMap = headerParser.parseParameterHeader(
             ";" + headerStr,
             true,
             true
         );
 
-        for (let [key, value] of hdrMap.entries()) {
+        for (const [key, value] of hdrMap.entries()) {
             if (parameter == key.toLowerCase()) {
                 return value;
             }
@@ -331,7 +331,7 @@ export const MimeParser = {
         if (typeof input != "string") {
             throw new Error("input is not a recognizable type!");
         }
-        var parser = new RawMimeParser(emitter, opts);
+        const parser = new RawMimeParser(emitter, opts);
         parser.deliverData(input);
         parser.deliverEOF();
     },
@@ -407,14 +407,14 @@ export const MimeParser = {
    * @param {BinaryString} input   A string of text to parse.
    */
     extractMimeMsg(input, options = {}) {
-        var emitter = Object.create(ExtractMimeMsgEmitter);
+        const emitter = Object.create(ExtractMimeMsgEmitter);
         // Set default options.
         emitter.options = {
             includeAttachments: true,
             getMimePart: "",
         };
         // Override default options.
-        for (let option of Object.keys(options)) {
+        for (const option of Object.keys(options)) {
             emitter.options[option] = options[option];
         }
 
@@ -442,7 +442,7 @@ export const MimeParser = {
    * @param input   A string of text to parse.
    */
     extractHeaders(input) {
-        var emitter = Object.create(ExtractHeadersEmitter);
+        const emitter = Object.create(ExtractHeadersEmitter);
         MimeParser.parseSync(input, emitter, { pruneat: "", bodyformat: "none" });
         return emitter.headers;
     },
@@ -457,7 +457,7 @@ export const MimeParser = {
    * @param input   A string of text to parse.
    */
     extractHeadersAndBody(input) {
-        var emitter = Object.create(ExtractHeadersAndBodyEmitter);
+        const emitter = Object.create(ExtractHeadersAndBodyEmitter);
         MimeParser.parseSync(input, emitter, { pruneat: "", bodyformat: "raw" });
         return [emitter.headers, emitter.body];
     },

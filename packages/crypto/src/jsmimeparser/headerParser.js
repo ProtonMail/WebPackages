@@ -52,6 +52,7 @@ function cleanToken(token) {
     // This is a bit more complicated as some of them could be "real", so we'll
     // only remove the ones that are known to show as blank.
     token = token.replace(
+        // oxlint-disable-next-line no-misleading-character-class
         /[\u034F\u17B4\u17B5\u180B-\u180D\uFE00-\uFE0F]/g,
         ""
     );
@@ -166,7 +167,7 @@ function getHeaderTokens(value, delimiters, opts) {
     // The array of parsed tokens. This method used to be a generator, but it
     // appears that generators are poorly optimized in current engines, so it was
     // converted to not be one.
-    let tokenList = [];
+    const tokenList = [];
 
     // Represents a non-delimiter token.
     function Token(token) {
@@ -180,7 +181,7 @@ function getHeaderTokens(value, delimiters, opts) {
     // The start of the current token (e.g., atoms, strings)
     let tokenStart = undefined;
     // The set of whitespace characters, as defined by RFC 5322
-    let wsp = " \t\r\n";
+    const wsp = " \t\r\n";
     // If we are a domain literal ([]) or a quoted string ("), this is set to the
     // character to look for at the end.
     let endQuote = undefined;
@@ -189,9 +190,9 @@ function getHeaderTokens(value, delimiters, opts) {
     let commentDepth = 0;
 
     // Iterate over every character one character at a time.
-    let length = value.length;
+    const length = value.length;
     for (let i = 0; i < length; i++) {
-        let ch = value[i];
+        const ch = value[i];
         // If we see a \, no matter what context we are in, ignore the next
         // character.
         if (ch == "\\") {
@@ -234,8 +235,8 @@ function getHeaderTokens(value, delimiters, opts) {
         ) {
             // RFC 2047 tokens separated only by whitespace are conceptually part of
             // the same output token, so we need to decode them all at once.
-            let encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/; // nosemgrep
-            let result = encodedWordsRE.exec(value.slice(i));
+            const encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/; // nosemgrep
+            const result = encodedWordsRE.exec(value.slice(i));
             if (result !== null) {
                 // If we were in the middle of a prior token (i.e., something like
                 // foobar=?UTF-8?Q?blah?=), yield the previous segment as a token.
@@ -245,8 +246,8 @@ function getHeaderTokens(value, delimiters, opts) {
                 }
 
                 // Find out how much we need to decode...
-                let encWordsLen = result[0].length;
-                let string = decodeRFC2047Words(
+                const encWordsLen = result[0].length;
+                const string = decodeRFC2047Words(
                     value.slice(i, i + encWordsLen),
                     "UTF-8"
                 );
@@ -381,21 +382,21 @@ function convert8BitHeader(headerValue, fallbackCharset) {
     // characters.
     if (/[\x80-\xff]/.exec(headerValue)) {
     // First convert the value to a typed-array for MimeTextDecoder.
-        let typedarray = binaryStringToUint8Array(headerValue);
+        const typedarray = binaryStringToUint8Array(headerValue);
 
         // Don't try UTF-8 as fallback (redundant), and don't try UTF-16 or UTF-32
         // either, since they radically change header interpretation.
         // If we have a fallback charset, we want to know if decoding will fail;
         // otherwise, we want to replace with substitution chars.
-        let hasFallback =
+        const hasFallback =
             fallbackCharset && !fallbackCharset.toLowerCase().startsWith("utf");
-        let utf8Decoder = new MimeTextDecoder("utf-8", { fatal: hasFallback });
+        const utf8Decoder = new MimeTextDecoder("utf-8", { fatal: hasFallback });
         try {
             headerValue = utf8Decoder.decode(typedarray);
         } catch {
             // Failed, try the fallback
             try {
-                let decoder = new MimeTextDecoder(fallbackCharset, {
+                const decoder = new MimeTextDecoder(fallbackCharset, {
                     fatal: false,
                 });
                 headerValue = decoder.decode(typedarray);
@@ -431,7 +432,7 @@ function decodeRFC2047Words(headerValue) {
   * handling bad RFC 2047 productions properly.
   */
     function decode2047Token(token, isLastToken) {
-        let tokenParts = token.split("?");
+        const tokenParts = token.split("?");
 
         // If it's obviously not a valid token, return false immediately.
         if (tokenParts.length != 5 || tokenParts[4] != "=") {
@@ -441,8 +442,8 @@ function decodeRFC2047Words(headerValue) {
         // The charset parameter is defined in RFC 2231 to be charset or
         // charset*language. We only care about the charset here, so ignore any
         // language parameter that gets passed in.
-        let charset = tokenParts[1].split("*", 1)[0];
-        let encoding = tokenParts[2],
+        const charset = tokenParts[1].split("*", 1)[0];
+        const encoding = tokenParts[2],
             text = tokenParts[3];
 
         let buffer;
@@ -471,11 +472,11 @@ function decodeRFC2047Words(headerValue) {
         }
 
         // Make the buffer be a typed array for what follows
-        let stringBuffer = buffer;
+        const stringBuffer = buffer;
         buffer = binaryStringToUint8Array(buffer);
 
         // If we cannot reuse the last decoder, flush out whatever remains.
-        var output = "";
+        let output = "";
         if (charset != lastCharset && currentDecoder) {
             output += currentDecoder.decode();
             currentDecoder = null;
@@ -517,18 +518,18 @@ function decodeRFC2047Words(headerValue) {
     // =?charset?c?text?=, where c is one of B, b, Q, and q. The split regex does
     // some amount of semantic checking, so that malformed RFC 2047 tokens will
     // get ignored earlier.
-    let components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/); // nosemgrep
+    const components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/); // nosemgrep
 
     // Find last RFC 2047 token.
     let lastRFC2047Index = -1;
     for (let i = 0; i < components.length; i++) {
-        if (components[i].substring(0, 2) == "=?") {
+        if (components[i].startsWith("=?")) {
             lastRFC2047Index = i;
         }
     }
     for (let i = 0; i < components.length; i++) {
-        if (components[i].substring(0, 2) == "=?") {
-            let decoded = decode2047Token(components[i], i == lastRFC2047Index);
+        if (components[i].startsWith("=?")) {
+            const decoded = decode2047Token(components[i], i == lastRFC2047Index);
             if (decoded !== false) {
                 // If 2047 decoding succeeded for this bit, rewrite the original value
                 // with the proper decoding.
@@ -641,7 +642,7 @@ function parseAddressingHeader(header, doRFC2047) {
   */
     function addToAddrList(displayName, addrSpec) {
     // Keep the local-part quoted if it needs to be.
-        let lp = addrSpec.substring(0, addrSpec.lastIndexOf("@"));
+        const lp = addrSpec.substring(0, addrSpec.lastIndexOf("@"));
         if (/[ !()<>[\]:;@\\,"]/.exec(lp) !== null) {
             addrSpec =
                 '"' +
@@ -656,7 +657,7 @@ function parseAddressingHeader(header, doRFC2047) {
 
         if (displayName === "" && lastComment !== "") {
             // Take last comment content as the display-name.
-            let offset = lastComment[0] === " " ? 2 : 1;
+            const offset = lastComment.startsWith(" ") ? 2 : 1;
             displayName = lastComment.substr(
                 offset,
                 lastComment.length - offset - 1
@@ -836,7 +837,7 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
     // The basic syntax of headerValue is token [; token = token-or-qstring]*
     // Copying more or less liberally from nsMIMEHeaderParamImpl:
     // The first token is the text to the first whitespace or semicolon.
-    var semi = headerValue.indexOf(";");
+    const semi = headerValue.indexOf(";");
     let start, rest;
     if (semi < 0) {
         start = headerValue;
@@ -849,14 +850,14 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
     start = start.trim().split(/[ \t\r\n]/)[0];
 
     // Decode the the parameter tokens.
-    let opts = { qstring: true, rfc2047: doRFC2047 };
+    const opts = { qstring: true, rfc2047: doRFC2047 };
     // Name is the name of the parameter, inName is true iff we don't have a name
     // yet.
     let name = "",
         inName = true;
     // Matches is a list of [name, value] pairs, where we found something that
     // looks like name=value in the input string.
-    let matches = [];
+    const matches = [];
     for (let headerToken of getHeaderTokens(rest, ";=", opts)) {
         if (headerToken === ";") {
             // If we didn't find a name yet (we have ... tokenA; tokenB), push the
@@ -908,14 +909,14 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
     // continuationValues maps parameter -> array of values, with extra properties
     // valid (if we decided we couldn't do anything anymore) and hasCharset (which
     // records if we need to decode the charset parameter or not).
-    var simpleValues = new Map(),
+    const simpleValues = new Map(),
         charsetValues = new Map(),
         continuationValues = new Map();
-    for (let pair of matches) {
+    for (const pair of matches) {
         let name = pair[0];
-        let value = pair[1];
+        const value = pair[1];
         // Get first index, not last index, so we match param*0*= like param*0=.
-        let star = name.indexOf("*");
+        const star = name.indexOf("*");
         if (star == -1) {
             // This is the case of param=val. Select the first value here, if there
             // are multiple ones.
@@ -931,7 +932,7 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
             }
         } else {
             // This is the case of param*0= or param*0*=.
-            let param = name.substring(0, star);
+            const param = name.substring(0, star);
             let entry = continuationValues.get(param);
             // Did we previously find this one to be bungled? Then ignore it.
             if (continuationValues.has(param) && !entry.valid) {
@@ -949,7 +950,7 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
 
             // When the string ends in *, we need to charset decoding.
             // Note that the star is only meaningful for the *0*= case.
-            let lastStar = name[name.length - 1] == "*";
+            const lastStar = name[name.length - 1] == "*";
             let number = name.substring(
                 star + 1,
                 name.length - (lastStar ? 1 : 0)
@@ -981,18 +982,18 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
     }
 
     // Build the actual parameter array from the parsed values
-    var values = new Map();
+    const values = new Map();
     // Simple values have lowest priority, so just add everything into the result
     // now.
-    for (let pair of simpleValues) {
+    for (const pair of simpleValues) {
         values.set(pair[0], pair[1]);
     }
 
     if (doRFC2231) {
     // Continuation values come next
-        for (let pair of continuationValues) {
-            let name = pair[0];
-            let entry = pair[1];
+        for (const pair of continuationValues) {
+            const name = pair[0];
+            const entry = pair[1];
             // If we never saw a param*0= or param*0*= value, then we can't do any
             // reasoning about what it looks like, so bail out now.
             if (entry.hasCharset === undefined) {
@@ -1002,6 +1003,7 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
             // Use as many entries in the array as are valid--if we are missing an
             // entry, stop there.
             let valid = true;
+            // oxlint-disable-next-line no-var
             for (var i = 0; valid && i < entry.length; i++) {
                 if (entry[i] === undefined) {
                     valid = false;
@@ -1024,7 +1026,7 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
         }
 
         // Highest priority is the charset conversion.
-        for (let pair of charsetValues) {
+        for (const pair of charsetValues) {
             try {
                 values.set(pair[0], decode2231Value(pair[1]));
             } catch {
@@ -1046,17 +1048,17 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
 * @return The Unicode version of the string.
 */
 function decode2231Value(value) {
-    let quote1 = value.indexOf("'");
-    let quote2 = quote1 >= 0 ? value.indexOf("'", quote1 + 1) : -1;
+    const quote1 = value.indexOf("'");
+    const quote2 = quote1 >= 0 ? value.indexOf("'", quote1 + 1) : -1;
 
-    let charset = quote1 >= 0 ? value.substring(0, quote1) : "";
+    const charset = quote1 >= 0 ? value.substring(0, quote1) : "";
     // It turns out that the language isn't useful anywhere in our codebase for
     // the present time, so we will safely ignore it.
     // var language = (quote2 >= 0 ? value.substring(quote1 + 2, quote2) : "");
     value = value.substring(Math.max(quote1, quote2) + 1);
 
     // Convert the value into a typed array for decoding
-    let typedarray = binaryStringToUint8Array(value);
+    const typedarray = binaryStringToUint8Array(value);
 
     // Decode the charset. If the charset isn't found, we throw an error. Try to
     // fallback in that case.
@@ -1067,7 +1069,7 @@ function decode2231Value(value) {
 
 // This is a map of known timezone abbreviations, for fallback in obsolete Date
 // productions.
-var kKnownTZs = {
+const kKnownTZs = {
     // The following timezones are explicitly listed in RFC 5322.
     UT: "+0000",
     GMT: "+0000",
@@ -1129,14 +1131,14 @@ function parseDateHeader(header) {
     }
 
     // Save off the numeric tokens
-    let day = parseInt(tokens[0]);
+    const day = parseInt(tokens[0]);
     // month is tokens[1]
     let year = parseInt(tokens[2]);
-    let hours = parseInt(tokens[3]);
+    const hours = parseInt(tokens[3]);
     // tokens[4] === ':'
-    let minutes = parseInt(tokens[5]);
+    const minutes = parseInt(tokens[5]);
     // tokens[6] === ':'
-    let seconds = parseInt(tokens[7]);
+    const seconds = parseInt(tokens[7]);
 
     // Compute the month. Check only the first three digits for equality; this
     // allows us to accept, e.g., "January" in lieu of "Jan."
@@ -1172,7 +1174,7 @@ function parseDateHeader(header) {
     // How do we make the date at this point? Well, the JS date's constructor
     // builds the time in terms of the local timezone. To account for the offset
     // properly, we need to build in UTC.
-    let finalDate = new Date(
+    const finalDate = new Date(
         Date.UTC(year, month, day, hours, minutes, seconds) -
       tzOffsetInMin * 60 * 1000
     );
@@ -1190,10 +1192,10 @@ function parseDateHeader(header) {
 // ----------------------------------
 
 // Load the default structured decoders
-var structuredDecoders = new Map();
+const structuredDecoders = new Map();
 import { spellings as preferredSpellings, decoders as headerDecoders} from "./structuredHeaders.js";
-var forbiddenHeaders = new Set();
-for (let pair of headerDecoders) {
+const forbiddenHeaders = new Set();
+for (const pair of headerDecoders) {
     addStructuredDecoder(pair[0], pair[1]);
     forbiddenHeaders.add(pair[0].toLowerCase());
 }
@@ -1286,7 +1288,7 @@ function parseStructuredHeader(header, value) {
 
     // Lookup the header in our decoders; if present, use that to decode the
     // header.
-    let lowerHeader = header.toLowerCase();
+    const lowerHeader = header.toLowerCase();
     if (structuredDecoders.has(lowerHeader)) {
         return structuredDecoders.get(lowerHeader).call(headerparser, value);
     }
@@ -1319,7 +1321,7 @@ function parseStructuredHeader(header, value) {
 *                                               function.
 */
 function addStructuredDecoder(header, decoder) {
-    let lowerHeader = header.toLowerCase();
+    const lowerHeader = header.toLowerCase();
     if (forbiddenHeaders.has(lowerHeader)) {
         throw new Error("Cannot override header: " + header);
     }

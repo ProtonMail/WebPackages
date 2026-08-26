@@ -6,7 +6,7 @@ class UTF7TextDecoder {
         this.decodeString = decodeUtf7;
     }
     decode(input, options = {}) {
-        let more = options.stream;
+        const more = options.stream;
         // There are cases where this is called without input, to flush the collected input
         if (input) {
             this.collectInput += uint8ArrayToBinaryString(input);

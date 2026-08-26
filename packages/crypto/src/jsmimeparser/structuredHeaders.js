@@ -3,12 +3,12 @@
  * for several key headers. It is not meant to be used externally to jsmime.
  */
 
-var structuredDecoders = new Map();
-var structuredEncoders = new Map();
-var preferredSpellings = new Map();
+const structuredDecoders = new Map();
+const structuredEncoders = new Map();
+const preferredSpellings = new Map();
 
 function addHeader(name, decoder, encoder) {
-    var lowerName = name.toLowerCase();
+    const lowerName = name.toLowerCase();
     structuredDecoders.set(lowerName, decoder);
     structuredEncoders.set(lowerName, encoder);
     preferredSpellings.set(lowerName, name);
@@ -20,7 +20,7 @@ function addHeader(name, decoder, encoder) {
 // back to parseAddressingHeader.
 function parseAddress(value) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let headerparser = this;
+    const headerparser = this;
     return value.reduce(function(results, header) {
         return results.concat(headerparser.parseAddressingHeader(header, true));
     }, []);
@@ -68,18 +68,18 @@ function parseParameterHeader(value, do2231, do2047) {
 // RFC 2045
 function parseContentType(value) {
     let params = parseParameterHeader.call(this, value, false, false);
-    let origtype = params.preSemi;
+    const origtype = params.preSemi;
     let parts = origtype.split("/");
     if (parts.length != 2) {
     // Malformed. Return to text/plain. Evil, ain't it?
         params = new Map();
         parts = ["text", "plain"];
     }
-    let mediatype = parts[0].toLowerCase();
-    let subtype = parts[1].toLowerCase();
+    const mediatype = parts[0].toLowerCase();
+    const subtype = parts[1].toLowerCase();
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-    let type = mediatype + "/" + subtype;
-    let structure = new Map();
+    const type = mediatype + "/" + subtype;
+    const structure = new Map();
     structure.mediatype = mediatype;
     structure.subtype = subtype;
     structure.type = type;
@@ -153,9 +153,9 @@ structuredEncoders.set("Content-Transfer-Encoding", writeUnstructured);
 // with spaces, since these are optional according to RFC2822. So here we
 // preprocess these headers (see bug 1154521 and bug 1197686).
 function preprocessMessageIDs(values) {
-    let msgId = /<[^>]*>/g;
-    let match,
-        ids = [];
+    const msgId = /<[^>]*>/g;
+    let match;
+    const ids = [];
     while ((match = msgId.exec(values)) !== null) {
         ids.push(match[0]);
     }

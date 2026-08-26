@@ -126,7 +126,7 @@ function StructuredHeaders(rawHeaderText, options) {
     // An individual header is terminated by a CRLF, except if the CRLF is
     // followed by a SP or TAB. Use negative lookahead to capture the latter case,
     // and don't capture the strings or else split results get nasty.
-    let values = rawHeaderText.split(/(?:\r\n|\n)(?![ \t])|\r(?![ \t\n])/);
+    const values = rawHeaderText.split(/(?:\r\n|\n)(?![ \t])|\r(?![ \t\n])/);
 
     // Ignore the first "header" if it begins with an mbox delimiter
     if (values.length > 0 && values[0].substring(0, 5) == "From ") {
@@ -141,11 +141,11 @@ function StructuredHeaders(rawHeaderText, options) {
         }
     }
 
-    let headers = new Map();
+    const headers = new Map();
     for (let i = 0; i < values.length; i++) {
     // Look for a colon. If it's not present, this header line is malformed,
     // perhaps by premature EOF or similar.
-        let colon = values[i].indexOf(":");
+        const colon = values[i].indexOf(":");
         let header, val;
         if (colon >= 0) {
             header = values[i].substring(0, colon);
@@ -279,7 +279,7 @@ StructuredHeaders.prototype.get = function(headerName) {
     }
 
     // Convert the header to Unicode
-    let charset = this.charset;
+    const charset = this.charset;
     headerValue = headerValue.map(function(value) {
         return headerparser.convert8BitHeader(value, charset);
     });
@@ -316,8 +316,8 @@ StructuredHeaders.prototype.has = function(headerName) {
 
 // Make a custom iterator. Presently, support for Symbol isn't yet present in
 // SpiderMonkey (or V8 for that matter), so type-pun the name for now.
-var JS_HAS_SYMBOLS = typeof Symbol === "function";
-var ITERATOR_SYMBOL = JS_HAS_SYMBOLS ? Symbol.iterator : "@@iterator";
+const JS_HAS_SYMBOLS = typeof Symbol === "function";
+const ITERATOR_SYMBOL = JS_HAS_SYMBOLS ? Symbol.iterator : "@@iterator";
 
 /**
  * An equivalent of Map.@@iterator, applied to the structured header
@@ -327,7 +327,7 @@ var ITERATOR_SYMBOL = JS_HAS_SYMBOLS ? Symbol.iterator : "@@iterator";
 StructuredHeaders.prototype[ITERATOR_SYMBOL] = function*() {
     // Iterate over all the raw headers, and use the cached headers to retrieve
     // them.
-    for (let headerName of this.keys()) {
+    for (const headerName of this.keys()) {
         yield [headerName, this.get(headerName)];
     }
 };
@@ -342,7 +342,7 @@ StructuredHeaders.prototype[ITERATOR_SYMBOL] = function*() {
  *                                                  the |this| of the callback.
  */
 StructuredHeaders.prototype.forEach = function(callback, thisarg) {
-    for (let [header, value] of this) {
+    for (const [header, value] of this) {
         callback.call(thisarg, value, header, this);
     }
 };
@@ -365,7 +365,7 @@ function capitalize(headerName) {
  * An equivalent of Map.keys, applied to the structured header representations.
  */
 StructuredHeaders.prototype.keys = function*() {
-    for (let name of this._rawHeaders.keys()) {
+    for (const name of this._rawHeaders.keys()) {
         yield spellings.get(name) || capitalize(name);
     }
 };
@@ -375,7 +375,7 @@ StructuredHeaders.prototype.keys = function*() {
  * representations.
  */
 StructuredHeaders.prototype.values = function*() {
-    for (let [, value] of this) {
+    for (const [, value] of this) {
         yield value;
     }
 };
@@ -457,7 +457,7 @@ function MimeParser(emitter, options) {
     };
     // Load the options as a copy here (prevents people from changing on the fly).
     if (options) {
-        for (var opt in options) {
+        for (const opt in options) {
             this._options[opt] = options[opt];
         }
     }
@@ -561,9 +561,9 @@ function conditionToEndOnCRLF(buffer) {
     // don't want to consider '\r' if it is the very last character, as we need
     // the next packet to tell if the '\r' is the beginning of a CRLF or a line
     // ending by itself.
-    let lastCR = buffer.lastIndexOf("\r", buffer.length - 2);
-    let lastLF = buffer.lastIndexOf("\n");
-    let end = lastLF > lastCR ? lastLF : lastCR;
+    const lastCR = buffer.lastIndexOf("\r", buffer.length - 2);
+    const lastLF = buffer.lastIndexOf("\n");
+    const end = lastLF > lastCR ? lastLF : lastCR;
     return [buffer.substring(0, end + 1), buffer.substring(end + 1)];
 }
 
@@ -621,8 +621,8 @@ MimeParser.prototype._callEmitter = function(funcname, ...args) {
  */
 MimeParser.prototype._willIgnorePart = function(part) {
     if (this._options.pruneat) {
-        let match = this._options.pruneat;
-        let start = part.substr(0, match.length);
+        const match = this._options.pruneat;
+        const start = part.substr(0, match.length);
         // It needs to start with and follow with a new part indicator
         // (i.e., don't let 10 match with 1, but let 1.1 or 1$ do so)
         if (
@@ -681,10 +681,10 @@ MimeParser.prototype._willIgnorePart = function(part) {
 // canonicalized into lower-case.
 
 // Parser states. See the large comment above.
-var PARSING_HEADERS = 1;
-var SEND_TO_BLACK_HOLE = 2;
-var SEND_TO_EMITTER = 3;
-var SEND_TO_SUBPARSER = 4;
+const PARSING_HEADERS = 1;
+const SEND_TO_BLACK_HOLE = 2;
+const SEND_TO_EMITTER = 3;
+const SEND_TO_SUBPARSER = 4;
 
 /**
  * Main dispatch for incoming packet data.
@@ -708,13 +708,13 @@ MimeParser.prototype._dispatchData = function(partNum, buffer, checkSplit) {
         this._headerData += buffer;
         // Find the end of the headers--either it's a CRLF at the beginning (in
         // which case we have no headers), or it's a pair of CRLFs.
-        let result = /(?:^(?:\r\n|[\r\n]))|(\r\n|[\r\n])\1/.exec(
+        const result = /(?:^(?:\r\n|[\r\n]))|(\r\n|[\r\n])\1/.exec(
             this._headerData
         );
         if (result != null) {
             // If we found the end of headers, split the data at this point and send
             // the stuff after the double-CRLF into the later body parsing.
-            let headers = this._headerData.substr(0, result.index);
+            const headers = this._headerData.substr(0, result.index);
             buffer = this._headerData.substring(result.index + result[0].length);
             this._headerData = headers;
             this._headers = this._parseHeaders();
@@ -728,10 +728,10 @@ MimeParser.prototype._dispatchData = function(partNum, buffer, checkSplit) {
     // We're in the middle of the body. Start by testing the split regex, to see
     // if there are many things that need to be done.
     if (checkSplit && this._splitRegex) {
-        let splitResult = this._splitRegex.exec(buffer);
+        const splitResult = this._splitRegex.exec(buffer);
         if (splitResult) {
             // Pass the text before the split through the current state.
-            let start = splitResult.index,
+            const start = splitResult.index,
                 len = splitResult[0].length;
             if (start > 0) {
                 this._dispatchData(partNum, buffer.substr(0, start), false);
@@ -756,7 +756,7 @@ MimeParser.prototype._dispatchData = function(partNum, buffer, checkSplit) {
     // Don't send any data when going to the black hole.
     } else if (this._state == SEND_TO_EMITTER) {
     // Don't pass body data if the format is to be none
-        let passData = this._options.bodyformat != "none";
+        const passData = this._options.bodyformat != "none";
         if (!passData || this._willIgnorePart(partNum)) {
             return;
         }
@@ -810,7 +810,7 @@ MimeParser.prototype._coerceData = function(buffer, type, more) {
             return buffer;
         }
         // Either we're going to array or unicode. Both people need the array
-        var typedarray = binaryStringToUint8Array(buffer);
+        const typedarray = binaryStringToUint8Array(buffer);
         // If it's unicode, do the coercion from the array
         // If its typedarray, just return the synthesized one
         return type == "unicode"
@@ -872,7 +872,7 @@ MimeParser.prototype._dispatchEOF = function(partNum) {
  *                              block.
  */
 MimeParser.prototype._parseHeaders = function() {
-    let headers = new StructuredHeaders(this._headerData, this._options);
+    const headers = new StructuredHeaders(this._headerData, this._options);
 
     // Fill the headers.contentType parameter of headers.
     let contentType = headers.get("Content-Type");
@@ -916,7 +916,7 @@ MimeParser.prototype._parseHeaders = function() {
  * @param partNum {String} The part number being currently parsed.
  */
 MimeParser.prototype._startBody = function(partNum) {
-    let contentType = this._headers.contentType;
+    const contentType = this._headers.contentType;
 
     // Should the bodyformat be raw, we just want to pass through all data without
     // trying to interpret it.
@@ -985,9 +985,9 @@ MimeParser.prototype._startBody = function(partNum) {
                     splitPoint--;
                 }
             }
-            let res = conditionToEndOnCRLF(buffer.substring(0, splitPoint));
-            let preLF = res[0];
-            let rest = res[1];
+            const res = conditionToEndOnCRLF(buffer.substring(0, splitPoint));
+            const preLF = res[0];
+            const rest = res[1];
             return [preLF, rest + buffer.substring(splitPoint)];
         };
     } else if (
@@ -1006,7 +1006,7 @@ MimeParser.prototype._startBody = function(partNum) {
         // contents properly. There seems to be some evidence that message/rfc822
         // that is illegally-encoded exists in the wild, so be lenient and decode
         // for any message/* type that gets here.
-        let cte = this._extractHeader("content-transfer-encoding", "");
+        const cte = this._extractHeader("content-transfer-encoding", "");
         if (cte in ContentDecoders) {
             this._convertData = ContentDecoders[cte];
         }
@@ -1015,7 +1015,7 @@ MimeParser.prototype._startBody = function(partNum) {
         this._state = SEND_TO_EMITTER;
         if (this._options.bodyformat == "decode") {
             // If we wish to decode, look it up in one of our decoders.
-            let cte = this._extractHeader("content-transfer-encoding", "");
+            const cte = this._extractHeader("content-transfer-encoding", "");
             if (cte in ContentDecoders) {
                 this._convertData = ContentDecoders[cte];
             }
@@ -1131,7 +1131,7 @@ MimeParser.prototype._extractHeader = function(name, dflt) {
         : headerparser.parseStructuredHeader(name, [dflt]);
 };
 
-var ContentDecoders = {};
+const ContentDecoders = {};
 ContentDecoders["quoted-printable"] = decode_qp;
 ContentDecoders.base64 = decode_base64;
 

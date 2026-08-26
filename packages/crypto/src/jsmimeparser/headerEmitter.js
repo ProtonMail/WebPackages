@@ -13,7 +13,7 @@ import { uint8ArrayToBinaryString } from "./utils.js";
 // Get the default structured encoders and add them to the map
 import { spellings as preferredSpellings, encoders as headerEncoders} from "./structuredHeaders.js";
 const encoders = new Map();
-for (let [header, encoder] of headerEncoders) {
+for (const [header, encoder] of headerEncoders) {
     addStructuredEncoder(header, encoder);
 }
 
@@ -23,7 +23,7 @@ function clamp(object, property, min, max, def) {
     if (!(property in object)) {
         return def;
     }
-    let value = object[property];
+    const value = object[property];
     if (value < min) {
         return min;
     }
@@ -167,7 +167,7 @@ class HeaderEmitter {
 *   include before wrapping.
 */
     _commitLine(count) {
-        let isContinuing = typeof count !== "undefined";
+        const isContinuing = typeof count !== "undefined";
 
         // Split at the point, and lop off whitespace immediately before and after.
         let firstN, lastN;
@@ -264,7 +264,7 @@ class HeaderEmitter {
         if (mayBreakAfter) {
             // Make sure that there is an extra space if text could break afterwards.
             this._preferredBreakpoint = this._currentLine.length;
-            if (text[text.length - 1] != " ") {
+            if (!text.endsWith(" ")) {
                 this._currentLine += " ";
             }
         }
@@ -297,7 +297,7 @@ class HeaderEmitter {
         // already appears to be quoted.
         let needsQuote = false;
 
-        if (!(text[0] == '"' && text[text.length - 1] == '"') && qchars != "") {
+        if (!(text.startsWith('"') && text.endsWith('"')) && qchars != "") {
             for (let i = 0; i < text.length; i++) {
                 if (qchars.includes(text[i])) {
                     needsQuote = true;
@@ -346,7 +346,7 @@ class HeaderEmitter {
                 // atoms (and not a quoted-string), then make the last space we added a
                 // breakpoint, regardless of the mayBreakAfter setting.
                 if (this._preferredBreakpoint == 0 && text.includes(" ")) {
-                    if (this._currentLine[this._currentLine.length - 1] != '"') {
+                    if (!this._currentLine.endsWith('"')) {
                         this._preferredBreakpoint = this._currentLine.lastIndexOf(" ");
                     }
                 }
@@ -361,7 +361,7 @@ class HeaderEmitter {
         // If the text is too long, split the quotable string at space boundaries and
         // add each word individually. If we still can't add all those words, there is
         // nothing that we can do.
-        let words = text.split(" ");
+        const words = text.split(" ");
         for (let i = 0; i < words.length; i++) {
             this.addQuotable(
                 words[i],
@@ -387,7 +387,7 @@ class HeaderEmitter {
         useQP,
         mayBreakAfter
     ) {
-        let binaryString = uint8ArrayToBinaryString(encodedText);
+        const binaryString = uint8ArrayToBinaryString(encodedText);
         let token;
         if (useQP) {
             token = qpPrelude;
@@ -397,7 +397,7 @@ class HeaderEmitter {
           encodedText[i] >= 0x7f ||
           qpForbidden.includes(binaryString[i])
                 ) {
-                    let ch = encodedText[i];
+                    const ch = encodedText[i];
                     token += "=" + hexString[(ch & 0xf0) >> 4] + hexString[ch & 0x0f];
                 } else if (binaryString[i] == " ") {
                     token += "_";
@@ -425,10 +425,10 @@ class HeaderEmitter {
         mayBreakAfter
     ) {
     // Start by encoding the text into UTF-8 directly.
-        let encodedText = new TextEncoder("UTF-8").encode(text);
+        const encodedText = new TextEncoder("UTF-8").encode(text);
 
         // Make sure there's enough room for a single token.
-        let minLineLen = b64Prelude.length + 10; // Eight base64 characters plus ?=
+        const minLineLen = b64Prelude.length + 10; // Eight base64 characters plus ?=
         if (!this._reserveTokenSpace(minLineLen)) {
             this._commitLine(this._currentLine.length);
         }
@@ -527,7 +527,7 @@ class HeaderEmitter {
   * @param          value The structured value of the header.
   */
     addStructuredHeader(name, value) {
-        let lowerName = name.toLowerCase();
+        const lowerName = name.toLowerCase();
         if (encoders.has(lowerName)) {
             this.addHeaderName(preferredSpellings.get(lowerName));
             encoders.get(lowerName).call(this, value);
@@ -574,7 +574,7 @@ class HeaderEmitter {
         // Find the local-part and domain of the address, since the local-part may
         // need to be quoted separately. Note that the @ goes to the domain, so that
         // the local-part may be quoted if it needs to be.
-        let at = addr.email.lastIndexOf("@");
+        const at = addr.email.lastIndexOf("@");
         // eslint-disable-next-line no-useless-assignment
         let localpart = "",
             domain = "";
@@ -606,7 +606,7 @@ class HeaderEmitter {
   */
     addAddresses(addresses) {
         let needsComma = false;
-        for (let addr of addresses) {
+        for (const addr of addresses) {
             // Add a comma if this is not the first element.
             if (needsComma) {
                 this.addText(", ", true);
@@ -706,16 +706,16 @@ class HeaderEmitter {
         // the the 0-padding is done by hand. Note that the tzoffset we output is in
         // the form ±hhmm, so we need to separate the offset (in minutes) into an hour
         // and minute pair.
-        let tzOffHours = Math.abs(Math.trunc(tzOffset / 60));
-        let tzOffMinutes = Math.abs(tzOffset) % 60;
-        let tzOffsetStr =
+        const tzOffHours = Math.abs(Math.trunc(tzOffset / 60));
+        const tzOffMinutes = Math.abs(tzOffset) % 60;
+        const tzOffsetStr =
             (tzOffset > 0 ? "-" : "+") +
       padTo2Digits(tzOffHours) +
       padTo2Digits(tzOffMinutes);
 
         // Convert the day-time figure into a single value to avoid unwanted line
         // breaks in the middle.
-        let dayTime = [
+        const dayTime = [
             kDaysOfWeek[dayOfWeek] + ",",
             dayOfMonth,
             kMonthNames[month],
@@ -803,8 +803,8 @@ class StringHandler {
 * @see HeaderEmitter.addStructuredHeader
 */
 export function emitStructuredHeader(name, value, options) {
-    let handler = new StringHandler();
-    let emitter = new HeaderEmitter(handler, options);
+    const handler = new StringHandler();
+    const emitter = new HeaderEmitter(handler, options);
     emitter.addStructuredHeader(name, value);
     emitter.finish(true);
     return handler.value;
@@ -826,9 +826,9 @@ export function emitStructuredHeader(name, value, options) {
 * @see HeaderEmitter.addStructuredHeader
 */
 export function emitStructuredHeaders(headerValues, options) {
-    let handler = new StringHandler();
-    let emitter = new HeaderEmitter(handler, options);
-    for (let instance of headerValues) {
+    const handler = new StringHandler();
+    const emitter = new HeaderEmitter(handler, options);
+    for (const instance of headerValues) {
         instance[1].forEach(function(e) {
             emitter.addStructuredHeader(instance[0], e);
         });
@@ -856,7 +856,7 @@ export function emitStructuredHeaders(headerValues, options) {
 * @param {Function(Value)} encoder The structured encoder function.
 */
 export function addStructuredEncoder(header, encoder) {
-    let lowerName = header.toLowerCase();
+    const lowerName = header.toLowerCase();
     encoders.set(lowerName, encoder);
     if (!preferredSpellings.has(lowerName)) {
         preferredSpellings.set(lowerName, header);

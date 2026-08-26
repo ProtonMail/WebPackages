@@ -16,7 +16,7 @@ function arrayTest(data, fn) {
 }
 describe("headerparser", function() {
     describe("parseParameterHeader", function() {
-        let header_tests = [
+        const header_tests = [
             ["multipart/related", ["multipart/related", {}]],
             ["a ; b=v", ["a", { b: "v" }]],
             ["a ; b='v'", ["a", { b: "'v'" }]],
@@ -33,9 +33,9 @@ describe("headerparser", function() {
         ];
         header_tests.forEach(function(data) {
             arrayTest(data, function() {
-                let testMap = new Map();
+                const testMap = new Map();
                 // eslint-disable-next-line @typescript-eslint/no-for-in-array
-                for (let key in data[1][1]) {
+                for (const key in data[1][1]) {
                     testMap.set(key, data[1][1][key]);
                 }
                 testMap.preSemi = data[1][0];
@@ -47,7 +47,7 @@ describe("headerparser", function() {
         });
     });
     describe("parseParameterHeader (2231/2047 support)", function() {
-        let header_tests = [
+        const header_tests = [
             // Copied from test_MIME_params.js and adapted
             ["attachment;", ["attachment", {}]],
             ["attachment; filename=basic", ["attachment", { filename: "basic" }]],
@@ -294,9 +294,9 @@ describe("headerparser", function() {
         ];
         header_tests.forEach(function(data) {
             arrayTest(data, function() {
-                let testMap = new Map();
+                const testMap = new Map();
                 // eslint-disable-next-line @typescript-eslint/no-for-in-array
-                for (let key in data[1][1]) {
+                for (const key in data[1][1]) {
                     testMap.set(key, data[1][1][key]);
                 }
                 testMap.preSemi = data[1][0];
@@ -308,7 +308,7 @@ describe("headerparser", function() {
         });
     });
     describe("parseAddressingHeader", function() {
-        let header_tests = [
+        const header_tests = [
             ["", []],
             [
                 "Joe Schmoe <jschmoe@invalid.invalid>",
@@ -745,7 +745,7 @@ describe("headerparser", function() {
         });
     });
     describe("parseAddressingHeader (RFC 2047 support)", function() {
-        let header_tests = [
+        const header_tests = [
             ["Simple <a@b.c>", [{ name: "Simple", email: "a@b.c" }]],
             ["=?UTF-8?Q?Simple?= <a@b.c>", [{ name: "Simple", email: "a@b.c" }]],
             ["=?UTF-8?Q?=3C@b.c?= <a@b.c>", [{ name: "<@b.c", email: "a@b.c" }]],
@@ -892,7 +892,7 @@ describe("headerparser", function() {
         });
     });
     describe("parseDateHeader", function() {
-        let header_tests = [
+        const header_tests = [
             // Some basic tests, derived from searching for Date headers in a mailing
             // list archive.
             ["Thu, 06 Sep 2012 08:08:21 -0700", "2012-09-06T08:08:21-0700"],
@@ -989,7 +989,7 @@ describe("headerparser", function() {
     });
 
     describe("decodeRFC2047Words", function() {
-        let header_tests = [
+        const header_tests = [
             // Some basic sanity tests for the test process
             ["Test", "Test"],
             ["Test 2", "Test 2"],
@@ -1174,7 +1174,7 @@ describe("headerparser", function() {
         });
     });
     describe("8-bit header processing", function() {
-        let header_tests = [
+        const header_tests = [
             // Non-ASCII header values
             ["oxyg\xc3\xa8ne", "oxyg\u00e8ne", "UTF-8"],
             ["oxyg\xc3\xa8ne", "oxyg\u00e8ne", "ISO-8859-1"], // UTF-8 overrides

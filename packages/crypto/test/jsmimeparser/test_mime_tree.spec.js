@@ -45,12 +45,12 @@ function extract_field(object, field) {
  *                 of the file from [line start, line end) [1-based lines]
  */
 function make_body_test(test, file, opts, partspec) {
-    var results = Promise.all(
+    let results = Promise.all(
         partspec.map(p => Promise.all([p[0], read_file(file, p[1], p[2])]))
     );
-    var eol = extract_field(opts, "_eol");
-    var msgtext = read_file(file).then(function(msgcontents) {
-        var packetize = extract_field(opts, "_split");
+    const eol = extract_field(opts, "_eol");
+    const msgtext = read_file(file).then(function(msgcontents) {
+        const packetize = extract_field(opts, "_split");
         if (packetize !== undefined) {
             msgcontents = msgcontents.split(packetize);
         }
@@ -61,7 +61,7 @@ function make_body_test(test, file, opts, partspec) {
     });
     if (eol !== undefined) {
         results = results.then(function(results_) {
-            for (let part of results_) {
+            for (const part of results_) {
                 part[1] = part[1].replace(/\r\n/g, eol);
             }
             return results_;
@@ -84,11 +84,11 @@ function make_body_test(test, file, opts, partspec) {
  * @return         A promise containing the results of the test.
  */
 function testParser(message, opts, results) {
-    var uncheckedValues;
-    var checkingHeaders;
-    var calls = 0;
-    var fusingParts = extract_field(opts, "_nofuseparts") === undefined;
-    var emitter = {
+    let uncheckedValues;
+    let checkingHeaders;
+    let calls = 0;
+    const fusingParts = extract_field(opts, "_nofuseparts") === undefined;
+    const emitter = {
         stack: [],
         startMessage: function emitter_startMsg() {
             assert.equal(this.stack.length, 0);
@@ -104,13 +104,13 @@ function testParser(message, opts, results) {
             if (checkingHeaders) {
                 assert.ok(partNum in uncheckedValues);
                 // Headers is a map, convert it to an object.
-                var objmap = {};
-                for (let pair of headers) {
+                const objmap = {};
+                for (const pair of headers) {
                     objmap[pair[0]] = pair[1];
                 }
-                var expected = uncheckedValues[partNum];
-                var convresults = {};
-                for (let key in expected) {
+                const expected = uncheckedValues[partNum];
+                const convresults = {};
+                for (const key in expected) {
                     try {
                         convresults[key] = headerparser.parseStructuredHeader(
                             key,
@@ -133,7 +133,7 @@ function testParser(message, opts, results) {
                 if (fusingParts) {
                     this.partData += data;
                 } else {
-                    let check = uncheckedValues.shift();
+                    const check = uncheckedValues.shift();
                     assert.equal(partNum, check[0]);
                     assert.equal(data, check[1]);
                 }
@@ -141,7 +141,7 @@ function testParser(message, opts, results) {
         },
         endPart: function emitter_endPart(partNum) {
             if (this.partData != "") {
-                let check = uncheckedValues.shift();
+                const check = uncheckedValues.shift();
                 assert.equal(partNum, check[0]);
                 assert.equal(this.partData, check[1]);
                 this.partData = "";
@@ -154,14 +154,15 @@ function testParser(message, opts, results) {
     };
 
     return Promise.all([message, results]).then(function(vals) {
-        let [message_, results_] = vals;
+        let message_ = vals[0];
+        const results_ = vals[1];
         // Clone the results array into uncheckedValues
         if (Array.isArray(results_)) {
             uncheckedValues = Array.from(results_);
             checkingHeaders = false;
         } else {
             uncheckedValues = {};
-            for (let key in results_) {
+            for (const key in results_) {
                 uncheckedValues[key] = results_[key];
             }
             checkingHeaders = true;
@@ -169,7 +170,7 @@ function testParser(message, opts, results) {
         if (!Array.isArray(message_)) {
             message_ = [message_];
         }
-        var parser = new MimeParser(emitter, opts);
+        const parser = new MimeParser(emitter, opts);
         message_.forEach(function(packet) {
             parser.deliverData(packet);
         });
@@ -186,7 +187,7 @@ function testParser(message, opts, results) {
 describe("MimeParser", function() {
     // This is the expected part specifier for the multipart-complex1 test file,
     // specified here because it is used in several cases.
-    let mpart_complex1 = [
+    const mpart_complex1 = [
         ["1", 8, 10],
         ["2", 14, 16],
         ["3.1", 22, 24],
@@ -195,7 +196,7 @@ describe("MimeParser", function() {
     ];
 
     describe("Simple tests", function() {
-        let parser_tests = [
+        const parser_tests = [
             // The following tests are either degenerate or error cases that should
             // work
             ["Empty string", "", {}, { "": {} }],
@@ -246,7 +247,7 @@ describe("MimeParser", function() {
     });
 
     describe("Body tests", function() {
-        let parser_tests = [
+        const parser_tests = [
             // Body tests from data
             // (Note: line numbers are 1-based. Also, to capture trailing EOF, add 2
             // to the last line number of the file).
@@ -378,7 +379,7 @@ describe("MimeParser", function() {
         for (let i = 0; i < 16; i++) {
             teststr += teststr;
         }
-        let parser_tests = [
+        const parser_tests = [
             [
                 "Base64 very long decode",
                 "Content-Transfer-Encoding: base64\r\n\r\n" + btoa(teststr) + "\r\n",
@@ -463,7 +464,7 @@ describe("MimeParser", function() {
     });
 
     describe("Header tests", function() {
-        let parser_tests = [
+        const parser_tests = [
             // Basic cases for headers
             [
                 "Multiparts get headers",
@@ -551,13 +552,13 @@ describe("MimeParser", function() {
 
     describe("Charset tests", function() {
         function buildTree(file, options) {
-            var tree = new Map();
-            var emitter = {
+            const tree = new Map();
+            const emitter = {
                 startPart(part, headers) {
                     tree.set(part, { headers, body: null });
                 },
                 deliverPartData(part, data) {
-                    var obj = tree.get(part);
+                    const obj = tree.get(part);
                     if (obj.body === null) {
                         obj.body = data;
                     } else if (typeof obj.body === "string") {
@@ -571,7 +572,7 @@ describe("MimeParser", function() {
                 },
             };
             return file.then(function(data) {
-                var parser = new MimeParser(emitter, options);
+                const parser = new MimeParser(emitter, options);
                 parser.deliverData(data);
                 parser.deliverEOF();
                 return tree;
@@ -626,7 +627,7 @@ describe("MimeParser", function() {
                     tree.get("2").headers.getRawHeader("Content-Description"),
                     "\x83\x50\x83\x63\x83\x40\x83\x8b\x83\x52\x83\x41\x83\x67\x83\x8b"
                 );
-                var imageData =
+                let imageData =
                     "iVBORw0KGgoAAAANSUhEUgAAAIAAAABECAIAAADGJao+AAAAwklE" +
           "QVR4Xu3UgQbDMBRA0bc03f//b7N0VuqJEmwoc+KqNEkDh9b+2HuJu1KNO4f+AQCAAA" +
           "AQAAACAEAAAAgAAAEAIAAABACAAAAQAAACAEAAAAgAAAEAIAAAANReamRLlPWYfNH0" +
@@ -634,8 +635,8 @@ describe("MimeParser", function() {
           "8IgAAAEAAAAgBAAAAIAAABACAAAAQAgAAAEAAAAgBAAAAIAAABACAAAIw322gDIPvt" +
           "lmUAAAAASUVORK5CYII=";
                 imageData = atob(imageData);
-                var asArray = new Uint8Array(imageData.length);
-                for (var i = 0; i < asArray.length; i++) {
+                const asArray = new Uint8Array(imageData.length);
+                for (let i = 0; i < asArray.length; i++) {
                     asArray[i] = imageData.charCodeAt(i);
                 }
                 assert.deepEqual(tree.get("2").body, asArray);
@@ -699,7 +700,7 @@ describe("MimeParser", function() {
                     tree.get("2").headers.getRawHeader("Content-Description"),
                     "\x83\x50\x83\x63\x83\x40\x83\x8b\x83\x52\x83\x41\x83\x67\x83\x8b"
                 );
-                var imageData =
+                let imageData =
                     "iVBORw0KGgoAAAANSUhEUgAAAIAAAABECAIAAADGJao+AAAAwklE" +
           "QVR4Xu3UgQbDMBRA0bc03f//b7N0VuqJEmwoc+KqNEkDh9b+2HuJu1KNO4f+AQCAAA" +
           "AQAAACAEAAAAgAAAEAIAAABACAAAAQAAACAEAAAAgAAAEAIAAAANReamRLlPWYfNH0" +
@@ -707,8 +708,8 @@ describe("MimeParser", function() {
           "8IgAAAEAAAAgBAAAAIAAABACAAAAQAgAAAEAAAAgBAAAAIAAABACAAAIw322gDIPvt" +
           "lmUAAAAASUVORK5CYII=";
                 imageData = atob(imageData);
-                var asArray = new Uint8Array(imageData.length);
-                for (var i = 0; i < asArray.length; i++) {
+                const asArray = new Uint8Array(imageData.length);
+                for (let i = 0; i < asArray.length; i++) {
                     asArray[i] = imageData.charCodeAt(i);
                 }
                 assert.deepEqual(tree.get("2").body, asArray);
@@ -778,7 +779,7 @@ describe("MimeParser", function() {
                     tree.get("2").headers.getRawHeader("Content-Description"),
                     "\x83\x50\x83\x63\x83\x40\x83\x8b\x83\x52\x83\x41\x83\x67\x83\x8b"
                 );
-                var imageData =
+                let imageData =
                     "iVBORw0KGgoAAAANSUhEUgAAAIAAAABECAIAAADGJao+AAAAwklE" +
           "QVR4Xu3UgQbDMBRA0bc03f//b7N0VuqJEmwoc+KqNEkDh9b+2HuJu1KNO4f+AQCAAA" +
           "AQAAACAEAAAAgAAAEAIAAABACAAAAQAAACAEAAAAgAAAEAIAAAANReamRLlPWYfNH0" +
@@ -786,8 +787,8 @@ describe("MimeParser", function() {
           "8IgAAAEAAAAgBAAAAIAAABACAAAAQAgAAAEAAAAgBAAAAIAAABACAAAIw322gDIPvt" +
           "lmUAAAAASUVORK5CYII=";
                 imageData = atob(imageData);
-                var asArray = new Uint8Array(imageData.length);
-                for (var i = 0; i < asArray.length; i++) {
+                const asArray = new Uint8Array(imageData.length);
+                for (let i = 0; i < asArray.length; i++) {
                     asArray[i] = imageData.charCodeAt(i);
                 }
                 assert.deepEqual(tree.get("2").body, asArray);
@@ -806,7 +807,7 @@ describe("MimeParser", function() {
                 strformat: "unicode",
                 bodyformat: "decode",
             }).then(function(tree) {
-                var numParts = 14;
+                const numParts = 14;
                 for (let i = 1; i < numParts; i += 2) {
                     assert.equal(tree.get("" + i).body, tree.get("" + (i + 1)).body);
                 }

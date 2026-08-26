@@ -11,7 +11,7 @@ export { uint8ArrayToBinaryString, binaryStringToUint8Array, mergeUint8Arrays } 
 export function decode_qp(buffer) {
     // Unlike base64, quoted-printable isn't stateful across multiple lines, so
     // there is no need to buffer input, so we can always ignore more.
-    let decoded = buffer.replace(
+    const decoded = buffer.replace(
     // Replace either =<hex><hex> or =<wsp>CRLF
         /=([0-9A-F][0-9A-F]|[ \t]*(\r\n|[\r\n]|$))/gi,
         function(match, param) {
@@ -45,7 +45,7 @@ export function decode_base64(buffer, more) {
     sanitize = sanitize.replace(/=+([A-Za-z0-9+/])/g, "$1");
     // We need to encode in groups of 4 chars. If we don't have enough, leave the
     // excess for later. If there aren't any more, drop enough to make it 4.
-    let excess = sanitize.length % 4;
+    const excess = sanitize.length % 4;
     if (excess != 0 && more) {
         buffer = sanitize.slice(-excess);
     } else {

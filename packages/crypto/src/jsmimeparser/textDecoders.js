@@ -61,7 +61,7 @@ function decodeFromUTF7 (str) {
  * @see {@link https://github.com/emailjs/emailjs-utf7} for original implementation
  * @param {String} str String to decode
  */
-export const decodeUtf7 = str =>
+const decodeUtf7 = str =>
     str.replace(/\+([A-Za-z0-9/]*)-?/gi, (_, chunk) => chunk === "" ? "+" : decodeFromUTF7(chunk))
 
 /**
@@ -69,5 +69,5 @@ export const decodeUtf7 = str =>
  * @see {@link https://github.com/emailjs/emailjs-utf7} for original implementation
  * @param {String} str String to decode
  */
-export const decodeUtf7Imap = str =>
+const decodeUtf7Imap = str =>
     str.replace(/&([^-]*)-/g, (_, chunk) => (chunk === "") ? "&" : decodeFromUTF7(chunk.replace(/,/g, "/")))

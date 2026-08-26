@@ -1,5 +1,5 @@
 // NB: using `export type` is important to ensure we do not import the library unless parseMail (below) is called
-export type { Attachment } from "../../jsmimeparser/index.ts";
+export type { Attachment } from "../../jsmimeparser/index.js";
 
 /**
  * Parse a mail into an object format, splitting, headers, html, text/plain and attachments.

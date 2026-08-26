@@ -283,7 +283,7 @@ const ExtractHeadersAndBodyEmitter = {
     },
 };
 
-export const MimeParser = {
+const MimeParser = {
     /***
    * Determine an arbitrary "parameter" part of a mail header.
    *

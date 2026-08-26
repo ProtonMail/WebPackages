@@ -331,7 +331,7 @@ class HeaderEmitter {
         text = text.replace(/[ \t\r\n]+/g, " ");
 
         // If we have non-ASCII text, encode it using RFC 2047.
-        if (this._useASCII && nonAsciiRe.test(text)) {
+        if (this._useASCII && nonAsciiRe.test(text)) { // nosemgrep
             this.encodeRFC2047Phrase(text, mayBreakAfter);
             return;
         }

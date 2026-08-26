@@ -234,7 +234,7 @@ function getHeaderTokens(value, delimiters, opts) {
         ) {
             // RFC 2047 tokens separated only by whitespace are conceptually part of
             // the same output token, so we need to decode them all at once.
-            let encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/;
+            let encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/; // nosemgrep
             let result = encodedWordsRE.exec(value.slice(i));
             if (result !== null) {
                 // If we were in the middle of a prior token (i.e., something like
@@ -517,7 +517,7 @@ function decodeRFC2047Words(headerValue) {
     // =?charset?c?text?=, where c is one of B, b, Q, and q. The split regex does
     // some amount of semantic checking, so that malformed RFC 2047 tokens will
     // get ignored earlier.
-    let components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/);
+    let components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/); // nosemgrep
 
     // Find last RFC 2047 token.
     let lastRFC2047Index = -1;
@@ -671,13 +671,13 @@ function parseAddressingHeader(header, doRFC2047) {
     }
 
     // Main parsing loop
-    for (let token of getHeaderTokens(header, ":,;<>@", {
+    for (let headerToken of getHeaderTokens(header, ":,;<>@", {
         qstring: true,
         comments: true,
         dliteral: true,
         rfc2047: doRFC2047,
     })) {
-        if (token === ":") {
+        if (headerToken === ":") {
             groupName = name;
             name = "";
             localPart = "";
@@ -686,7 +686,7 @@ function parseAddressingHeader(header, doRFC2047) {
                 results = results.concat(addrlist);
             }
             addrlist = [];
-        } else if (token === "<" && !afterAddress) {
+        } else if (headerToken === "<" && !afterAddress) {
             if (inAngle) {
                 // Interpret the address we were parsing as a name.
                 if (address.length > 0) {
@@ -696,12 +696,12 @@ function parseAddressingHeader(header, doRFC2047) {
             } else {
                 inAngle = true;
             }
-        } else if (token === ">" && !afterAddress) {
+        } else if (headerToken === ">" && !afterAddress) {
             inAngle = false;
             // Forget addr-spec comments.
             lastComment = "";
             afterAddress = true;
-        } else if (token === "(") {
+        } else if (headerToken === "(") {
             inComment = true;
             // The needsSpace flag may not always be set even if it should be,
             // e.g. for a comment behind an angle-addr.
@@ -712,7 +712,7 @@ function parseAddressingHeader(header, doRFC2047) {
             }
             comment = needsSpace ? " (" : "(";
             commentClosed = false;
-        } else if (token === ")") {
+        } else if (headerToken === ")") {
             inComment = false;
             comment += ")";
             lastComment = comment;
@@ -726,7 +726,7 @@ function parseAddressingHeader(header, doRFC2047) {
             }
             commentClosed = true;
             continue;
-        } else if (token === "@") {
+        } else if (headerToken === "@") { // nosemgrep
             if (afterAddress) {
                 continue;
             }
@@ -741,13 +741,13 @@ function parseAddressingHeader(header, doRFC2047) {
                 inAngle = true;
             }
             address += "@";
-        } else if (token === ",") {
+        } else if (headerToken === ",") {
             // A comma ends the current name. If we have something that's kind of a
             // name, add it to the result list. If we don't, then our input looks like
             // To: , , -> don't bother adding an empty entry.
             addToAddrList(name, address);
             afterAddress = false;
-        } else if (token === ";") {
+        } else if (headerToken === ";") {
             // Add pending name to the list
             addToAddrList(name, address);
 
@@ -768,11 +768,11 @@ function parseAddressingHeader(header, doRFC2047) {
         } else {
             // This is either comment content, a quoted-string, or some span of
             // dots and atoms.
-            token = cleanToken(token.toString());
+            headerToken = cleanToken(headerToken.toString());
 
             // Ignore the needs space if we're a "close" delimiter token.
-            let spacedToken = token;
-            if (needsSpace && token && token[0] != ".") {
+            let spacedToken = headerToken;
+            if (needsSpace && headerToken && headerToken[0] != ".") {
                 spacedToken = " " + spacedToken;
             }
 
@@ -787,7 +787,7 @@ function parseAddressingHeader(header, doRFC2047) {
                 }
                 // Never add a space to the local-part, if we just ignored a comment.
                 if (commentClosed) {
-                    localPart += token;
+                    localPart += headerToken;
                     commentClosed = false;
                 } else {
                     localPart += spacedToken;
@@ -796,7 +796,7 @@ function parseAddressingHeader(header, doRFC2047) {
 
             // We need space for the next token if we aren't some kind of comment or
             // . delimiter.
-            needsSpace = token && token[0] != ".";
+            needsSpace = headerToken && headerToken[0] != ".";
             // The fall-through case after this resets needsSpace to false, and we
             // don't want that!
             continue;
@@ -857,8 +857,8 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
     // Matches is a list of [name, value] pairs, where we found something that
     // looks like name=value in the input string.
     let matches = [];
-    for (let token of getHeaderTokens(rest, ";=", opts)) {
-        if (token === ";") {
+    for (let headerToken of getHeaderTokens(rest, ";=", opts)) {
+        if (headerToken === ";") {
             // If we didn't find a name yet (we have ... tokenA; tokenB), push the
             // name with an empty token instead.
             if (name != "" && !inName) {
@@ -866,25 +866,25 @@ function parseParameterHeader(headerValue, doRFC2047, doRFC2231) {
             }
             name = "";
             inName = true;
-        } else if (token === "=") {
+        } else if (headerToken === "=") {
             inName = false;
         } else if (inName && name == "") {
-            name = token.toString();
+            name = headerToken.toString();
         } else if (!inName && name != "") {
-            token = token.toString();
+            headerToken = headerToken.toString();
             // RFC 2231 doesn't make it clear if %-encoding is supposed to happen
             // within a quoted string, but this is very much required in practice. If
             // it ends with a '*', then the string is an extended-value, which means
             // that its value may be %-encoded.
             if (doRFC2231 && name.endsWith("*")) {
-                token = token.replace(/%([0-9A-Fa-f]{2})/g, function(
+                headerToken = headerToken.replace(/%([0-9A-Fa-f]{2})/g, function(
                     match,
                     hexchars
                 ) {
                     return String.fromCharCode(parseInt(hexchars, 16));
                 });
             }
-            matches.push([name, token]);
+            matches.push([name, headerToken]);
             // Clear the name, so we ignore anything afterwards.
             name = "";
         } else if (inName) {

@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.1.3
+
+### Patch Changes
+
+- df885b0: Internal: move `@protontech/jsmimeparser` dependency under crypto package
+
 ## 2.1.2
 
 ### Patch Changes

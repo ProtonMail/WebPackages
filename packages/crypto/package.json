@@ -1,6 +1,6 @@
 {
     "name": "@protontech/crypto",
-    "version": "2.1.2",
+    "version": "2.1.3",
     "description": "Cryptography library for web projects across Proton",
     "keywords": [],
     "repository": {

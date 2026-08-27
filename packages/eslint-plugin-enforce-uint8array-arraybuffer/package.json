@@ -39,11 +39,11 @@
   "devDependencies": {
     "@typescript-eslint/parser": "^8.67.0",
     "@typescript-eslint/rule-tester": "^8.67.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "@typescript-eslint/parser": "^8.67.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "publishConfig": {
     "exports": {

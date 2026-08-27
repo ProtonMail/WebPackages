@@ -27,7 +27,7 @@
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "sort-package-json": "^4.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "packageManager": "pnpm@11.22.0",
   "engines": {

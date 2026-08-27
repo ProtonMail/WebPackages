@@ -10,6 +10,13 @@
       "matchPackageNames": ["playwright"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "playwright"
+    },
+    {
+      "description": "engines.node is deliberately a wide ^24 range. rangeStrategy:bump would ratchet the floor to each new patch, which then drifts ahead of the CI image whenever the harbor mirror lags behind nodejs.org.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["engines"],
+      "matchPackageNames": ["node"],
+      "enabled": false
     }
   ]
 }

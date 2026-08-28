@@ -223,6 +223,36 @@ importers:
 
   packages/global-types: {}
 
+  packages/idle:
+    devDependencies:
+      '@protontech/oxlint-config':
+        specifier: workspace:*
+        version: link:../oxlint-config
+      '@protontech/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      '@protontech/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      happy-dom:
+        specifier: ^20.11.2
+        version: 20.11.2
+      oxlint:
+        specifier: ^1.78.0
+        version: 1.78.0(oxlint-tsgolint@7.0.2001)
+      oxlint-tsgolint:
+        specifier: ^7.0.2001
+        version: 7.0.2001
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(@vitest/browser-playwright@4.1.10)(happy-dom@20.11.2)(vite@8.1.0(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/oxlint-config:
     devDependencies:
       '@protontech/eslint-plugin-enforce-uint8array-arraybuffer':

@@ -1,0 +1,33 @@
+{
+    "name": "@protontech/idle",
+    "version": "0.0.1",
+    "description": "",
+    "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
+    "license": "GPL-3.0",
+    "author": "Proton AG",
+    "type": "module",
+    "exports": {
+        "./*": "./lib/*"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "oxlint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "devDependencies": {
+        "@protontech/oxlint-config": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "happy-dom": "^20.11.2",
+        "oxlint": "^1.78.0",
+        "oxlint-tsgolint": "^7.0.2001",
+        "prettier": "^3.9.6",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.10"
+    }
+}

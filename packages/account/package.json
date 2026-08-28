@@ -37,11 +37,11 @@
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
         "fake-indexeddb": "^6.2.5",
-        "oxlint": "^1.78.0",
+        "oxlint": "^1.80.0",
         "oxlint-tsgolint": "^7.0.2001",
         "prettier": "^3.9.6",
         "typescript": "^7.0.2",
-        "vitest": "^4.1.10"
+        "vitest": "^4.1.11"
     },
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",

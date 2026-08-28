@@ -235,7 +235,7 @@ function getHeaderTokens(value, delimiters, opts) {
         ) {
             // RFC 2047 tokens separated only by whitespace are conceptually part of
             // the same output token, so we need to decode them all at once.
-            const encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/; // nosemgrep
+            const encodedWordsRE = /([ \t\r\n]*=\?[^?]*\?[BbQq]\?[^?]*\?=)+/;
             const result = encodedWordsRE.exec(value.slice(i));
             if (result !== null) {
                 // If we were in the middle of a prior token (i.e., something like
@@ -518,7 +518,7 @@ function decodeRFC2047Words(headerValue) {
     // =?charset?c?text?=, where c is one of B, b, Q, and q. The split regex does
     // some amount of semantic checking, so that malformed RFC 2047 tokens will
     // get ignored earlier.
-    const components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/); // nosemgrep
+    const components = headerValue.split(/(=\?[^?]*\?[BQbq]\?[^?]*\?=)/);
 
     // Find last RFC 2047 token.
     let lastRFC2047Index = -1;
@@ -727,7 +727,7 @@ function parseAddressingHeader(header, doRFC2047) {
             }
             commentClosed = true;
             continue;
-        } else if (headerToken === "@") { // nosemgrep
+        } else if (headerToken === "@") {
             if (afterAddress) {
                 continue;
             }

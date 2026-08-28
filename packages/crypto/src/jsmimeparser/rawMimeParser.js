@@ -604,7 +604,7 @@ MimeParser.prototype._callEmitter = function(funcname, ...args) {
             return;
         }
         try {
-            this._emitter[funcname](...args); // nosemgrep
+            this._emitter[funcname](...args);
         } catch (e) {
             // We ensure that the onerror attribute in options is a function, so this
             // is always safe.
@@ -952,7 +952,7 @@ MimeParser.prototype._startBody = function(partNum) {
         // and then the CRLF at the end. Since the CRLFs in here are necessary for
         // distinguishing the parts, they are not included in the subparts, so we
         // need to capture them in the regex as well to prevent them leaking out.
-        this._splitRegex = new RegExp( // nosemgrep
+        this._splitRegex = new RegExp(
             "(\r\n|[\r\n]|^)--" +
         contentType.get("boundary").replace(/[\\^$*+?.()|{}[\]]/g, "\\$&") +
         "(--)?[ \t]*(?:\r\n|[\r\n]|$)"

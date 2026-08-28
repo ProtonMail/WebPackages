@@ -111,7 +111,6 @@ export const parseDate = (
     // output (fixed shapes "(\d+)" / "([\p{L}]+)" plus escaped literals), never
     // from `locale`/`timeZone` values directly. So it can't contain nested or
     // overlapping quantifiers and isn't susceptible to catastrophic backtracking.
-    // nosemgrep
     const match = new RegExp(pattern, "iu").exec(input.trim());
     if (!match) {
         return undefined;

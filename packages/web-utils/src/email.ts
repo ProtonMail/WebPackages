@@ -130,7 +130,7 @@ const validateLocalPart = (localPart: string) => {
 export const matchesEmailDomainPreferredSyntax = (domain: string): boolean => {
     const domainRegex =
         /^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+([a-zA-Z]{2,}[0-9]*|xn--[a-zA-Z\-0-9]+)))$/;
-    return domainRegex.test(domain); // nosemgrep
+    return domainRegex.test(domain);
 };
 
 /**

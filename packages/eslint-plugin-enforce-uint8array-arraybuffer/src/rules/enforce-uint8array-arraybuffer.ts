@@ -1,9 +1,24 @@
-import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils";
-
-const createRule = ESLintUtils.RuleCreator.withoutDocs;
+import type { RuleDefinition, RuleDefinitionTypeOptions } from "@eslint/core";
+import type { TSESTree } from "@typescript-eslint/utils";
+import type { RuleListener } from "@typescript-eslint/utils/ts-eslint";
 
 type MessageIds = "missingGeneric" | "wrongGeneric";
-type Options = [];
+
+/**
+ * The rule is written against ESLint's own `RuleDefinition` rather than
+ * `ESLintUtils.RuleCreator`, because `@typescript-eslint/utils` still types rule contexts with
+ * the helpers ESLint 10 removed (`parserPath`, `getAncestors`, ...) — a rule built by
+ * `RuleCreator` is therefore not assignable to `ESLint.Plugin` without a cast.
+ * Message ids and TS-ESTree node types are preserved by parameterising `RuleDefinition`, and the
+ * visitor is checked against typescript-eslint's `RuleListener` so mistyped selectors still fail.
+ */
+type Uint8ArrayRule = RuleDefinition<
+  RuleDefinitionTypeOptions & {
+    RuleOptions: [];
+    MessageIds: MessageIds;
+    Node: TSESTree.Node;
+  }
+>;
 
 /**
  * This plugin enforces any Uint8Array type declaration to explicitly define
@@ -15,8 +30,7 @@ type Options = [];
  *  - https://github.com/microsoft/TypeScript/pull/59417
  *  - https://devblogs.microsoft.com/typescript/announcing-typescript-5-9/
  */
-export default createRule<Options, MessageIds>({
-  name: "enforce-uint8array-arraybuffer",
+const rule: Uint8ArrayRule = {
   meta: {
     type: "problem",
     docs: {
@@ -31,7 +45,6 @@ export default createRule<Options, MessageIds>({
     },
     schema: [],
   },
-  defaultOptions: [],
   create(context) {
     /**
      * We need to catch all `Uint8Array` type references without an `<ArrayBuffer>` specifier.
@@ -81,6 +94,8 @@ export default createRule<Options, MessageIds>({
       TSTypeReference(node) {
         checkTypeReference(node);
       },
-    };
+    } satisfies RuleListener;
   },
-});
+};
+
+export default rule;

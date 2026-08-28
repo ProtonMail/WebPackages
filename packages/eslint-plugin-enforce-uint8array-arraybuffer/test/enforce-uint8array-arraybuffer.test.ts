@@ -1,9 +1,10 @@
-import { RuleTester } from "@typescript-eslint/rule-tester";
+// ESLint's own RuleTester rather than `@typescript-eslint/rule-tester`: the rule is typed as an
+// ESLint `RuleDefinition`, which the typescript-eslint tester does not accept without a cast.
+import { RuleTester } from "eslint";
 import * as test from "node:test";
 import rule from "../src/rules/enforce-uint8array-arraybuffer.ts";
 import tsParser from "@typescript-eslint/parser"; // import parser
 
-RuleTester.afterAll = test.after;
 RuleTester.describe = test.describe;
 RuleTester.it = test.it;
 RuleTester.itOnly = test.it.only;

@@ -5,6 +5,10 @@
   "rebaseWhen": "conflicted",
   "prConcurrentLimit": 3,
   "minimumReleaseAge": "3 days",
+  "lockFileMaintenance": {
+    "description": "rangeStrategy:bump only moves versions a package.json declares, so transitive deps stay pinned at whatever they first resolved to and go stale until a vulnerability scan flags them (vite -> postcss -> nanoid did exactly this). This re-resolves the whole lockfile within the existing ranges on the default schedule, before 4am on monday. The 3-day floor here does not apply to lock file maintenance, since Renovate re-runs pnpm rather than looking versions up itself; pnpm's own minimumReleaseAge in pnpm-workspace.yaml is what holds that line.",
+    "enabled": true
+  },
   "packageRules": [
     {
       "matchPackageNames": ["playwright"],

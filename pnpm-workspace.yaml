@@ -8,3 +8,71 @@ minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@protontech/*'
   - '@openpgp/*'
+
+# The `overrides` + `packageExtensions` pairs below replace what a `readPackage` hook in
+# .pnpmfile.cjs used to do. A pnpmfile makes pnpm record a `pnpmfileChecksum` in the
+# lockfile, and Renovate refreshes the lockfile with `--ignore-pnpmfile`, so every Renovate
+# branch produced a lockfile that CI then rejected with ERR_PNPM_LOCKFILE_CONFIG_MISMATCH.
+# These settings are declarative, so Renovate applies them like pnpm does.
+
+overrides:
+  # Drop typescript from typescript-eslint's peerDependencies. Without this the peer
+  # resolves from the importer, which gives it the workspace's ts7 (its own
+  # `dependencies` entry below is ignored while the peer is still declared), and
+  # typescript-eslint does not support ts7 yet
+  # (see https://github.com/typescript-eslint/typescript-eslint/issues/10940).
+  #
+  # The `@<5.0.0` on the target is load-bearing: overrides are applied *after*
+  # packageExtensions, and `-` deletes matching entries from `dependencies` as well as
+  # from `peerDependencies`. `<5.0.0` intersects the declared peer range
+  # (`>=4.8.4 <6.1.0`) but not the `~6.0.3` dependency added below, so only the peer
+  # is removed. Keep this list in sync with the packageExtensions list.
+  "@typescript-eslint/eslint-plugin>typescript@<5.0.0": "-"
+  "@typescript-eslint/parser>typescript@<5.0.0": "-"
+  "@typescript-eslint/project-service>typescript@<5.0.0": "-"
+  "@typescript-eslint/rule-tester>typescript@<5.0.0": "-"
+  "@typescript-eslint/tsconfig-utils>typescript@<5.0.0": "-"
+  "@typescript-eslint/type-utils>typescript@<5.0.0": "-"
+  "@typescript-eslint/typescript-estree>typescript@<5.0.0": "-"
+  "@typescript-eslint/utils>typescript@<5.0.0": "-"
+  "typescript-eslint>typescript@<5.0.0": "-"
+
+packageExtensions:
+  # Install ts6 as a dependency of every typescript-eslint package that used to declare
+  # typescript as a peerDependency, so it keeps using ts6 while the workspace is on ts7.
+  # A new @typescript-eslint/* package appearing in a release needs an entry here and in
+  # `overrides` above; otherwise it silently resolves the workspace's ts7 instead.
+  "@typescript-eslint/eslint-plugin":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/parser":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/project-service":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/rule-tester":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/tsconfig-utils":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/type-utils":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/typescript-estree":
+    dependencies:
+      typescript: ~6.0.3
+  "@typescript-eslint/utils":
+    dependencies:
+      typescript: ~6.0.3
+  typescript-eslint:
+    dependencies:
+      typescript: ~6.0.3
+  # Install ts6 as a dependency of dependency-cruiser, since we need the workspace to move
+  # to ts7 and dependency-cruiser only supports `typescript: >=2.0.0 <7.0.0` for now.
+  # It resolves the transpiler from its own scope and does not declare typescript as a
+  # peerDependency, so without this it silently misses TypeScript sources and dependencies.
+  dependency-cruiser:
+    dependencies:
+      typescript: ~6.0.3

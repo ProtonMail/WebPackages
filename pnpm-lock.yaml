@@ -4,7 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-pnpmfileChecksum: sha256-6OVNJwTbeJp9OmCAUAtIwwnf0q/A91BcE8InH8cC7jI=
+overrides:
+  '@typescript-eslint/eslint-plugin>typescript@<5.0.0': '-'
+  '@typescript-eslint/parser>typescript@<5.0.0': '-'
+  '@typescript-eslint/project-service>typescript@<5.0.0': '-'
+  '@typescript-eslint/rule-tester>typescript@<5.0.0': '-'
+  '@typescript-eslint/tsconfig-utils>typescript@<5.0.0': '-'
+  '@typescript-eslint/type-utils>typescript@<5.0.0': '-'
+  '@typescript-eslint/typescript-estree>typescript@<5.0.0': '-'
+  '@typescript-eslint/utils>typescript@<5.0.0': '-'
+  typescript-eslint>typescript@<5.0.0: '-'
+
+packageExtensionsChecksum: sha256-ecveYOACIl5inqPAcaH0sLtjPDvXZIMgUBRArGT0s1U=
 
 importers:
 

@@ -23,13 +23,13 @@
     "changesets-gitlab": "^0.14.0",
     "dependency-cruiser": "^18.2.0",
     "husky": "^9.1.7",
-    "knip": "^6.33.0",
+    "knip": "^6.34.0",
     "lint-staged": "^17.4.1",
     "prettier": "^3.9.6",
     "sort-package-json": "^4.0.0",
     "typescript": "^7.0.2"
   },
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": "^24"
   }

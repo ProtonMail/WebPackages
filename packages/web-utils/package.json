@@ -24,7 +24,7 @@
         "@protontech/oxlint-config": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
-        "happy-dom": "^20.11.13",
+        "happy-dom": "^20.12.0",
         "oxlint": "^1.80.0",
         "oxlint-tsgolint": "^7.0.2001",
         "prettier": "^3.9.6",

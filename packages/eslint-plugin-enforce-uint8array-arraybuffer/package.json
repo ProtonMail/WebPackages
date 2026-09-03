@@ -35,15 +35,15 @@
   },
   "dependencies": {
     "@eslint/core": "^1.2.1",
-    "@typescript-eslint/utils": "^8.68.0"
+    "@typescript-eslint/utils": "^8.69.0"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^8.68.0",
+    "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^10.9.1",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "@typescript-eslint/parser": "^8.68.0",
+    "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^9.0.0 || ^10.0.0",
     "typescript": "^7.0.2"
   },

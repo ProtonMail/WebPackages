@@ -1,5 +1,11 @@
 # @protontech/fetch
 
+## 1.1.2
+
+### Patch Changes
+
+- 57c7203: Only treat 400, 401 and 422 refresh responses as a failed refresh
+
 ## 1.1.1
 
 ### Patch Changes

@@ -56,9 +56,15 @@ describe("handleRefresh", () => {
         expect(result).toBe("fail");
     });
 
-    it("returns 'fail' for a 499 response (upper 4xx boundary)", async () => {
-        const result = await handleRefresh(mockFetch(499), uid, baseUrl);
+    it("returns 'fail' for a 422 response", async () => {
+        const result = await handleRefresh(mockFetch(422), uid, baseUrl);
         expect(result).toBe("fail");
+    });
+
+    it("returns the Response for a 4xx that is not 400/401/422 (e.g. 429)", async () => {
+        const result = await handleRefresh(mockFetch(429), uid, baseUrl);
+        expect(result).toBeInstanceOf(Response);
+        expect((result as Response).status).toBe(429);
     });
 
     it("returns the Response for a 500 error", async () => {

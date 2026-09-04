@@ -32,7 +32,14 @@ export async function handleRefresh(
         if (refreshResponse.status === 200) {
             return "ok";
         }
-        if (refreshResponse.status >= 400 && refreshResponse.status < 500) {
+        if (
+            // 400 is valid session but bad refresh token
+            refreshResponse.status === 400 ||
+            // 401 is treated as a refresh failure to avoid a refresh loop
+            refreshResponse.status === 401 ||
+            // 422 is invalid session
+            refreshResponse.status === 422
+        ) {
             // Try to get the json to help debugging in dev tools
             await refreshResponse.json().catch(() => {});
             return "fail";

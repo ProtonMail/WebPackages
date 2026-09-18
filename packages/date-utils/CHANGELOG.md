@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.0
+
+### Minor Changes
+
+- c49d5e5: feat: add isSameMinute helper function
+
 ## 0.0.3
 
 ### Patch Changes

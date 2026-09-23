@@ -51,11 +51,24 @@ export class CookieStorage {
             .join(";");
     }
 
-    public deleteCookie(cookieName: string) {
+    /**
+     * A cookie is identified by its name, domain and path, so the same
+     * `cookieDomain` and `path` it was set with must be passed to delete it.
+     */
+    public deleteCookie({
+        cookieName,
+        cookieDomain,
+        path = "/",
+    }: {
+        cookieName: string;
+        cookieDomain?: string;
+        path?: string;
+    }) {
         this.setCookie({
             cookieName,
             cookieValue: undefined,
-            path: "/",
+            cookieDomain,
+            path,
         });
     }
 

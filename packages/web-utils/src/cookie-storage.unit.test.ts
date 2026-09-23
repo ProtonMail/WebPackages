@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     CookieSameSiteAttributeEnum,
     CookieStorage,
@@ -22,6 +22,7 @@ describe("CookieStorage", () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
         clearAllCookies(storage);
     });
 
@@ -98,8 +99,39 @@ describe("CookieStorage", () => {
             });
             expect(storage.getCookie("temp", document.cookie)).toBe("value");
 
-            storage.deleteCookie("temp");
+            storage.deleteCookie({ cookieName: "temp" });
             expect(storage.getCookie("temp", document.cookie)).toBeUndefined();
+        });
+
+        // happy-dom deletes cookies regardless of domain/path, so assert on
+        // the written string: browsers only expire a cookie when the name,
+        // domain and path all match the ones it was set with.
+        const captureWrites = () => {
+            const writes: string[] = [];
+            vi.spyOn(document, "cookie", "set").mockImplementation((value) => {
+                writes.push(value);
+            });
+            return writes;
+        };
+
+        it("should target the domain and path the cookie was set with", () => {
+            const writes = captureWrites();
+            storage.deleteCookie({
+                cookieName: "iaas",
+                cookieDomain: "proton.me",
+                path: "/sub",
+            });
+            expect(writes).toEqual([
+                `iaas=;expires=${new Date(0).toUTCString()};domain=proton.me;path=/sub;secure;samesite=lax`,
+            ]);
+        });
+
+        it("should default to a host-only cookie on the root path", () => {
+            const writes = captureWrites();
+            storage.deleteCookie({ cookieName: "temp" });
+            expect(writes).toEqual([
+                `temp=;expires=${new Date(0).toUTCString()};path=/;secure;samesite=lax`,
+            ]);
         });
     });
 });

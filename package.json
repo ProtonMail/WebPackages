@@ -20,7 +20,7 @@
   "devDependencies": {
     "@changesets/cli": "^3.0.1",
     "@types/node": "^24.13.3",
-    "changesets-gitlab": "^0.14.0",
+    "changesets-gitlab": "^0.16.1",
     "dependency-cruiser": "^18.2.0",
     "husky": "^9.1.7",
     "knip": "^6.34.0",

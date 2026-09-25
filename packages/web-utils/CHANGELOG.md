@@ -1,5 +1,11 @@
 # @protontech/web-utils
 
+## 0.1.0
+
+### Minor Changes
+
+- 7238ac4: BREAKING: `deleteCookie` now takes an options object (`{ cookieName, cookieDomain?, path? }`) like `setCookie`, so it can target the domain and path the cookie was set with
+
 ## 0.0.4
 
 ### Patch Changes

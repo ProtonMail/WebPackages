@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.1
+
+### Patch Changes
+
+- 5e6c4c9: Make formatAMPM more robust
+
 ## 0.1.0
 
 ### Minor Changes

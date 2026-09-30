@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+    formatAMPM,
     formatDate,
     formatDateParts,
     formatDateWithOrdinal,
@@ -38,6 +39,53 @@ describe("formatDate", () => {
                     ...dayMonth,
                 }),
             ).toBe("22 avril");
+        });
+    });
+
+    describe("formatAMPM", () => {
+        it("compacts plain AM/PM", () => {
+            expect(formatAMPM("10:00 AM")).toBe("10:00am");
+            expect(formatAMPM("10:00 PM")).toBe("10:00pm");
+            expect(formatAMPM("9am")).toBe("9am");
+        });
+
+        it("compacts a narrow no-break space separator", () => {
+            expect(formatAMPM("10:00 AM")).toBe("10:00am");
+            expect(formatAMPM("10:00 PM")).toBe("10:00pm");
+        });
+
+        it("compacts dotted forms", () => {
+            expect(formatAMPM("9:30 a.m.")).toBe("9:30am");
+            expect(formatAMPM("9:30 p.m.")).toBe("9:30pm");
+        });
+
+        it("compacts a dotted meridiem with a space between the letters (ca)", () => {
+            expect(formatAMPM("10:00 a. m.")).toBe("10:00am");
+            expect(formatAMPM("10:00 p. m.")).toBe("10:00pm");
+        });
+
+        it("compacts the meridiem within a full formatted string", () => {
+            expect(formatAMPM("Wed, Jun 18, 2026, 10:00 AM")).toBe(
+                "Wed, Jun 18, 2026, 10:00am",
+            );
+            expect(formatAMPM("dimarts, 6 de maig de 2026, 10:00 a. m.")).toBe(
+                "dimarts, 6 de maig de 2026, 10:00am",
+            );
+        });
+
+        it("does not touch text with no meridiem", () => {
+            expect(formatAMPM("10:00")).toBe("10:00");
+            expect(formatAMPM("")).toBe("");
+        });
+
+        it("does not misfire on unrelated text containing am/pm-like substrings", () => {
+            expect(formatAMPM("SPAM CAMERA")).toBe("SPAM CAMERA");
+            expect(formatAMPM("Prime Minister")).toBe("Prime Minister");
+            expect(formatAMPM("una mañana de mayo")).toBe("una mañana de mayo");
+            expect(formatAMPM("la maison est grande")).toBe(
+                "la maison est grande",
+            );
+            expect(formatAMPM("9amazing")).toBe("9amazing");
         });
     });
 
@@ -147,6 +195,18 @@ describe("formatDate", () => {
                     hour12: false,
                 }),
             ).toBe("09:30");
+        });
+
+        it("compacts a dotted meridiem with a space between the letters (ca)", () => {
+            // Intl formats ca h12 time as "10:00 a. m." / "10:00 p. m.".
+            expect(
+                formatTime({
+                    date: dateTime(2026, 3, 6, 10, 30),
+                    locale: "ca-ES",
+                    timeZone: "UTC",
+                    hour12: true,
+                }),
+            ).toBe("10:30am");
         });
     });
 

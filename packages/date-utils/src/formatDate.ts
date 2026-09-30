@@ -14,13 +14,21 @@ type FormatDateOptions = Intl.DateTimeFormatOptions & {
  * formatAMPM("10:00 AM");       // "10:00am"
  * formatAMPM("10:00\u202fPM");  // "10:00pm"  (narrow no-break space)
  * formatAMPM("9:30 a.m.");      // "9:30am"
+ * formatAMPM("10:00 a. m.");    // "10:00am"
  *
  * @param value - A formatted time string (e.g. from Intl.DateTimeFormat).
  * @returns The same string with a compact, lowercased meridiem.
  */
 export const formatAMPM = (value: string): string =>
     value.replace(
-        /\s*([ap])\.?m\.?/gi,
+        // (?<=\d)       must follow a digit (part of the clock time)
+        // \s*           optional separator before the meridiem (space, U+202F, ...)
+        // ([ap])        capture the a/p letter
+        // (?:
+        //   \.\s*m\b\.? |   dotted form: "a." + optional space + "m" (+ optional ".")
+        //   m\b             or plain "m" directly (AM/PM/am/pm)
+        // )
+        /(?<=\d)\s*([ap])(?:\.\s*m\b\.?|m\b)/gi,
         (_match, period: string) => `${period.toLowerCase()}m`,
     );
 

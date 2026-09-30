@@ -15,42 +15,45 @@ let serverTimeWithTimestamp: ServerTimeWithUpdateTimestamp | null = null;
  * If `updateServerTime()` was never called, then the device time is returned.
  * See `wasServerTimeEverUpdated()` to check whether the device time is being used.
  */
-export const serverTime = () => serverTimeWithTimestamp?.serverTime ?? new Date();
+export const serverTime = () => serverTimeWithTimestamp ? new Date(serverTimeWithTimestamp.serverTime) : new Date();
 /**
  * If `updateServerTime()` was never called, then the device time is returned for both `serverTime` and
  * `serverTimeUpdatedAt`.
  * See `wasServerTimeEverUpdated()` to check whether the device time is being used.
  */
 export const serverTimeWithUpdateTimestamp = (): ServerTimeWithUpdateTimestamp => (serverTimeWithTimestamp ?
-    { ...serverTimeWithTimestamp } :
+    {
+        serverTime: new Date(serverTimeWithTimestamp.serverTime),
+        serverTimeUpdatedAt: new Date(serverTimeWithTimestamp.serverTimeUpdatedAt)
+    } :
     { serverTime: new Date(), serverTimeUpdatedAt: new Date() }
 );
 
 /**
- * @param serverTime
+ * @param newServerTime
  * @param serverTimeUpdatedAt see `updateServerTimeWithUpdateTimestamp()`
  * @returns same as `serverTime()`
  */
-export const updateServerTime = (serverTime: Date, serverTimeUpdatedAt: Date = new Date()) => {
-    if (serverTimeWithTimestamp === null || serverTime >= serverTimeWithTimestamp.serverTime) {
+export const updateServerTime = (newServerTime: Date, serverTimeUpdatedAt: Date = new Date()) => {
+    if (serverTimeWithTimestamp === null || newServerTime >= serverTimeWithTimestamp.serverTime) {
         // always keep the update timestamp associated with the new server time,
         // instead of storing the "max" `updatedAt`, to avoid issues in case the local clock is adjusted,
         // potentially breaking staleness check logic.
-        serverTimeWithTimestamp = { serverTime, serverTimeUpdatedAt };
+        serverTimeWithTimestamp = { serverTime: new Date(newServerTime), serverTimeUpdatedAt: new Date(serverTimeUpdatedAt) };
     }
-    return serverTimeWithTimestamp.serverTime;
+    return serverTime();
 };
 
 /**
- * @param serverTime
+ * @param newServerTime
  * @param serverTimeUpdatedAt local time when the serverTime update was fetched. This info is
- * stored for stale server time detection  e.g. when the device wakes up from sleep.
+ * stored for stale server time detection e.g. when the device wakes up from sleep.
  * It should typically be the time the network request was issued rather than resolved,
  * so the server time is never considered fresher than it is.
  * @returns same as `serverTimeWithUpdateTimestamp()`
  */
-export const updateServerTimeWithUpdateTimestamp = (serverTime: Date, serverTimeUpdatedAt: Date) => {
-    updateServerTime(serverTime, serverTimeUpdatedAt);
+export const updateServerTimeWithUpdateTimestamp = (newServerTime: Date, serverTimeUpdatedAt: Date) => {
+    updateServerTime(newServerTime, serverTimeUpdatedAt);
     return serverTimeWithUpdateTimestamp();
 };
 

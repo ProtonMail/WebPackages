@@ -1,5 +1,11 @@
 # @protontech/crypto
 
+## 2.2.0
+
+### Minor Changes
+
+- f6cbe2f: crypto: serverTime: add `serverTimeWithUpdateTimestamp()`, `updateServerTimeWithUpdateTimestamp()`
+
 ## 2.1.3
 
 ### Patch Changes

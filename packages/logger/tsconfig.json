@@ -1,0 +1,7 @@
+{
+    "extends": "@protontech/typescript-config/package-config.json",
+    "include": ["src", "vitest.config.ts", "vitest.setup.ts"],
+    "compilerOptions": {
+        "types": ["vitest"]
+    }
+}

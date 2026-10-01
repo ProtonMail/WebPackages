@@ -1,0 +1,44 @@
+{
+    "name": "@protontech/logger",
+    "version": "0.0.1",
+    "description": "Encrypted, persistent client-side application logger",
+    "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
+    "license": "GPL-3.0",
+    "author": "Proton AG",
+    "type": "module",
+    "exports": {
+        ".": "./src/logger.ts",
+        "./types": "./src/types.ts",
+        "./constants": "./src/constants.ts",
+        "./fixtures": "./src/fixtures.ts"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "oxlint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "dependencies": {
+        "@protontech/crypto": "workspace:*",
+        "comlink": "^4.4.2",
+        "core-js": "^3.50.0",
+        "idb": "^8.0.3"
+    },
+    "devDependencies": {
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
+        "@protontech/oxlint-config": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "fake-indexeddb": "^6.2.5",
+        "happy-dom": "^20.12.0",
+        "oxlint": "^1.80.0",
+        "oxlint-tsgolint": "^7.0.2001",
+        "prettier": "^3.9.6",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.1"
+    }
+}

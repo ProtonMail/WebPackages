@@ -14,6 +14,7 @@ import {
     getZonedParts,
     isNowWeekend,
     isToday,
+    toDeviceLocalDay,
     toDeviceLocalMidnight,
 } from "./timezone";
 
@@ -446,6 +447,48 @@ describe("timezone helpers", () => {
             expect(result.getHours()).toBe(0);
             expect(result.getMinutes()).toBe(0);
             expect(result.getSeconds()).toBe(0);
+        });
+    });
+
+    describe("toDeviceLocalDay", () => {
+        it("returns the date unchanged when no timeZone is given", () => {
+            const date = new Date("2026-05-12T02:00:00Z");
+            expect(toDeviceLocalDay({ date, locale: "en-US" })).toBe(date);
+        });
+
+        it("returns the calendar day as a device-local date", () => {
+            const result = toDeviceLocalDay({
+                date: new Date("2026-05-12T12:00:00Z"),
+                locale: "en-US",
+                timeZone: "UTC",
+            });
+            expect(result.getFullYear()).toBe(2026);
+            expect(result.getMonth()).toBe(4); // May
+            expect(result.getDate()).toBe(12);
+        });
+
+        it("rolls back to the previous day when the timezone is behind UTC", () => {
+            // 2026-05-12T02:00Z is still 2026-05-11 22:00 in America/New_York (EDT, UTC-4)
+            const result = toDeviceLocalDay({
+                date: new Date("2026-05-12T02:00:00Z"),
+                locale: "en-US",
+                timeZone: "America/New_York",
+            });
+            expect(result.getFullYear()).toBe(2026);
+            expect(result.getMonth()).toBe(4); // May
+            expect(result.getDate()).toBe(11);
+        });
+
+        it("rolls forward to the next day when the timezone is ahead of UTC", () => {
+            // 2026-05-12T22:00Z is already 2026-05-13 01:00 in Europe/Vilnius (EEST, UTC+3)
+            const result = toDeviceLocalDay({
+                date: new Date("2026-05-12T22:00:00Z"),
+                locale: "en-US",
+                timeZone: "Europe/Vilnius",
+            });
+            expect(result.getFullYear()).toBe(2026);
+            expect(result.getMonth()).toBe(4); // May
+            expect(result.getDate()).toBe(13);
         });
     });
 

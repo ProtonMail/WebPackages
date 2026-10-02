@@ -360,3 +360,25 @@ export const toDeviceLocalMidnight = (utcMidnightDate: Date): Date => {
         utcMidnightDate.getUTCDate(),
     );
 };
+
+/**
+ * Converts a date to the calendar day it falls on in `timeZone`, expressed
+ * as a device-local date (so components reading it via local getters, e.g.
+ * date-fns, see the correct day regardless of the browser's own timezone).
+ * Without a `timeZone`, the date is assumed to already be device-local.
+ */
+export const toDeviceLocalDay = ({
+    date,
+    locale,
+    timeZone,
+}: {
+    date: Date;
+    locale: string;
+    timeZone?: string;
+}): Date => {
+    if (!timeZone) {
+        return date;
+    }
+    const { year, month, day } = getZonedParts(date, locale, timeZone);
+    return new Date(year, month - 1, day);
+};

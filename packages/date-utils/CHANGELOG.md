@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.3
+
+### Patch Changes
+
+- 5810faa: Default locale to English when Intl does not support it
+
 ## 0.1.2
 
 ### Patch Changes

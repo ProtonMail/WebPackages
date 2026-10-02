@@ -171,29 +171,29 @@ export class PersistentLogger implements Logger {
         return Promise.resolve();
     }
 
-    trace(message: string, ...args: unknown[]): void {
+    trace = (message: string, ...args: unknown[]): void => {
         this.emit("trace", message, args);
-    }
+    };
 
-    debug(message: string, ...args: unknown[]): void {
+    debug = (message: string, ...args: unknown[]): void => {
         this.emit("debug", message, args);
-    }
+    };
 
-    info(message: string, ...args: unknown[]): void {
+    info = (message: string, ...args: unknown[]): void => {
         this.emit("info", message, args);
-    }
+    };
 
-    warn(message: string, ...args: unknown[]): void {
+    warn = (message: string, ...args: unknown[]): void => {
         this.emit("warn", message, args);
-    }
+    };
 
-    error(message: string, ...args: unknown[]): void {
+    error = (message: string, ...args: unknown[]): void => {
         this.emit("error", message, args);
-    }
+    };
 
-    log(message: string, ...args: unknown[]): void {
+    log = (message: string, ...args: unknown[]): void => {
         this.emit("info", message, args);
-    }
+    };
 
     private emit(level: LogLevel, message: string, args: unknown[]): void {
         if (

@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.2
+
+### Patch Changes
+
+- adefd3b: Add toDeviceLocalDay helper
+
 ## 0.1.1
 
 ### Patch Changes

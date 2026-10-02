@@ -17,6 +17,8 @@ import type { LogReaderOptions } from "./worker/LogReader";
 
 export type { Logger } from "./types";
 
+declare const process: { env: { NODE_ENV?: string } };
+
 /** A line that has been emitted but not yet written to storage. */
 interface PendingLog {
     level: LogLevel;

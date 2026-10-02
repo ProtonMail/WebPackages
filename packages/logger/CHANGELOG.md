@@ -1,5 +1,11 @@
 # @protontech/logger
 
+## 0.0.3
+
+### Patch Changes
+
+- 9889a8a: fix: declare a simple "process" type for tsc consumer
+
 ## 0.0.2
 
 ### Patch Changes

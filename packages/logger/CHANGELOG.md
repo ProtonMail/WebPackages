@@ -1,5 +1,11 @@
 # @protontech/logger
 
+## 0.0.4
+
+### Patch Changes
+
+- dfb8415: fix(logger): keep log methods bound when detached from the instance
+
 ## 0.0.3
 
 ### Patch Changes

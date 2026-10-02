@@ -40,6 +40,29 @@ describe("formatDate", () => {
                 }),
             ).toBe("22 avril");
         });
+
+        it("should fall back to English for a locale Intl does not support", () => {
+            expect(
+                formatDate({
+                    date: new Date(2026, 3, 22),
+                    locale: "xx-XX",
+                    ...dayMonth,
+                }),
+            ).toBe("April 22");
+        });
+
+        it.each(["en_US", ""])(
+            "should fall back to English for a structurally invalid locale %j",
+            (locale) => {
+                expect(
+                    formatDate({
+                        date: new Date(2026, 3, 22),
+                        locale,
+                        ...dayMonth,
+                    }),
+                ).toBe("April 22");
+            },
+        );
     });
 
     describe("formatAMPM", () => {

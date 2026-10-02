@@ -32,11 +32,25 @@ export const formatAMPM = (value: string): string =>
         (_match, period: string) => `${period.toLowerCase()}m`,
     );
 
+// Intl does not support some languages. In such cases, fall back to English
+// rather than letting `Intl.DateTimeFormat` throw or silently use the
+// runtime's default locale. `supportedLocalesOf` itself throws a RangeError
+// for structurally invalid tags (e.g. "en_US", ""), so those fall back too.
+const resolveSupportedLocale = (locale: string): string => {
+    try {
+        return Intl.DateTimeFormat.supportedLocalesOf(locale).length > 0
+            ? locale
+            : "en-US";
+    } catch {
+        return "en-US";
+    }
+};
+
 export const getDateTimeFormatter = ({
     locale,
     ...options
 }: Omit<FormatDateOptions, "date">) => {
-    return new Intl.DateTimeFormat(locale, options);
+    return new Intl.DateTimeFormat(resolveSupportedLocale(locale), options);
 };
 
 /**

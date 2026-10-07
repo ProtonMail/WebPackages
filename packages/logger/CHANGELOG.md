@@ -1,5 +1,12 @@
 # @protontech/logger
 
+## 0.0.5
+
+### Patch Changes
+
+- 366a896: fix logger readme and update security dependencies
+- dd3ff7e: fix crypto team review
+
 ## 0.0.4
 
 ### Patch Changes

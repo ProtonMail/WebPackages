@@ -35,7 +35,7 @@ const { key: loggerKey, ID: loggerID } =
 ```typescript
 import { logger } from "@proton/logger";
 
-await logger.initialize({
+logger.initialize({
     encryptionKey: loggerKey, // required: AES-GCM key
     appName: "mail", // required: encryption context, and the name unless overridden
     loggerID, // required: part of the database name
@@ -117,7 +117,7 @@ import { PersistentLogger } from "@proton/logger";
 
 // Inject a clock to test retention without timer mocks
 const logger = new PersistentLogger(() => fixedTimestamp);
-await logger.initialize({
+logger.initialize({
     encryptionKey,
     appName: "test-app",
     loggerID: uniqueId,

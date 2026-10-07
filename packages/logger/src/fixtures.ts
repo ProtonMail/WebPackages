@@ -11,12 +11,15 @@ export interface SyntheticLogCall {
 }
 
 const randomID = () => crypto.randomUUID();
-const randomInt = (max: number) => {
+const unsafeRandomInt = (max: number) => {
+    if (max > 2 ** 32) {
+        throw new Error("Max out of range");
+    }
     const [value = 0] = crypto.getRandomValues(new Uint32Array(1));
-    return Math.floor((value / 2 ** 32) * max);
+    return value % max; // biased, for testing only
 };
 const pick = <T>(values: readonly T[]): T =>
-    values[randomInt(values.length)] as T;
+    values[unsafeRandomInt(values.length)] as T;
 
 const API_PATHS = [
     "/mail/v4/messages",
@@ -46,7 +49,7 @@ const apiErrorCall = (): SyntheticLogCall => {
         level: "error",
         message: `${pick(API_PATHS)}/${randomID()}`,
         args: [
-            `status=${status} code=${2000 + status} requestID=${randomID()} elapsedMs=${randomInt(2000)}`,
+            `status=${status} code=${2000 + status} requestID=${randomID()} elapsedMs=${unsafeRandomInt(2000)}`,
         ],
     };
 };
@@ -55,7 +58,7 @@ const mailboxActionCall = (): SyntheticLogCall => ({
     level: "info",
     message: "[mailbox-actions] Move to folder",
     args: [
-        `messageID=${randomID()} conversationID=${randomID()} folder=${pick(FOLDERS)} elementsCount=${1 + randomInt(20)}`,
+        `messageID=${randomID()} conversationID=${randomID()} folder=${pick(FOLDERS)} elementsCount=${1 + unsafeRandomInt(20)}`,
     ],
 });
 
@@ -63,7 +66,7 @@ const draftSaveCall = (): SyntheticLogCall => ({
     level: "debug",
     message: "[draft-save] Autosave completed",
     args: [
-        `draftID=${randomID()} sizeBytes=${500 + randomInt(4000)} attempts=${1 + randomInt(3)}`,
+        `draftID=${randomID()} sizeBytes=${500 + unsafeRandomInt(4000)} attempts=${1 + unsafeRandomInt(3)}`,
     ],
 });
 

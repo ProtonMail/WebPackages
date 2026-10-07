@@ -82,7 +82,7 @@ describe("Logger", () => {
     });
 
     /** Creates an initialized logger and registers it for cleanup. */
-    const createLogger = async ({
+    const createLogger = ({
         name = "test",
         id = uniqueId(),
         now,
@@ -95,9 +95,7 @@ describe("Logger", () => {
         const logger = new PersistentLogger(now, inProcessReader);
         loggers.push(logger);
         databases.push({ name, id });
-        await logger.initialize(
-            options({ ...rest, loggerName: name, loggerID: id }),
-        );
+        logger.initialize(options({ ...rest, loggerName: name, loggerID: id }));
         return logger;
     };
 
@@ -119,7 +117,7 @@ describe("Logger", () => {
 
     describe("persistence", () => {
         it("round-trips a line through IndexedDB", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("hello world");
 
@@ -130,7 +128,7 @@ describe("Logger", () => {
         });
 
         it("writes lines in the order they were emitted", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("first");
             logger.info("second");
@@ -146,7 +144,7 @@ describe("Logger", () => {
 
         it("prefixes each line with an ISO timestamp and the level", async () => {
             const at = Date.UTC(2026, 0, 2, 3, 4, 5);
-            const logger = await createLogger({ now: () => at });
+            const logger = createLogger({ now: () => at });
 
             logger.warn("careful");
 
@@ -165,9 +163,7 @@ describe("Logger", () => {
             logger.info("before init");
             expect(await logger.getLogs()).toBe("");
 
-            await logger.initialize(
-                options({ loggerName: "test", loggerID: id }),
-            );
+            logger.initialize(options({ loggerName: "test", loggerID: id }));
 
             const logs = await logger.getLogs();
             expect(logs).toContain("before init");
@@ -175,7 +171,7 @@ describe("Logger", () => {
         });
 
         it("persists arguments alongside the message", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("with args", "plain", { nested: { value: 1 } }, 42);
 
@@ -186,7 +182,7 @@ describe("Logger", () => {
         });
 
         it("serializes Error arguments with their stack", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("boom", new Error("kaboom"));
 
@@ -195,7 +191,7 @@ describe("Logger", () => {
         });
 
         it("does not lose a line containing a circular argument", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
             const circular: Record<string, unknown> = { name: "loop" };
             circular.self = circular;
 
@@ -206,7 +202,7 @@ describe("Logger", () => {
 
         it("encrypts entries at rest", async () => {
             const id = uniqueId();
-            const logger = await createLogger({ id });
+            const logger = createLogger({ id });
 
             logger.info("super secret value");
             await logger.flush();
@@ -220,12 +216,12 @@ describe("Logger", () => {
     });
 
     describe("console output", () => {
-        it("only echoes errors by default", async () => {
+        it("only echoes errors by default", () => {
             const error = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
             const info = vi.spyOn(console, "info").mockImplementation(() => {});
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("quiet");
             logger.error("loud");
@@ -234,9 +230,9 @@ describe("Logger", () => {
             expect(error).toHaveBeenCalledWith("[test]", "loud");
         });
 
-        it("respects consoleLevels", async () => {
+        it("respects consoleLevels", () => {
             const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const logger = await createLogger({ consoleLevels: ["warn"] });
+            const logger = createLogger({ consoleLevels: ["warn"] });
 
             logger.warn("shown");
 
@@ -266,7 +262,7 @@ describe("Logger", () => {
 
         it("de-duplicates concurrent reads", async () => {
             const id = uniqueId();
-            const logger = await createLogger({ id });
+            const logger = createLogger({ id });
             logger.info("once");
             await logger.flush();
 
@@ -281,7 +277,7 @@ describe("Logger", () => {
         });
 
         it("sees every line emitted before the read", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
 
             logger.info("a");
             logger.info("b");
@@ -293,7 +289,7 @@ describe("Logger", () => {
         it("clears entries that cannot be decrypted", async () => {
             const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
             const id = uniqueId();
-            const first = await createLogger({ id });
+            const first = createLogger({ id });
             first.info("written with the old key");
             await first.flush();
             await first.destroy();
@@ -301,7 +297,7 @@ describe("Logger", () => {
             // A new session key cannot read the previous session's entries.
             const second = new PersistentLogger(undefined, inProcessReader);
             loggers.push(second);
-            await second.initialize(
+            second.initialize(
                 options({
                     loggerName: "test",
                     loggerID: id,
@@ -322,7 +318,7 @@ describe("Logger", () => {
             const start = Date.UTC(2026, 0, 10);
             const id = uniqueId();
 
-            const first = await createLogger({ id, now: () => start });
+            const first = createLogger({ id, now: () => start });
             first.info("old line");
             await first.flush();
             await first.destroy();
@@ -333,9 +329,7 @@ describe("Logger", () => {
                 inProcessReader,
             );
             loggers.push(second);
-            await second.initialize(
-                options({ loggerName: "test", loggerID: id }),
-            );
+            second.initialize(options({ loggerName: "test", loggerID: id }));
 
             expect(await second.getLogs()).toBe("");
         });
@@ -344,7 +338,7 @@ describe("Logger", () => {
             const start = Date.UTC(2026, 0, 10);
             const id = uniqueId();
 
-            const first = await createLogger({ id, now: () => start });
+            const first = createLogger({ id, now: () => start });
             first.info("recent line");
             await first.flush();
             await first.destroy();
@@ -354,9 +348,7 @@ describe("Logger", () => {
                 inProcessReader,
             );
             loggers.push(second);
-            await second.initialize(
-                options({ loggerName: "test", loggerID: id }),
-            );
+            second.initialize(options({ loggerName: "test", loggerID: id }));
 
             expect(await second.getLogs()).toContain("recent line");
         });
@@ -366,7 +358,7 @@ describe("Logger", () => {
             const id = uniqueId();
             let clock = start;
 
-            const first = await createLogger({ id, now: () => clock });
+            const first = createLogger({ id, now: () => clock });
             ["one", "two", "three", "four"].forEach((message) => {
                 clock += 1000;
                 first.info(message);
@@ -376,7 +368,7 @@ describe("Logger", () => {
 
             const second = new PersistentLogger(() => clock, inProcessReader);
             loggers.push(second);
-            await second.initialize(
+            second.initialize(
                 options({ loggerName: "test", loggerID: id, maxEntries: 2 }),
             );
 
@@ -389,14 +381,14 @@ describe("Logger", () => {
     });
 
     describe("lifecycle", () => {
-        it("reports initialization state", async () => {
+        it("reports initialization state", () => {
             const logger = new PersistentLogger();
             loggers.push(logger);
             expect(logger.isInitialized()).toBe(false);
 
             const id = uniqueId();
             databases.push({ name: "lifecycle", id });
-            await logger.initialize(
+            logger.initialize(
                 options({ loggerName: "lifecycle", loggerID: id }),
             );
 
@@ -409,7 +401,7 @@ describe("Logger", () => {
             loggers.push(logger);
             databases.push({ name: "test-app", id });
 
-            await logger.initialize(options({ loggerID: id }));
+            logger.initialize(options({ loggerID: id }));
             logger.info("named by app");
 
             expect(await logger.getLogs()).toContain("[test-app]");
@@ -419,11 +411,11 @@ describe("Logger", () => {
             ).toContain(`${LOGGER_DB_PREFIX}test-app-${id}`);
         });
 
-        it("ignores a second initialize", async () => {
+        it("ignores a second initialize", () => {
             const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const logger = await createLogger();
+            const logger = createLogger();
 
-            await logger.initialize(options({ loggerID: uniqueId() }));
+            logger.initialize(options({ loggerID: uniqueId() }));
 
             expect(warn).toHaveBeenCalledWith(
                 expect.stringContaining("already initialized"),
@@ -431,7 +423,7 @@ describe("Logger", () => {
         });
 
         it("clears logs on request", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
             logger.info("temporary");
             expect(await logger.getLogs()).toContain("temporary");
 
@@ -441,7 +433,7 @@ describe("Logger", () => {
         });
 
         it("stops logging after destroy", async () => {
-            const logger = await createLogger();
+            const logger = createLogger();
             logger.info("before");
 
             await logger.destroy();
@@ -456,7 +448,7 @@ describe("Logger", () => {
             const { anchor, click, createObjectURL, revokeObjectURL } =
                 mockDownloadDom();
 
-            const logger = await createLogger();
+            const logger = createLogger();
             logger.info("downloadable");
             await logger.downloadLogs();
 
@@ -469,7 +461,7 @@ describe("Logger", () => {
         it("uses an explicit download filename when given", async () => {
             const { anchor } = mockDownloadDom();
 
-            const logger = await createLogger();
+            const logger = createLogger();
             await logger.downloadLogs("custom.log");
 
             expect(anchor.download).toBe("custom.log");
@@ -478,7 +470,7 @@ describe("Logger", () => {
 
     it("does not attach any global error handling", async () => {
         const error = vi.spyOn(console, "error").mockImplementation(() => {});
-        const logger = await createLogger();
+        const logger = createLogger();
 
         window.dispatchEvent(
             new ErrorEvent("error", { message: "window blew up" }),

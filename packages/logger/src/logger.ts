@@ -145,12 +145,11 @@ export class PersistentLogger implements Logger {
         this.readLogsInWorker = readLogsInWorker;
     }
 
-    public initialize(options: LoggerOptions): Promise<void> {
+    public initialize(options: LoggerOptions): void {
         if (this.initialized) {
             console.warn(
                 `Logger '${this.name}' already initialized, ignoring subsequent initialization`,
             );
-            return Promise.resolve();
         }
 
         this.maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
@@ -167,8 +166,6 @@ export class PersistentLogger implements Logger {
 
         this.drainPending();
         this.startCleanup();
-
-        return Promise.resolve();
     }
 
     trace = (message: string, ...args: unknown[]): void => {

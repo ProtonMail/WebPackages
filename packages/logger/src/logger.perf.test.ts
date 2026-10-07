@@ -76,11 +76,11 @@ describe("logger performance", () => {
     });
 
     /** Creates an initialized logger and registers it for cleanup. */
-    const createLogger = async (name: string, id: string) => {
+    const createLogger = (name: string, id: string) => {
         const logger = new PersistentLogger(undefined, inProcessReader);
         loggers.push(logger);
         databases.push({ name, id });
-        await logger.initialize({
+        logger.initialize({
             encryptionKey: key,
             appName: name,
             loggerID: id,
@@ -110,20 +110,20 @@ describe("logger performance", () => {
             const logs = generateSyntheticLogCalls(ENTRY_COUNT);
             const id = uniqueId();
 
-            const logger = await createLogger("perf-write", id);
+            const logger = createLogger("perf-write", id);
 
             const start = performance.now();
             logs.forEach((log) => logger[log.level](log.message, ...log.args));
             await logger.flush();
             const elapsed = performance.now() - start;
 
-            const avgEncrpty = average(
+            const avgEncrypt = average(
                 measuredDurations("logger-perf-write:persist:encrypt"),
             );
             const avgStore = average(measuredDurations("logger-storage:store"));
 
             expect(elapsed).toBeLessThan(BUDGET_MS.writeAllTotal);
-            expect(avgEncrpty).toBeLessThan(BUDGET_MS.encryptAvg);
+            expect(avgEncrypt).toBeLessThan(BUDGET_MS.encryptAvg);
             expect(avgStore).toBeLessThan(BUDGET_MS.storeAvg);
         },
         TEST_TIMEOUT_MS,
@@ -135,7 +135,7 @@ describe("logger performance", () => {
             const logs = generateSyntheticLogCalls(ENTRY_COUNT);
             const id = uniqueId();
 
-            const logger = await createLogger("perf-read", id);
+            const logger = createLogger("perf-read", id);
 
             // Write data to the logger, no performance measurement here
             logs.forEach((log) => logger[log.level](log.message, ...log.args));

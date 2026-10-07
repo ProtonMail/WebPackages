@@ -1,4 +1,4 @@
-# `@proton/logger`
+# `@protontech/logger`
 
 Encrypted, persistent client-side logging. Lines are echoed to the console and written to IndexedDB, each line stored as a single AES-GCM ciphertext under a session-bound key.
 
@@ -22,8 +22,8 @@ import type { LogEntry, LogLevel, LoggerOptions } from "@proton/logger/types";
 ### Step 1 — generate a session-bound key
 
 ```typescript
-import { createAuthentication } from "@proton/account/bootstrap";
-import { generateLoggerKey } from "@proton/shared/lib/authentication/loggerKey";
+import { createAuthentication } from "<proton-web-clients>/account/bootstrap";
+import { generateLoggerKey } from "<proton-web-clients>/shared/lib/authentication/loggerKey";
 
 const authentication = createAuthentication();
 const { key: loggerKey, ID: loggerID } =

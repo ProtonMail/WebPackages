@@ -45,7 +45,7 @@ export interface LoggerOptions {
  * keeping their original timestamps.
  */
 export interface Logger {
-    initialize(options: LoggerOptions): Promise<void>;
+    initialize(options: LoggerOptions): void;
     isInitialized(): boolean;
 
     trace(message: string, ...args: unknown[]): void;

@@ -150,6 +150,7 @@ export class PersistentLogger implements Logger {
             console.warn(
                 `Logger '${this.name}' already initialized, ignoring subsequent initialization`,
             );
+            return;
         }
 
         this.maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;

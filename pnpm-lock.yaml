@@ -464,6 +464,9 @@ importers:
 
   packages/logger:
     dependencies:
+      '@protontech/crypto':
+        specifier: workspace:^
+        version: link:../crypto
       comlink:
         specifier: ^4.4.2
         version: 4.4.2
@@ -474,9 +477,6 @@ importers:
         specifier: ^8.0.3
         version: 8.0.3
     devDependencies:
-      '@protontech/crypto':
-        specifier: workspace:*
-        version: link:../crypto
       '@protontech/eslint-plugin-enforce-uint8array-arraybuffer':
         specifier: workspace:*
         version: link:../eslint-plugin-enforce-uint8array-arraybuffer

@@ -28,7 +28,6 @@
         "idb": "^8.0.3"
     },
     "devDependencies": {
-        "@protontech/crypto": "workspace:*",
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
         "@protontech/oxlint-config": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
@@ -40,5 +39,8 @@
         "prettier": "^3.9.6",
         "typescript": "^7.0.2",
         "vitest": "^5.0.1"
+    },
+    "peerDependencies": {
+        "@protontech/crypto": "workspace:^"
     }
 }

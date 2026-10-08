@@ -150,6 +150,15 @@ export const getZonedDayAsUTC = (
     return new Date(Date.UTC(year, month - 1, day));
 };
 
+export const addDaysUTC = (date: Date, days: number): Date =>
+    new Date(
+        Date.UTC(
+            date.getUTCFullYear(),
+            date.getUTCMonth(),
+            date.getUTCDate() + days,
+        ),
+    );
+
 /**
  * Returns whether `date` falls on today's calendar date in `timeZone`.
  */

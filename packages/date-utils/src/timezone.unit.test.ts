@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+    addDaysUTC,
     calendarDayOffset,
     dateFromZonedParts,
     deviceTodayAsUTCMidnight,
@@ -641,6 +642,63 @@ describe("timezone helpers", () => {
                     }),
                 ).toBe(false);
             }
+        });
+    });
+
+    describe("addDaysUTC", () => {
+        it("adds days within the same month", () => {
+            expect(
+                addDaysUTC(new Date("2024-03-10T00:00:00Z"), 5).toISOString(),
+            ).toBe("2024-03-15T00:00:00.000Z");
+        });
+
+        it("returns the same day when adding 0 days", () => {
+            expect(
+                addDaysUTC(new Date("2024-03-10T00:00:00Z"), 0).toISOString(),
+            ).toBe("2024-03-10T00:00:00.000Z");
+        });
+
+        it("subtracts days with a negative value", () => {
+            expect(
+                addDaysUTC(new Date("2024-03-10T00:00:00Z"), -10).toISOString(),
+            ).toBe("2024-02-29T00:00:00.000Z");
+        });
+
+        it("rolls over month and year boundaries", () => {
+            expect(
+                addDaysUTC(new Date("2023-12-30T00:00:00Z"), 3).toISOString(),
+            ).toBe("2024-01-02T00:00:00.000Z");
+        });
+
+        it("handles leap days", () => {
+            expect(
+                addDaysUTC(new Date("2024-02-28T00:00:00Z"), 2).toISOString(),
+            ).toBe("2024-03-01T00:00:00.000Z");
+            expect(
+                addDaysUTC(new Date("2023-02-28T00:00:00Z"), 2).toISOString(),
+            ).toBe("2023-03-02T00:00:00.000Z");
+        });
+
+        it("normalizes the result to UTC midnight, dropping the time part", () => {
+            expect(
+                addDaysUTC(
+                    new Date("2024-03-10T15:45:30.123Z"),
+                    1,
+                ).toISOString(),
+            ).toBe("2024-03-11T00:00:00.000Z");
+        });
+
+        it("always adds 24h steps, unaffected by DST transitions", () => {
+            // 2024-03-31 is the EU DST switch; UTC arithmetic must ignore it
+            expect(
+                addDaysUTC(new Date("2024-03-30T00:00:00Z"), 2).toISOString(),
+            ).toBe("2024-04-01T00:00:00.000Z");
+        });
+
+        it("does not mutate the input date", () => {
+            const input = new Date("2024-03-10T12:00:00Z");
+            addDaysUTC(input, 7);
+            expect(input.toISOString()).toBe("2024-03-10T12:00:00.000Z");
         });
     });
 });

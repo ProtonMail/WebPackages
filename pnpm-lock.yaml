@@ -219,7 +219,7 @@ importers:
         specifier: workspace:^
         version: link:../proton-fetch
       '@protontech/web-utils':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../web-utils
       idb:
         specifier: ^8.0.3

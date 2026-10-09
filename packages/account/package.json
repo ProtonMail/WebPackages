@@ -46,6 +46,6 @@
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",
         "@protontech/fetch": "workspace:^",
-        "@protontech/web-utils": "workspace:*"
+        "@protontech/web-utils": "workspace:^"
     }
 }

@@ -41,11 +41,11 @@
         "@protontech/typescript-config": "workspace:*",
         "core-js": "^3.50.0",
         "fake-indexeddb": "^6.2.5",
-        "oxlint": "^1.80.0",
-        "oxlint-tsgolint": "^7.0.2001",
-        "prettier": "^3.9.6",
+        "oxlint": "^1.86.0",
+        "oxlint-tsgolint": "^7.0.2003",
+        "prettier": "^3.9.9",
         "typescript": "^7.0.2",
-        "vitest": "^5.0.1"
+        "vitest": "^5.0.3"
     },
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",

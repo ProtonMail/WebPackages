@@ -18,18 +18,18 @@
     "typecheck": "pnpm run -r typecheck"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.1",
-    "@types/node": "^24.13.3",
+    "@changesets/cli": "^3.0.3",
+    "@types/node": "^24.19.1",
     "changesets-gitlab": "^0.16.1",
-    "dependency-cruiser": "^18.2.0",
+    "dependency-cruiser": "^18.5.0",
     "husky": "^9.1.7",
-    "knip": "^6.34.0",
-    "lint-staged": "^17.4.1",
-    "prettier": "^3.9.6",
+    "knip": "^6.39.0",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
     "sort-package-json": "^4.0.0",
     "typescript": "^7.0.2"
   },
-  "packageManager": "pnpm@12.4.1",
+  "packageManager": "pnpm@12.9.1",
   "engines": {
     "node": "^24"
   }

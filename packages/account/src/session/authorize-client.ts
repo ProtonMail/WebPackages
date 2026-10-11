@@ -9,6 +9,7 @@ import {
     type PayloadResult,
 } from "./authorize-payload-crypto.ts";
 import { serializeUsers } from "./signout-parameters.ts";
+import { generateForkSecret } from "./fork-secret.ts";
 
 export const AccountAuthorizeQueryParameters = {
     App: "app",
@@ -32,6 +33,7 @@ export const AccountAuthorizeQueryParameters = {
     UnauthenticatedReturnUrl: "uru",
     RedirectUrl: "redirectUrl",
     Email: "email",
+    ForkChallenge: "forkChallenge",
 };
 
 export type ForkPayloadVersion = 1 | 2 | 3;
@@ -49,7 +51,63 @@ export interface AuthorizeParametersOptions {
     localId?: number;
     email?: string;
     users?: string[];
+    /** Binds the fork to a fork secret, see {@link AuthorizeClient.authorize} */
+    forkChallenge?: string;
 }
+
+/** Why the app sends the user to account, which forks a session back to it */
+export type AuthorizeIntent =
+    /** Lets the user pick an account, or sign in to another one */
+    | { type: "switch" }
+    /** Signs in to another account */
+    | { type: "add-account" }
+    /** Signs `userIds` out at account, then lets the user pick an account */
+    | { type: "sign-out"; userIds: string[] }
+    /**
+     * The session is gone: signs in again, as `email` if known, otherwise
+     * letting the user pick, since it may not be the same user
+     */
+    | { type: "reauthorize"; email?: string };
+
+/**
+ * `getSession`'s own: resumes the session `localId` at account if it's still
+ * there, otherwise lets account decide
+ */
+export interface ResumeIntent {
+    type: "resume";
+    localId?: number;
+    reason?: "expired" | "not-found" | "corrupted";
+}
+
+type IntentParameters = Omit<
+    AuthorizeParametersOptions,
+    "app" | "redirectUrl" | "state" | "forkChallenge"
+>;
+
+const getIntentParameters = (
+    intent: AuthorizeIntent | ResumeIntent,
+): IntentParameters => {
+    switch (intent.type) {
+        case "switch":
+            return { forkType: "switch" };
+        case "add-account":
+            return { forkType: "login" };
+        case "sign-out":
+            return {
+                forkType: "switch",
+                reason: "signout",
+                users: intent.userIds,
+            };
+        case "reauthorize":
+            return {
+                forkType: intent.email === undefined ? "switch" : "login",
+                reason: "expired",
+                email: intent.email,
+            };
+        case "resume":
+            return { localId: intent.localId, reason: intent.reason };
+    }
+};
 
 export class AuthorizeParameters {
     #options: AuthorizeParametersOptions;
@@ -124,6 +182,12 @@ export class AuthorizeParameters {
         if (options.email !== undefined) {
             searchParams.append("email", options.email);
         }
+        if (options.forkChallenge !== undefined) {
+            searchParams.append(
+                AccountAuthorizeQueryParameters.ForkChallenge,
+                options.forkChallenge,
+            );
+        }
         const hashParams = new URLSearchParams();
         if (options.users !== undefined && options.users.length > 0) {
             hashParams.append("sessions", serializeUsers(options.users));
@@ -133,31 +197,87 @@ export class AuthorizeParameters {
     }
 }
 
+const generateStateKey = () =>
+    crypto
+        .getRandomValues(new Uint8Array(32))
+        .toBase64({ alphabet: "base64url", omitPadding: true });
+
+// Not `authorize-`, which held the bare data: those entries, from a sign-in
+// that was in progress when the app was updated, are ignored instead of
+// misread.
+const getAuthorizeStateKey = (key: string) => `authorize-state-${key}`;
+
+interface AuthorizeStateDto<T> {
+    data: T | null;
+    forkSecret?: string;
+}
+
+/**
+ * What this tab keeps for a fork it requested, under the fork's state: the
+ * app's data, and the fork secret if the fork is bound to one. Every fork
+ * request writes a new one.
+ *
+ * It stays until the session is set up ({@link AuthorizeState.remove}), so
+ * that after a transient error the fork can still be pulled on reload.
+ */
 export class AuthorizeState<T> {
     data: T | null;
+    /**
+     * Proves this tab requested the fork, see
+     * {@link AuthorizeClient.authorize}. Pass it to
+     * {@link AuthorizeClient.initialize}.
+     */
+    forkSecret: string | undefined;
 
-    constructor(data: T | null) {
+    constructor(data: T | null, forkSecret?: string) {
         this.data = data;
+        this.forkSecret = forkSecret;
     }
 
+    /** Keeps this state in this tab, and returns its key: the fork's state. */
     write() {
-        const key = crypto
-            .getRandomValues(new Uint8Array(32))
-            .toBase64({ alphabet: "base64url", omitPadding: true });
-        sessionStorage.setItem(`authorize-${key}`, JSON.stringify(this.data));
+        const key = generateStateKey();
+        const dto: AuthorizeStateDto<T> = {
+            data: this.data,
+            forkSecret: this.forkSecret,
+        };
+        // The fork secret is stored in plain text on purpose, unlike
+        // secure-session-storage.ts: sessionStorage may be written to disk for
+        // session restore, but the secret is single-use and worthless once the
+        // fork is pulled or has expired (10 minutes). The selector and payload
+        // key it protects are in the callback URL, and so in the history,
+        // anyway. States of forks that never come back to /login stay until
+        // the tab is closed.
+        sessionStorage.setItem(getAuthorizeStateKey(key), JSON.stringify(dto));
         return key;
     }
 
     static fromKey<T>(key: string): AuthorizeState<T> {
         try {
-            const data = sessionStorage.getItem(`authorize-${key}`);
-            if (!data) {
+            const json = sessionStorage.getItem(getAuthorizeStateKey(key));
+            if (!json) {
                 return new AuthorizeState<T>(null);
             }
-            const result = JSON.parse(data) as T;
-            return new AuthorizeState<T>(result);
+            const dto = JSON.parse(json) as Partial<
+                AuthorizeStateDto<T>
+            > | null;
+            return new AuthorizeState<T>(
+                dto?.data ?? null,
+                typeof dto?.forkSecret === "string"
+                    ? dto.forkSecret
+                    : undefined,
+            );
         } catch {
             return new AuthorizeState<T>(null);
+        }
+    }
+
+    /** Forgets the state kept under `key`, once it's no longer needed. */
+    static remove(key: string) {
+        try {
+            sessionStorage.removeItem(getAuthorizeStateKey(key));
+        } catch {
+            // Nothing to forget without sessionStorage
         }
     }
 }
@@ -277,11 +397,32 @@ export class AuthorizeError extends Error {
 
 export class AuthorizeUnprocessableError extends AuthorizeError {}
 
+export interface AuthorizeClientOptions {
+    fetch: typeof window.fetch;
+    /** The app account forks sessions to */
+    app: `proton-${string}`;
+    /** Where account is, e.g. `https://account.proton.me` */
+    accountUrl: URL;
+    /** Where account sends the user back with the fork, if not the default */
+    redirectUrl?: URL;
+}
+
 export class AuthorizeClient {
     #fetch: typeof window.fetch;
+    #app: `proton-${string}`;
+    #accountUrl: URL;
+    #redirectUrl: URL | undefined;
 
-    constructor({ fetch }: { fetch: typeof window.fetch }) {
+    constructor({
+        fetch,
+        app,
+        accountUrl,
+        redirectUrl,
+    }: AuthorizeClientOptions) {
         this.#fetch = fetch;
+        this.#app = app;
+        this.#accountUrl = accountUrl;
+        this.#redirectUrl = redirectUrl;
     }
 
     getCallbackParameters(url: URL) {
@@ -292,18 +433,79 @@ export class AuthorizeClient {
         return null;
     }
 
-    static generateAuthorizePath(parameters: AuthorizeParameters) {
-        return `/authorize${parameters.serialize()}`;
+    #getAuthorizeUrl(
+        parameters: IntentParameters &
+            Pick<AuthorizeParametersOptions, "state" | "forkChallenge">,
+    ) {
+        const authorizeParameters = new AuthorizeParameters({
+            ...parameters,
+            app: this.#app,
+            redirectUrl: this.#redirectUrl?.toString(),
+        });
+        return new URL(
+            `/authorize${authorizeParameters.serialize()}`,
+            this.#accountUrl,
+        );
     }
 
+    /**
+     * Requests a fork for this tab to pull: navigate to the URL in this tab.
+     *
+     * The fork is bound to a new fork secret: account only gets its SHA-256,
+     * and the secret is kept in this tab with `data`, in a new
+     * {@link AuthorizeState} whose key is the fork's state. `getSession`
+     * presents the secret when it pulls the fork, and returns `data`.
+     *
+     * If the secret can't be created, the fork is left unbound rather than
+     * failing the sign-in. If nothing can be kept in this tab, the same goes
+     * for `data`.
+     */
+    async authorize<T>(
+        intent: AuthorizeIntent | ResumeIntent,
+        data: T | null = null,
+    ): Promise<URL> {
+        const fork = await generateForkSecret().catch(() => undefined);
+        let state: string;
+        try {
+            state = new AuthorizeState(data, fork?.forkSecret).write();
+        } catch {
+            return this.#getAuthorizeUrl(getIntentParameters(intent));
+        }
+        return this.#getAuthorizeUrl({
+            ...getIntentParameters(intent),
+            state,
+            forkChallenge: fork?.forkChallenge,
+        });
+    }
+
+    /**
+     * Like {@link AuthorizeClient.authorize}, for links that may be opened in
+     * another tab, which wouldn't have the fork secret: the fork isn't bound,
+     * and nothing is kept in this tab.
+     */
+    getAuthorizeLink(intent: AuthorizeIntent): URL {
+        return this.#getAuthorizeUrl(getIntentParameters(intent));
+    }
+
+    /**
+     * Pulls the fork and sets up its session. `forkSecret` proves this client
+     * requested the fork, when it's bound to one (see
+     * {@link AuthorizeClient.authorize}): pass {@link AuthorizeState.forkSecret}
+     * of the callback's state, and {@link AuthorizeState.remove} it once the
+     * session is saved.
+     */
     async initialize(
         authorizeCallbackParameters: AuthorizeCallbackParameters,
+        forkSecret?: string,
     ): Promise<SaveSessionParams> {
         const getForkResponse = await this.#fetch(
             new Request(
                 `/auth/v4/sessions/forks/${authorizeCallbackParameters.dto.selector}`,
                 {
                     method: "get",
+                    headers: forkSecret
+                        ? { "x-pm-fork-secret": forkSecret }
+                        : undefined,
                 },
             ),
         );

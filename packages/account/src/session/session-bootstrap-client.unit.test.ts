@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
     SessionBootstrapClient,
     SessionBootstrapError,
@@ -12,45 +12,37 @@ import {
 } from "./session-persistence.ts";
 import {
     AuthorizeError,
+    AuthorizeState,
     AuthorizeUnprocessableError,
-    type AuthorizeClient,
+    AuthorizeClient,
     type AuthorizeCallbackParameters,
-    type AuthorizeParametersOptions,
 } from "./authorize-client.ts";
+import { generateForkSecret } from "./fork-secret.ts";
 import type { SessionDbDto } from "./session-db.ts";
-import type * as AuthorizeClientModule from "./authorize-client.ts";
 import type { SaveSessionParams } from "./interface.ts";
 
-// Replace only AuthorizeState (its real write()/fromKey() depend on sessionStorage
-// and the Stage-3 Uint8Array base64 helpers). Everything else in the module —
-// the error classes, AuthorizeClient.generateAuthorizePath, AuthorizeParameters —
-// stays real so the produced authorize paths are exercised for real.
-const { MockAuthorizeState } = vi.hoisted(() => {
-    class MockAuthorizeState {
-        data: unknown;
-        constructor(data: unknown) {
-            this.data = data;
-        }
-        // Stand-in for the persisted key: encodes the data so tests can assert
-        // it flows into the redirect.
-        write(): string {
-            return JSON.stringify(this.data);
-        }
-        static fromKey(key: string): MockAuthorizeState {
-            return new MockAuthorizeState({ restoredFrom: key });
-        }
-    }
-    return { MockAuthorizeState };
+// The fork secret's crypto has its own tests, here only where it's kept matters
+vi.mock("./fork-secret.ts", () => ({ generateForkSecret: vi.fn() }));
+
+// AuthorizeState and the authorize paths stay real, on this sessionStorage
+let storage: Map<string, string>;
+
+beforeEach(() => {
+    vi.mocked(generateForkSecret).mockReset().mockResolvedValue({
+        forkSecret: "fork-secret",
+        forkChallenge: "fork-challenge",
+    });
+    storage = new Map();
+    vi.stubGlobal("sessionStorage", {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => storage.set(key, value),
+        removeItem: (key: string) => storage.delete(key),
+    });
 });
 
-vi.mock("./authorize-client.ts", async (importOriginal) => {
-    const actual = await importOriginal<typeof AuthorizeClientModule>();
-    return { ...actual, AuthorizeState: MockAuthorizeState };
+afterEach(() => {
+    vi.unstubAllGlobals();
 });
-
-const baseParams: Omit<AuthorizeParametersOptions, "state"> = {
-    app: "proton-account",
-};
 
 function makeDbDto(localId: number): SessionDbDto {
     return {
@@ -90,11 +82,20 @@ function makeCallbackParams(state = "state-key"): AuthorizeCallbackParameters {
 }
 
 function makeClient() {
+    // Requests forks for real, pulling them is mocked
+    const realAuthorizeClient = new AuthorizeClient({
+        fetch: () => Promise.reject(new Error("no fetch")),
+        app: "proton-calendar",
+        accountUrl: new URL("https://account.proton.me"),
+    });
     const authorizeClient = {
         getCallbackParameters: vi.fn<AuthorizeClient["getCallbackParameters"]>(
             () => null,
         ),
         initialize: vi.fn<AuthorizeClient["initialize"]>(),
+        authorize: vi.fn<AuthorizeClient["authorize"]>((intent, data) =>
+            realAuthorizeClient.authorize(intent, data),
+        ),
     };
     const sessionPersistence = {
         getSession: vi.fn<SessionPersistence["getSession"]>(),
@@ -107,8 +108,13 @@ function makeClient() {
     return { client, authorizeClient, sessionPersistence };
 }
 
-function parseAuthorizePath(path: string): URLSearchParams {
-    return new URLSearchParams(path.split("?")[1] ?? "");
+/** The authorize state the redirect requests its fork under */
+function getRedirectState(authorizeUrl: URL) {
+    const state = authorizeUrl.searchParams.get("state");
+    if (!state) {
+        throw new Error("expected a state");
+    }
+    return { state, authorizeState: AuthorizeState.fromKey(state) };
 }
 
 async function captureRejection(promise: Promise<unknown>): Promise<unknown> {
@@ -127,10 +133,10 @@ describe("getSessionFromCallback", () => {
         const session = makeSessionDto();
         authorizeClient.initialize.mockResolvedValue(authorizeResult);
         sessionPersistence.saveSession.mockResolvedValue(session);
-        const authorizeCallbackParameters = makeCallbackParams("state-key");
+        const state = new AuthorizeState({ returnTo: "/inbox" }).write();
+        const authorizeCallbackParameters = makeCallbackParams(state);
 
         const result = await client.getSessionFromCallback({
-            authorizeParameters: baseParams,
             authorizeCallbackParameters,
         });
 
@@ -138,57 +144,137 @@ describe("getSessionFromCallback", () => {
             throw new Error("expected authenticated result");
         }
         expect(result.session).toBe(session);
-        // AuthorizeState.fromKey (mocked) restores state derived from the key.
-        expect(result.authorizeState?.data).toEqual({
-            restoredFrom: "state-key",
-        });
+        expect(result.data).toEqual({ returnTo: "/inbox" });
         expect(authorizeClient.initialize).toHaveBeenCalledWith(
             authorizeCallbackParameters,
+            undefined,
         );
         expect(sessionPersistence.saveSession).toHaveBeenCalledWith(
             authorizeResult,
         );
     });
 
-    it("returns unauthorized when authorize is unprocessable", async () => {
+    it("proves the fork with the fork secret kept in its state", async () => {
+        const { client, authorizeClient, sessionPersistence } = makeClient();
+        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
+        sessionPersistence.saveSession.mockResolvedValue(makeSessionDto());
+        const state = new AuthorizeState(null, "fork-secret").write();
+        const authorizeCallbackParameters = makeCallbackParams(state);
+
+        await client.getSessionFromCallback({
+            authorizeCallbackParameters,
+        });
+
+        expect(authorizeClient.initialize).toHaveBeenCalledWith(
+            authorizeCallbackParameters,
+            "fork-secret",
+        );
+    });
+
+    it("forgets the authorize state once the session is saved", async () => {
+        const { client, authorizeClient, sessionPersistence } = makeClient();
+        const state = new AuthorizeState(null, "fork-secret").write();
+        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
+        sessionPersistence.saveSession.mockImplementation(() => {
+            // Still needed if saving the session fails
+            expect(storage.size).toBe(1);
+            return Promise.resolve(makeSessionDto());
+        });
+
+        await client.getSessionFromCallback({
+            authorizeCallbackParameters: makeCallbackParams(state),
+        });
+
+        expect(storage.size).toBe(0);
+    });
+
+    it("keeps the authorize state when the fork can't be pulled for now", async () => {
+        const { client, authorizeClient } = makeClient();
+        const state = new AuthorizeState(null, "fork-secret").write();
+        authorizeClient.initialize.mockRejectedValue(
+            new AuthorizeError(503, {}),
+        );
+
+        await expect(
+            client.getSessionFromCallback({
+                authorizeCallbackParameters: makeCallbackParams(state),
+            }),
+        ).rejects.toBeInstanceOf(SessionBootstrapError);
+
+        // A reload pulls the same fork again, which needs the fork secret
+        expect(AuthorizeState.fromKey(state).forkSecret).toBe("fork-secret");
+    });
+
+    it.each([
+        [
+            "the fork can't be pulled",
+            () => Promise.reject(new AuthorizeUnprocessableError(422, {})),
+            () => Promise.resolve(makeSessionDto()),
+        ],
+        [
+            "the session can't be saved",
+            () => Promise.resolve(makeSaveParams()),
+            () =>
+                Promise.reject(
+                    new SessionAuthError(
+                        SessionErrorCode.SessionExpired,
+                        null,
+                        401,
+                        null,
+                        null,
+                    ),
+                ),
+        ],
+    ])(
+        "requests a new fork under a new authorize state when %s",
+        async (_, initialize, saveSession) => {
+            const { client, authorizeClient, sessionPersistence } =
+                makeClient();
+            authorizeClient.initialize.mockImplementation(initialize);
+            sessionPersistence.saveSession.mockImplementation(saveSession);
+            const previousState = new AuthorizeState(
+                { returnTo: "/inbox" },
+                "previous-fork-secret",
+            ).write();
+
+            const result = await client.getSessionFromCallback({
+                authorizeCallbackParameters: makeCallbackParams(previousState),
+            });
+
+            if (result.type !== "unauthorized") {
+                throw new Error("expected unauthorized result");
+            }
+            expect(result.authorizeUrl.pathname).toBe("/authorize");
+            const { state, authorizeState } = getRedirectState(
+                result.authorizeUrl,
+            );
+            expect(state).not.toBe(previousState);
+            expect(authorizeState).toEqual(
+                new AuthorizeState({ returnTo: "/inbox" }, "fork-secret"),
+            );
+            expect(result.authorizeUrl.searchParams.get("forkChallenge")).toBe(
+                "fork-challenge",
+            );
+            expect([...storage.keys()]).toEqual([`authorize-state-${state}`]);
+        },
+    );
+
+    it("resumes the session it was given for the new fork", async () => {
         const { client, authorizeClient } = makeClient();
         authorizeClient.initialize.mockRejectedValue(
             new AuthorizeUnprocessableError(422, {}),
         );
 
         const result = await client.getSessionFromCallback({
-            authorizeParameters: baseParams,
-            authorizeCallbackParameters: makeCallbackParams("state-key"),
+            authorizeCallbackParameters: makeCallbackParams(),
+            localId: 4,
         });
 
         if (result.type !== "unauthorized") {
             throw new Error("expected unauthorized result");
         }
-        expect(result.authorizePath.startsWith("/authorize")).toBe(true);
-        expect(parseAuthorizePath(result.authorizePath).get("state")).toBe(
-            "state-key",
-        );
-    });
-
-    it("returns unauthorized when saving the session is rejected as auth error", async () => {
-        const { client, authorizeClient, sessionPersistence } = makeClient();
-        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
-        sessionPersistence.saveSession.mockRejectedValue(
-            new SessionAuthError(
-                SessionErrorCode.SessionExpired,
-                null,
-                401,
-                null,
-                null,
-            ),
-        );
-
-        const result = await client.getSessionFromCallback({
-            authorizeParameters: baseParams,
-            authorizeCallbackParameters: makeCallbackParams("state-key"),
-        });
-
-        expect(result.type).toBe("unauthorized");
+        expect(result.authorizeUrl.searchParams.get("u")).toBe("4");
+        expect(result.authorizeUrl.searchParams.has("t")).toBe(false);
     });
 
     it("wraps a network AuthorizeError in a SessionBootstrapError", async () => {
@@ -199,7 +285,6 @@ describe("getSessionFromCallback", () => {
 
         const error = await captureRejection(
             client.getSessionFromCallback({
-                authorizeParameters: baseParams,
                 authorizeCallbackParameters: makeCallbackParams(),
             }),
         );
@@ -218,7 +303,6 @@ describe("getSessionFromCallback", () => {
 
         const error = await captureRejection(
             client.getSessionFromCallback({
-                authorizeParameters: baseParams,
                 authorizeCallbackParameters: makeCallbackParams(),
             }),
         );
@@ -234,15 +318,15 @@ describe("getSessionFromStorage", () => {
         sessionPersistence.getSession.mockResolvedValue(session);
 
         const result = await client.getSessionFromStorage({
-            authorizeParameters: { ...baseParams, localId: 5 },
-            authorizeStateData: { foo: 1 },
+            localId: 5,
+            data: { foo: 1 },
         });
 
         if (result.type !== "authenticated") {
             throw new Error("expected authenticated result");
         }
         expect(result.session).toBe(session);
-        expect(result.authorizeState).toBeNull();
+        expect(result.data).toBeNull();
         expect(sessionPersistence.getSession).toHaveBeenCalledWith(5);
     });
 
@@ -257,19 +341,17 @@ describe("getSessionFromStorage", () => {
         );
 
         const result = await client.getSessionFromStorage({
-            authorizeParameters: { ...baseParams, localId: 5 },
-            authorizeStateData: { foo: 1 },
+            localId: 5,
+            data: { foo: 1 },
         });
 
         if (result.type !== "unauthorized") {
             throw new Error("expected unauthorized result");
         }
-        expect(parseAuthorizePath(result.authorizePath).get("reason")).toBe(
-            reason,
-        );
+        expect(result.authorizeUrl.searchParams.get("reason")).toBe(reason);
     });
 
-    it("encodes the authorize state into the redirect for later restoration", async () => {
+    it("binds the fork to a fork secret kept with the authorize state data", async () => {
         const { client, sessionPersistence } = makeClient();
         sessionPersistence.getSession.mockRejectedValue(
             new SessionAuthError(
@@ -280,24 +362,53 @@ describe("getSessionFromStorage", () => {
                 null,
             ),
         );
-        const authorizeStateData = { returnTo: "/inbox" };
 
         const result = await client.getSessionFromStorage({
-            authorizeParameters: baseParams,
-            authorizeStateData,
+            data: { returnTo: "/inbox" },
         });
 
         if (result.type !== "unauthorized") {
             throw new Error("expected unauthorized result");
         }
-        // The mocked AuthorizeState.write() returns the serialized state data,
-        // so the redirect's `state` param reflects what was stored.
-        expect(parseAuthorizePath(result.authorizePath).get("state")).toBe(
-            JSON.stringify(authorizeStateData),
+        expect(getRedirectState(result.authorizeUrl).authorizeState).toEqual(
+            new AuthorizeState({ returnTo: "/inbox" }, "fork-secret"),
+        );
+        expect(result.authorizeUrl.searchParams.get("forkChallenge")).toBe(
+            "fork-challenge",
         );
     });
 
-    it("uses authorizeParameters.localId for the redirect when present", async () => {
+    it("leaves the fork unbound when the fork secret can't be created", async () => {
+        const { client, sessionPersistence } = makeClient();
+        sessionPersistence.getSession.mockRejectedValue(
+            new SessionAuthError(
+                SessionErrorCode.SessionExpired,
+                null,
+                0,
+                null,
+                null,
+            ),
+        );
+        vi.mocked(generateForkSecret).mockRejectedValue(
+            new Error("NotSupportedError"),
+        );
+
+        const result = await client.getSessionFromStorage({
+            data: { returnTo: "/inbox" },
+        });
+
+        if (result.type !== "unauthorized") {
+            throw new Error("expected unauthorized result");
+        }
+        expect(getRedirectState(result.authorizeUrl).authorizeState).toEqual(
+            new AuthorizeState({ returnTo: "/inbox" }, undefined),
+        );
+        expect(result.authorizeUrl.searchParams.has("forkChallenge")).toBe(
+            false,
+        );
+    });
+
+    it("uses localId for the redirect when given", async () => {
         const { client, sessionPersistence } = makeClient();
         sessionPersistence.getSession.mockRejectedValue(
             new SessionAuthError(
@@ -310,14 +421,14 @@ describe("getSessionFromStorage", () => {
         );
 
         const result = await client.getSessionFromStorage({
-            authorizeParameters: { ...baseParams, localId: 5 },
-            authorizeStateData: null,
+            localId: 5,
+            data: null,
         });
 
         if (result.type !== "unauthorized") {
             throw new Error("expected unauthorized result");
         }
-        expect(parseAuthorizePath(result.authorizePath).get("u")).toBe("5");
+        expect(result.authorizeUrl.searchParams.get("u")).toBe("5");
     });
 
     it("falls back to the error's session localId for the redirect", async () => {
@@ -333,14 +444,13 @@ describe("getSessionFromStorage", () => {
         );
 
         const result = await client.getSessionFromStorage({
-            authorizeParameters: baseParams,
-            authorizeStateData: null,
+            data: null,
         });
 
         if (result.type !== "unauthorized") {
             throw new Error("expected unauthorized result");
         }
-        expect(parseAuthorizePath(result.authorizePath).get("u")).toBe("9");
+        expect(result.authorizeUrl.searchParams.get("u")).toBe("9");
     });
 
     it("wraps a network SessionError in a SessionBootstrapError", async () => {
@@ -357,8 +467,7 @@ describe("getSessionFromStorage", () => {
 
         const error = await captureRejection(
             client.getSessionFromStorage({
-                authorizeParameters: baseParams,
-                authorizeStateData: null,
+                data: null,
             }),
         );
 
@@ -373,8 +482,7 @@ describe("getSessionFromStorage", () => {
 
         const error = await captureRejection(
             client.getSessionFromStorage({
-                authorizeParameters: baseParams,
-                authorizeStateData: null,
+                data: null,
             }),
         );
 
@@ -393,8 +501,7 @@ describe("getSession", () => {
 
         const result = await client.getSession({
             url: new URL("https://app.example/login"),
-            authorizeParameters: baseParams,
-            authorizeStateData: null,
+            data: null,
         });
 
         expect(result.type).toBe("authenticated");
@@ -409,8 +516,8 @@ describe("getSession", () => {
 
         const result = await client.getSession({
             url: new URL("https://app.example/"),
-            authorizeParameters: { ...baseParams, localId: 7 },
-            authorizeStateData: null,
+            localId: 7,
+            data: null,
         });
 
         expect(result.type).toBe("authenticated");

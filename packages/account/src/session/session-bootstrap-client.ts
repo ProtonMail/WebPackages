@@ -8,10 +8,8 @@ import {
 } from "./session-persistence.ts";
 import {
     type AuthorizeCallbackParameters,
-    AuthorizeClient,
+    type AuthorizeClient,
     AuthorizeState,
-    AuthorizeParameters,
-    type AuthorizeParametersOptions,
     AuthorizeUnprocessableError,
     AuthorizeError,
 } from "./authorize-client.ts";
@@ -37,14 +35,19 @@ export class SessionBootstrapError extends Error {
     }
 }
 export interface SessionBootstrapSuccessResult<T> {
-    session: SessionDto;
-    authorizeState: AuthorizeState<T> | null;
     type: "authenticated";
+    session: SessionDto;
+    /**
+     * What `getSession` was given when it requested the fork, if this session
+     * comes from one
+     */
+    data: T | null;
 }
 
 export interface SessionBootstrapErrorResult {
     type: "unauthorized";
-    authorizePath: string;
+    /** Where to send the user to get a session: navigate to it in this tab */
+    authorizeUrl: URL;
 }
 
 export type SessionBootstrapResult<T> =
@@ -52,9 +55,25 @@ export type SessionBootstrapResult<T> =
 
 export interface SessionBootstrapParameters<T> {
     url: URL;
-    authorizeParameters: Omit<AuthorizeParametersOptions, "state">;
-    authorizeStateData: T;
+    /** The session to get, e.g. from the URL. The last used one otherwise. */
+    localId?: number;
+    /**
+     * Kept in this tab if the user has to go through account, and returned
+     * with the session once back
+     */
+    data: T;
 }
+
+const getResumeReason = (code: SessionErrorCode) => {
+    if (code === SessionErrorCode.SessionExpired) {
+        return "expired";
+    } else if (code === SessionErrorCode.SessionNotFound) {
+        return "not-found";
+    } else if (code === SessionErrorCode.Decryption) {
+        return "corrupted";
+    }
+    return undefined;
+};
 
 export class SessionBootstrapClient {
     #authorizeClient: AuthorizeClient;
@@ -73,94 +92,66 @@ export class SessionBootstrapClient {
 
     async getSessionFromCallback<T>({
         authorizeCallbackParameters,
-        authorizeParameters,
+        localId,
     }: {
-        authorizeParameters: Omit<AuthorizeParametersOptions, "state">;
         authorizeCallbackParameters: AuthorizeCallbackParameters;
+        localId?: number;
     }): Promise<SessionBootstrapResult<T>> {
+        const { state } = authorizeCallbackParameters.dto;
+        const authorizeState = AuthorizeState.fromKey<T>(state);
         try {
-            const authorizeState = AuthorizeState.fromKey<T>(
-                authorizeCallbackParameters.dto.state,
-            );
             const authorizeResult = await this.#authorizeClient.initialize(
                 authorizeCallbackParameters,
+                authorizeState.forkSecret,
             );
-            const result =
+            const session =
                 await this.#sessionPersistence.saveSession(authorizeResult);
+            // Kept until now: after a transient error the fork can still be
+            // pulled on reload, with the fork secret
+            AuthorizeState.remove(state);
             return {
                 type: "authenticated",
-                session: result,
-                authorizeState,
+                session,
+                data: authorizeState.data,
             };
         } catch (error) {
             if (
                 error instanceof AuthorizeUnprocessableError ||
                 error instanceof SessionAuthError
             ) {
-                const authorizePath = AuthorizeClient.generateAuthorizePath(
-                    new AuthorizeParameters({
-                        ...authorizeParameters,
-                        state: authorizeCallbackParameters.dto.state,
-                    }),
+                // The new fork gets its own state, carrying the data over
+                const authorizeUrl = await this.#authorizeClient.authorize(
+                    { type: "resume", localId },
+                    authorizeState.data,
                 );
-                return {
-                    type: "unauthorized",
-                    authorizePath,
-                };
+                AuthorizeState.remove(state);
+                return { type: "unauthorized", authorizeUrl };
             }
             throw SessionBootstrapError.from(error);
         }
     }
 
     async getSessionFromStorage<T>({
-        authorizeParameters,
-        authorizeStateData,
+        localId,
+        data,
     }: {
-        authorizeParameters: Omit<AuthorizeParametersOptions, "state">;
-        authorizeStateData: T;
+        localId?: number;
+        data: T;
     }): Promise<SessionBootstrapResult<T>> {
         try {
-            const result = await this.#sessionPersistence.getSession(
-                authorizeParameters.localId,
-            );
-            return {
-                type: "authenticated",
-                session: result,
-                authorizeState: null,
-            };
+            const session = await this.#sessionPersistence.getSession(localId);
+            return { type: "authenticated", session, data: null };
         } catch (error: unknown) {
             if (error instanceof SessionAuthError) {
-                const authorizeState = new AuthorizeState<T>(
-                    authorizeStateData,
+                const authorizeUrl = await this.#authorizeClient.authorize(
+                    {
+                        type: "resume",
+                        localId: localId ?? error.sessionDbDto?.data.localId,
+                        reason: getResumeReason(error.code),
+                    },
+                    data,
                 );
-                const key = authorizeState.write();
-                const authorizePath = AuthorizeClient.generateAuthorizePath(
-                    new AuthorizeParameters({
-                        ...authorizeParameters,
-                        state: key,
-                        reason: (function reasonFromCode(
-                            code: SessionErrorCode,
-                        ) {
-                            if (code === SessionErrorCode.SessionExpired) {
-                                return "expired";
-                            } else if (
-                                code === SessionErrorCode.SessionNotFound
-                            ) {
-                                return "not-found";
-                            } else if (code === SessionErrorCode.Decryption) {
-                                return "corrupted";
-                            }
-                            return undefined;
-                        })(error.code),
-                        localId:
-                            authorizeParameters.localId ??
-                            error.sessionDbDto?.data.localId,
-                    }),
-                );
-                return {
-                    type: "unauthorized",
-                    authorizePath,
-                };
+                return { type: "unauthorized", authorizeUrl };
             }
             throw SessionBootstrapError.from(error);
         }
@@ -168,22 +159,19 @@ export class SessionBootstrapClient {
 
     async getSession<T>({
         url,
-        authorizeParameters,
-        authorizeStateData,
+        localId,
+        data,
     }: SessionBootstrapParameters<T>): Promise<SessionBootstrapResult<T>> {
         const authorizeCallbackParameters =
             this.#authorizeClient.getCallbackParameters(url);
 
         if (authorizeCallbackParameters) {
             return this.getSessionFromCallback({
-                authorizeParameters,
                 authorizeCallbackParameters,
+                localId,
             });
         }
 
-        return this.getSessionFromStorage({
-            authorizeParameters,
-            authorizeStateData,
-        });
+        return this.getSessionFromStorage({ localId, data });
     }
 }

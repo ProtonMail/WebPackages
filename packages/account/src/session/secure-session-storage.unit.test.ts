@@ -1,39 +1,8 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getItem, setItem } from "./secure-session-storage.ts";
 
 // Real AES-GCM crypto runs fine in Node 18+.
 // Only browser globals need to be stubbed.
-
-beforeAll(() => {
-    if (!Uint8Array.fromBase64) {
-        Uint8Array.fromBase64 = function (
-            base64: string,
-        ): Uint8Array<ArrayBuffer> {
-            const binary = atob(base64);
-            const bytes = new Uint8Array<ArrayBuffer>(
-                new ArrayBuffer(binary.length),
-            );
-
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-
-            return bytes;
-        };
-    }
-    if (!Uint8Array.prototype.toBase64) {
-        Uint8Array.prototype.toBase64 = function () {
-            let binary = "";
-            for (let i = 0; i < this.length; i++) {
-                const value = this[i];
-                if (value !== undefined) {
-                    binary += String.fromCharCode(value);
-                }
-            }
-            return btoa(binary);
-        };
-    }
-});
 
 const windowStub = { name: "" };
 const sessionStorageStub = (() => {

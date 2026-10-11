@@ -1,5 +1,22 @@
 # @protontech/account
 
+## 4.0.0
+
+### Major Changes
+
+- a313c3c: Bind session forks to a fork secret, and configure `AccountClient` once, sending the user to account by intent.
+
+    Forks the app requests are bound to a fork secret kept in the tab: account only gets its SHA-256 as `forkChallenge`, and `getSession` presents the secret as `x-pm-fork-secret` when pulling the fork. A leaked selector is then not enough to pull it.
+
+    Breaking changes:
+
+    - `new AccountClient(...)` takes the app's `app`, `accountUrl` (where account is) and optional `redirectUrl` once, instead of every call.
+    - `getSession({ url, localId, data })` replaces `authorizeParameters` and `authorizeStateData`. It resolves to `{ type: "authenticated", session, data }`, with the `data` given when the fork was requested, or to `{ type: "unauthorized", authorizeUrl }`, a `URL` on account to navigate to. `secretBoundFork` is gone: forks are always bound, or unbound if the secret can't be created.
+    - `authorize(intent, data?)` requests a fork for `"switch"`, `"add-account"`, `"sign-out"` or `"reauthorize"`, and resolves to the URL to navigate to in this tab. `getAuthorizeLink(intent)` returns an unbound URL for links (`href`), which may be opened in another tab.
+    - `signOut({ type: "signOut" | "unauthorized", localId, email? })` resolves to the URL to send the user to next, signing them out at account or in again, instead of `"ok" | "fail"`.
+    - For apps that manage sessions themselves, `AuthorizeClient` takes the same `app`, `accountUrl` and `redirectUrl`, and has the same `authorize` and `getAuthorizeLink`, instead of the static `generateAuthorizePath`. `SessionBootstrapClient.getSession` changes like `AccountClient.getSession`. `AuthorizeClient.initialize` takes the fork secret of the callback's state: `AuthorizeState.fromKey(state).forkSecret`, which is removed with `AuthorizeState.remove(state)` once the session is saved. `./session/session-db.ts`, `./session/session-mem.ts` and `./sessions/interface.ts` are now exported too, so everything `AccountClient` is built from is.
+    - What's kept in `sessionStorage` while the user is at account moved to `authorize-state-` keys, so a sign-in in progress while the app updates loses its `data`. It's removed once `getSession` no longer needs it.
+
 ## 3.0.4
 
 ### Patch Changes

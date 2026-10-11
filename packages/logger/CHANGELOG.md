@@ -1,5 +1,11 @@
 # @protontech/logger
 
+## 1.0.0
+
+### Major Changes
+
+- 7d95065: Official release
+
 ## 0.0.5
 
 ### Patch Changes

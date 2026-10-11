@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.4
+
+### Patch Changes
+
+- 7808454: Add addDaysUTC helper
+
 ## 0.1.3
 
 ### Patch Changes

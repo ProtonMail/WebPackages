@@ -1,6 +1,6 @@
 {
     "name": "@protontech/logger",
-    "version": "0.0.5",
+    "version": "1.0.0",
     "description": "Encrypted, persistent client-side application logger",
     "keywords": [],
     "repository": {

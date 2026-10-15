@@ -9,6 +9,7 @@ import {
     getHourInTimezone,
     getMinutesSinceMidnightInTimezone,
     getSlotDateFromTime,
+    getTimezoneOffsetFromUtcMinutes,
     getTimezoneShortLabel,
     getToday,
     getWeekdayInTimezone,
@@ -699,6 +700,68 @@ describe("timezone helpers", () => {
             const input = new Date("2024-03-10T12:00:00Z");
             addDaysUTC(input, 7);
             expect(input.toISOString()).toBe("2024-03-10T12:00:00.000Z");
+        });
+    });
+
+    describe("getTimezoneOffsetFromUtcMinutes", () => {
+        it("returns 0 for UTC", () => {
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-01-15T00:00:00Z"),
+                    "en-US",
+                    "UTC",
+                ),
+            ).toBe(0);
+        });
+
+        it("returns a positive offset ahead of UTC", () => {
+            // Europe/Vilnius is EEST (UTC+3) during summer
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-07-01T00:00:00Z"),
+                    "en-US",
+                    "Europe/Vilnius",
+                ),
+            ).toBe(180);
+        });
+
+        it("returns a negative offset behind UTC", () => {
+            // America/New_York is EDT (UTC-4) during summer
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-07-01T00:00:00Z"),
+                    "en-US",
+                    "America/New_York",
+                ),
+            ).toBe(-240);
+        });
+
+        it("reflects DST change: America/New_York is -300 in winter and -240 in summer", () => {
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-01-15T00:00:00Z"),
+                    "en-US",
+                    "America/New_York",
+                ),
+            ).toBe(-300);
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-07-15T00:00:00Z"),
+                    "en-US",
+                    "America/New_York",
+                ),
+            ).toBe(-240);
+        });
+
+        it("supports non-whole-hour offsets", () => {
+            // Asia/Kolkata is UTC+5:30 year-round
+            expect(
+                getTimezoneOffsetFromUtcMinutes(
+                    new Date("2026-03-10T12:00:00Z"),
+                    "en-US",
+                    "Asia/Kolkata",
+                ),
+            ).toBe(330);
         });
     });
 });

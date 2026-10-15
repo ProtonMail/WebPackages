@@ -391,3 +391,17 @@ export const toDeviceLocalDay = ({
     const { year, month, day } = getZonedParts(date, locale, timeZone);
     return new Date(year, month - 1, day);
 };
+
+export const getTimezoneOffsetFromUtcMinutes = (
+    date: Date,
+    locale: string,
+    timeZone: string,
+): number => {
+    const { year, month, day, hours, minutes, seconds } = getZonedParts(
+        date,
+        locale,
+        timeZone,
+    );
+    const asUtc = Date.UTC(year, month - 1, day, hours, minutes, seconds);
+    return Math.round((asUtc - date.getTime()) / 60_000);
+};

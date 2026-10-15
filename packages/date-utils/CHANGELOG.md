@@ -1,5 +1,12 @@
 # @protontech/date-utils
 
+## 0.1.5
+
+### Patch Changes
+
+- 7f2873e: Remove AM/PM formatting function and use default format
+- 0edc61a: Add get timezone offset from UTC in minutes
+
 ## 0.1.4
 
 ### Patch Changes

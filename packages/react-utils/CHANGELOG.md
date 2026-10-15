@@ -1,5 +1,11 @@
 # @protontech/react-utils
 
+## 0.0.3
+
+### Patch Changes
+
+- af6bd7f: Add useOnlineStatus hook
+
 ## 0.0.2
 
 ### Patch Changes

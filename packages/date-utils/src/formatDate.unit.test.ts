@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    formatAMPM,
     formatDate,
     formatDateParts,
     formatDateWithOrdinal,
@@ -63,53 +62,6 @@ describe("formatDate", () => {
                 ).toBe("April 22");
             },
         );
-    });
-
-    describe("formatAMPM", () => {
-        it("compacts plain AM/PM", () => {
-            expect(formatAMPM("10:00 AM")).toBe("10:00am");
-            expect(formatAMPM("10:00 PM")).toBe("10:00pm");
-            expect(formatAMPM("9am")).toBe("9am");
-        });
-
-        it("compacts a narrow no-break space separator", () => {
-            expect(formatAMPM("10:00 AM")).toBe("10:00am");
-            expect(formatAMPM("10:00 PM")).toBe("10:00pm");
-        });
-
-        it("compacts dotted forms", () => {
-            expect(formatAMPM("9:30 a.m.")).toBe("9:30am");
-            expect(formatAMPM("9:30 p.m.")).toBe("9:30pm");
-        });
-
-        it("compacts a dotted meridiem with a space between the letters (ca)", () => {
-            expect(formatAMPM("10:00 a. m.")).toBe("10:00am");
-            expect(formatAMPM("10:00 p. m.")).toBe("10:00pm");
-        });
-
-        it("compacts the meridiem within a full formatted string", () => {
-            expect(formatAMPM("Wed, Jun 18, 2026, 10:00 AM")).toBe(
-                "Wed, Jun 18, 2026, 10:00am",
-            );
-            expect(formatAMPM("dimarts, 6 de maig de 2026, 10:00 a. m.")).toBe(
-                "dimarts, 6 de maig de 2026, 10:00am",
-            );
-        });
-
-        it("does not touch text with no meridiem", () => {
-            expect(formatAMPM("10:00")).toBe("10:00");
-            expect(formatAMPM("")).toBe("");
-        });
-
-        it("does not misfire on unrelated text containing am/pm-like substrings", () => {
-            expect(formatAMPM("SPAM CAMERA")).toBe("SPAM CAMERA");
-            expect(formatAMPM("Prime Minister")).toBe("Prime Minister");
-            expect(formatAMPM("una mañana de mayo")).toBe("una mañana de mayo");
-            expect(formatAMPM("la maison est grande")).toBe(
-                "la maison est grande",
-            );
-            expect(formatAMPM("9amazing")).toBe("9amazing");
-        });
     });
 
     describe("formatDateWithOrdinal", () => {
@@ -184,7 +136,7 @@ describe("formatDate", () => {
                     timeZone: "UTC",
                     hour12: true,
                 }),
-            ).toBe("9am");
+            ).toBe("9 AM");
         });
 
         it("formats h12 with minutes", () => {
@@ -195,7 +147,7 @@ describe("formatDate", () => {
                     timeZone: "UTC",
                     hour12: true,
                 }),
-            ).toBe("9:30am");
+            ).toBe("9:30 AM");
         });
 
         it("formats h24 on the hour with minutes shown", () => {
@@ -229,7 +181,7 @@ describe("formatDate", () => {
                     timeZone: "UTC",
                     hour12: true,
                 }),
-            ).toBe("10:30am");
+            ).toBe("10:30 a. m.");
         });
     });
 
@@ -287,7 +239,7 @@ describe("formatDate", () => {
                     hour12: true,
                     timeZone: "UTC",
                 }),
-            ).toBe("Mon, Apr 6, 2026, 2pm - 2pm");
+            ).toBe("Mon, Apr 6, 2026, 2 PM - 2 PM");
         });
 
         it("formats h12 range: start on the hour, end with minutes", () => {
@@ -300,7 +252,7 @@ describe("formatDate", () => {
                     hour12: true,
                     timeZone: "UTC",
                 }),
-            ).toBe("Mon, Apr 6, 2026, 10am - 10:30am");
+            ).toBe("Mon, Apr 6, 2026, 10 AM - 10:30 AM");
         });
 
         it("formats h12 range: start with minutes, end on the hour", () => {
@@ -313,7 +265,7 @@ describe("formatDate", () => {
                     hour12: true,
                     timeZone: "UTC",
                 }),
-            ).toBe("Mon, Apr 6, 2026, 10:30am - 11am");
+            ).toBe("Mon, Apr 6, 2026, 10:30 AM - 11 AM");
         });
 
         it("formats a timed range spanning midnight", () => {
@@ -498,7 +450,7 @@ describe("formatDate", () => {
                     hour12: true,
                     locale: "en-US",
                 }),
-            ).toEqual({ startLabel: "10am", endLabel: "11am" });
+            ).toEqual({ startLabel: "10 AM", endLabel: "11 AM" });
         });
 
         it("returns startLabel and endLabel for a same-day range in h12 with minutes", () => {
@@ -510,7 +462,7 @@ describe("formatDate", () => {
                     hour12: true,
                     locale: "en-US",
                 }),
-            ).toEqual({ startLabel: "10:30am", endLabel: "11:30am" });
+            ).toEqual({ startLabel: "10:30 AM", endLabel: "11:30 AM" });
         });
 
         it("returns cross-day endLabel with weekday and date in h24", () => {
@@ -534,7 +486,7 @@ describe("formatDate", () => {
                     hour12: true,
                     locale: "en-US",
                 }),
-            ).toEqual({ startLabel: "10pm", endLabel: "Tue, Apr 7, 2am" });
+            ).toEqual({ startLabel: "10 PM", endLabel: "Tue, Apr 7, 2 AM" });
         });
 
         it("returns cross-day endLabel with minutes in h12", () => {
@@ -546,7 +498,7 @@ describe("formatDate", () => {
                     hour12: true,
                     locale: "en-US",
                 }),
-            ).toEqual({ startLabel: "10pm", endLabel: "Tue, Apr 7, 2:30am" });
+            ).toEqual({ startLabel: "10 PM", endLabel: "Tue, Apr 7, 2:30 AM" });
         });
 
         it("uses the same-day path when end is on the same calendar day in the given timezone", () => {

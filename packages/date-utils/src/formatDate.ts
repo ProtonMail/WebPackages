@@ -5,33 +5,6 @@ type FormatDateOptions = Intl.DateTimeFormatOptions & {
     date: Date | number;
 };
 
-/**
- * Compacts the meridiem of a formatted time: drops the separator and
- * lowercases AM/PM. Tolerant of the various separators and dotted forms —
- * note that Intl.DateTimeFormat emits U+202F (narrow no-break space), not " ".
- *
- * @example
- * formatAMPM("10:00 AM");       // "10:00am"
- * formatAMPM("10:00\u202fPM");  // "10:00pm"  (narrow no-break space)
- * formatAMPM("9:30 a.m.");      // "9:30am"
- * formatAMPM("10:00 a. m.");    // "10:00am"
- *
- * @param value - A formatted time string (e.g. from Intl.DateTimeFormat).
- * @returns The same string with a compact, lowercased meridiem.
- */
-export const formatAMPM = (value: string): string =>
-    value.replace(
-        // (?<=\d)       must follow a digit (part of the clock time)
-        // \s*           optional separator before the meridiem (space, U+202F, ...)
-        // ([ap])        capture the a/p letter
-        // (?:
-        //   \.\s*m\b\.? |   dotted form: "a." + optional space + "m" (+ optional ".")
-        //   m\b             or plain "m" directly (AM/PM/am/pm)
-        // )
-        /(?<=\d)\s*([ap])(?:\.\s*m\b\.?|m\b)/gi,
-        (_match, period: string) => `${period.toLowerCase()}m`,
-    );
-
 // Intl does not support some languages. In such cases, fall back to English
 // rather than letting `Intl.DateTimeFormat` throw or silently use the
 // runtime's default locale. `supportedLocalesOf` itself throws a RangeError
@@ -61,8 +34,7 @@ export const formatDate = ({
     locale,
     ...options
 }: FormatDateOptions): string => {
-    const formatted = getDateTimeFormatter({ locale, ...options }).format(date);
-    return formatAMPM(formatted);
+    return getDateTimeFormatter({ locale, ...options }).format(date);
 };
 
 export const formatDateToParts = ({
@@ -188,11 +160,10 @@ export const formatDateRange = ({
     locale,
     ...options
 }: FormatDateRangeOptions): string => {
-    const formatted = getDateTimeFormatter({ locale, ...options }).formatRange(
+    return getDateTimeFormatter({ locale, ...options }).formatRange(
         startDate,
         endDate,
     );
-    return formatAMPM(formatted);
 };
 
 const hasMinutes = ({
@@ -232,7 +203,7 @@ export const formatTime = ({
     timeZone: string;
     hour12: boolean;
 }): string => {
-    const formatted = getDateTimeFormatter({
+    return getDateTimeFormatter({
         locale,
         hour12,
         timeZone,
@@ -242,8 +213,6 @@ export const formatTime = ({
                 ? undefined
                 : "2-digit",
     }).format(date);
-
-    return formatAMPM(formatted);
 };
 
 /**
@@ -384,7 +353,7 @@ export const formatEventDateRange = ({
         allDay,
     });
 
-    const startFormatted = formatAMPM(startFormatter.format(start));
+    const startFormatted = startFormatter.format(start);
 
     if (end) {
         const isSameDay =
@@ -411,15 +380,13 @@ export const formatEventDateRange = ({
 
         const endFormatted = isSameDay
             ? formatTime({ date: end, locale, hour12, timeZone })
-            : formatAMPM(
-                  getEventFormatter({
-                      date: end,
-                      hour12,
-                      timeZone,
-                      locale,
-                      allDay,
-                  }).format(end),
-              );
+            : getEventFormatter({
+                  date: end,
+                  hour12,
+                  timeZone,
+                  locale,
+                  allDay,
+              }).format(end);
 
         return `${startFormatted} - ${endFormatted}`;
     }
@@ -487,21 +454,19 @@ export const formatRelativeTimeRange = ({
         toZonedDateString(end, locale, timeZone);
 
     const endLabel = isMultiDay
-        ? formatAMPM(
-              getDateTimeFormatter({
-                  locale,
-                  timeZone,
-                  hour12,
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute:
-                      hour12 && !hasMinutes({ date: end, timeZone, locale })
-                          ? undefined
-                          : "2-digit",
-              }).format(end),
-          )
+        ? getDateTimeFormatter({
+              locale,
+              timeZone,
+              hour12,
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute:
+                  hour12 && !hasMinutes({ date: end, timeZone, locale })
+                      ? undefined
+                      : "2-digit",
+          }).format(end)
         : formatTime({ date: end, timeZone, hour12, locale });
 
     return { startLabel, endLabel };

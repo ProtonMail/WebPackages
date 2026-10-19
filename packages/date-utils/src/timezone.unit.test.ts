@@ -5,10 +5,12 @@ import {
     calendarDayOffset,
     dateFromZonedParts,
     deviceTodayAsUTCMidnight,
+    formatUtcOffsetMinutes,
     getGMTOffset,
     getHourInTimezone,
     getMinutesSinceMidnightInTimezone,
     getSlotDateFromTime,
+    getTimezoneCity,
     getTimezoneOffsetFromUtcMinutes,
     getTimezoneShortLabel,
     getToday,
@@ -116,6 +118,52 @@ describe("timezone helpers", () => {
                 new Date("2026-06-16T23:00:00Z"),
             );
             expect(result.toISOString()).toBe("2026-06-16T10:00:00.000Z");
+        });
+    });
+
+    describe("formatUtcOffsetMinutes", () => {
+        it("returns GMT+0 for zero minutes", () => {
+            expect(formatUtcOffsetMinutes(0)).toBe("GMT+0");
+        });
+
+        it("formats a positive whole-hour offset", () => {
+            expect(formatUtcOffsetMinutes(180)).toBe("GMT+3");
+        });
+
+        it("formats a negative whole-hour offset", () => {
+            expect(formatUtcOffsetMinutes(-240)).toBe("GMT-4");
+        });
+
+        it("formats a positive non-whole-hour offset", () => {
+            expect(formatUtcOffsetMinutes(330)).toBe("GMT+5:30");
+        });
+
+        it("formats a negative non-whole-hour offset", () => {
+            expect(formatUtcOffsetMinutes(-210)).toBe("GMT-3:30");
+        });
+
+        it("pads single-digit remaining minutes", () => {
+            expect(formatUtcOffsetMinutes(305)).toBe("GMT+5:05");
+        });
+    });
+
+    describe("getTimezoneCity", () => {
+        it("returns the city for a single-segment timezone path", () => {
+            expect(getTimezoneCity("Europe/London")).toBe("London");
+        });
+
+        it("replaces underscores with spaces", () => {
+            expect(getTimezoneCity("Asia/Ho_Chi_Minh")).toBe("Ho Chi Minh");
+        });
+
+        it("returns the last segment for a deep timezone path", () => {
+            expect(getTimezoneCity("America/Argentina/La_Rioja")).toBe(
+                "La Rioja",
+            );
+        });
+
+        it("handles UTC with no slash", () => {
+            expect(getTimezoneCity("UTC")).toBe("UTC");
         });
     });
 

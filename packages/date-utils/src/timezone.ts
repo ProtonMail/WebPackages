@@ -19,6 +19,20 @@ export const getGMTOffset = (date: Date, timezone: string): string => {
     }).formatToParts(date);
     return parts.find((p) => p.type === "timeZoneName")?.value ?? timezone;
 };
+
+/**
+ *  Formats a UTC offset in minutes as "GMT+H" / "GMT-H:MM"
+ */
+export const formatUtcOffsetMinutes = (minutes: number): string => {
+    const sign = minutes < 0 ? "-" : "+";
+    const absMinutes = Math.abs(minutes);
+    const hours = Math.floor(absMinutes / 60);
+    const remainingMinutes = absMinutes % 60;
+    return remainingMinutes === 0
+        ? `GMT${sign}${hours}`
+        : `GMT${sign}${hours}:${String(remainingMinutes).padStart(2, "0")}`;
+};
+
 /**
  * Returns a short label for a timezone (first 3 letters of the city, or acronym)
  * E.g. Europe/Vilnius -> Vil
@@ -39,6 +53,12 @@ export const getTimezoneShortLabel = (timezone: string) => {
 
     // Else return the first 3 chars of the city
     return city.slice(0, 3);
+};
+
+export const getTimezoneCity = (timezone: string) => {
+    // Timezones can have different formats
+    // Europe/London - Asia/Ho_Chi_Minh - America/Argentina/La_Rioja - UTC
+    return timezone.split("/").pop()?.replace(/_/g, " ") ?? timezone;
 };
 
 // Returns the UTC timestamp for midnight of the day containing `refDate` in `timezone`.

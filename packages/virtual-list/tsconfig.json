@@ -1,0 +1,4 @@
+{
+    "extends": "@protontech/typescript-config/react-package-config.json",
+    "include": ["src"]
+}

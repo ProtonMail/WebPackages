@@ -1,0 +1,49 @@
+{
+    "name": "@protontech/virtual-list",
+    "version": "0.0.0",
+    "description": "Data-agnostic virtual list and feed component for React",
+    "keywords": [
+        "react",
+        "virtual-list",
+        "virtual-feed"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
+    "license": "GPL-3.0",
+    "author": "Proton AG",
+    "type": "module",
+    "exports": {
+        "./useVirtualFeed.ts": "./src/useVirtualFeed.ts",
+        "./VirtualFeed.tsx": "./src/VirtualFeed.tsx"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "oxlint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "dependencies": {
+        "@tanstack/react-virtual": "^3.14.22"
+    },
+    "devDependencies": {
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
+        "@protontech/oxlint-config": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "@testing-library/react": "^16.3.3",
+        "@types/react": "^19.3.0",
+        "happy-dom": "^20.14.5",
+        "oxlint": "^1.86.0",
+        "oxlint-tsgolint": "^7.0.2003",
+        "prettier": "^3.9.9",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.3"
+    },
+    "peerDependencies": {
+        "react": "^19.3.0"
+    }
+}

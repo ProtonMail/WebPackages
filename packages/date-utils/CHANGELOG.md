@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.6
+
+### Patch Changes
+
+- 4c6a254: Add getTimezoneCity and formatUtcOffsetMinutes helpers
+
 ## 0.1.5
 
 ### Patch Changes

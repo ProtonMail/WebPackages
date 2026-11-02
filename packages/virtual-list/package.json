@@ -1,6 +1,6 @@
 {
     "name": "@protontech/virtual-list",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Data-agnostic virtual list and feed component for React",
     "keywords": [
         "react",

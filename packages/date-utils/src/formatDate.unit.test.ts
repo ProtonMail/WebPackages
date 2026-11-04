@@ -7,6 +7,7 @@ import {
     formatEventDateRange,
     formatRelativeTimeRange,
     formatTime,
+    getEventDateZone,
     toZonedDateString,
     parseDate,
 } from "./formatDate.ts";
@@ -321,6 +322,49 @@ describe("formatDate", () => {
                     timeZone: "Europe/Zurich",
                 }),
             ).toBe("Mon, Apr 6, 2026");
+        });
+    });
+
+    describe("formatEventDateRange options", () => {
+        const base = {
+            start: dateTime(2026, 3, 6, 2, 0),
+            end: dateTime(2026, 3, 8, 4, 0),
+            allDay: false,
+            locale: "en-US",
+            hour12: false,
+            timeZone: "UTC",
+        };
+
+        it("hides the year when options.year is undefined", () => {
+            expect(
+                normalizeIntl(
+                    formatEventDateRange({
+                        ...base,
+                        options: { year: undefined },
+                    }),
+                ),
+            ).toBe("Mon, Apr 6, 02:00 - Wed, Apr 8, 04:00");
+        });
+
+        it("overrides other default fields", () => {
+            expect(
+                formatEventDateRange({
+                    ...base,
+                    end: undefined,
+                    options: { month: "long" },
+                }),
+            ).toBe("Mon, April 6, 2026 at 02:00");
+        });
+    });
+
+    describe("getEventDateZone", () => {
+        it("uses UTC for all-day events and the given zone otherwise", () => {
+            expect(
+                getEventDateZone({ allDay: true, timeZone: "Europe/Zurich" }),
+            ).toBe("UTC");
+            expect(
+                getEventDateZone({ allDay: false, timeZone: "Europe/Zurich" }),
+            ).toBe("Europe/Zurich");
         });
     });
 

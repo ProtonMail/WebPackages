@@ -197,11 +197,13 @@ export const formatTime = ({
     locale,
     timeZone,
     hour12,
+    options,
 }: {
     date: Date | number;
     locale: string;
     timeZone: string;
     hour12: boolean;
+    options?: Intl.DateTimeFormatOptions;
 }): string => {
     return getDateTimeFormatter({
         locale,
@@ -212,6 +214,7 @@ export const formatTime = ({
             hour12 && !hasMinutes({ date, timeZone, locale })
                 ? undefined
                 : "2-digit",
+        ...options,
     }).format(date);
 };
 
@@ -288,23 +291,38 @@ export const formatDateParts = (
     );
 };
 
+/**
+ * Timezone in which the dates of an event are read. All-day dates are stored
+ * as UTC-midnight calendar dates, so applying the calendar timezone could
+ * shift them to the wrong day.
+ */
+export const getEventDateZone = ({
+    allDay,
+    timeZone,
+}: {
+    allDay: boolean;
+    timeZone: string;
+}): string => (allDay ? UTC_TIMEZONE : timeZone);
+
 const getEventFormatter = ({
     date,
     locale,
     allDay,
     hour12,
     timeZone,
+    options,
 }: {
     date: Date | number;
     locale: string;
     allDay: boolean;
     hour12: boolean;
     timeZone: string;
+    options?: Intl.DateTimeFormatOptions;
 }) => {
     return getDateTimeFormatter({
         locale,
         hour12,
-        timeZone: allDay ? UTC_TIMEZONE : timeZone,
+        timeZone: getEventDateZone({ allDay, timeZone }),
         // weekday + short date, with time for part-day events
         // (en-US: "Wed, Jun 18, 2026" / "Wed, Jun 18, 2026, 10:00 AM")
         ...(allDay
@@ -325,6 +343,7 @@ const getEventFormatter = ({
                           ? undefined
                           : "2-digit",
               }),
+        ...options,
     });
 };
 
@@ -335,6 +354,7 @@ export const formatEventDateRange = ({
     locale,
     hour12,
     timeZone,
+    options,
 }: {
     start: Date;
     end: Date | undefined;
@@ -342,6 +362,7 @@ export const formatEventDateRange = ({
     locale: string;
     hour12: boolean;
     timeZone: string;
+    options?: Intl.DateTimeFormatOptions;
 }): string => {
     // All-day dates are stored as UTC-midnight calendar dates.
     // Applying the calendar timezone could shift them to the wrong day.
@@ -351,6 +372,7 @@ export const formatEventDateRange = ({
         timeZone,
         locale,
         allDay,
+        options,
     });
 
     const startFormatted = startFormatter.format(start);
@@ -359,7 +381,7 @@ export const formatEventDateRange = ({
         const isSameDay =
             formatDate({
                 date: start,
-                timeZone: allDay ? UTC_TIMEZONE : timeZone,
+                timeZone: getEventDateZone({ allDay, timeZone }),
                 locale,
                 year: "numeric",
                 month: "2-digit",
@@ -367,7 +389,7 @@ export const formatEventDateRange = ({
             }) ===
             formatDate({
                 date: end,
-                timeZone: allDay ? UTC_TIMEZONE : timeZone,
+                timeZone: getEventDateZone({ allDay, timeZone }),
                 locale,
                 year: "numeric",
                 month: "2-digit",
@@ -386,6 +408,7 @@ export const formatEventDateRange = ({
                   timeZone,
                   locale,
                   allDay,
+                  options,
               }).format(end);
 
         return `${startFormatted} - ${endFormatted}`;
@@ -435,12 +458,14 @@ export const formatRelativeTimeRange = ({
     timeZone,
     hour12,
     locale,
+    options,
 }: {
     start: Date;
     end: Date;
     timeZone: string;
     hour12: boolean;
     locale: string;
+    options?: Intl.DateTimeFormatOptions;
 }) => {
     const startLabel = formatTime({
         date: start,
@@ -466,6 +491,7 @@ export const formatRelativeTimeRange = ({
                   hour12 && !hasMinutes({ date: end, timeZone, locale })
                       ? undefined
                       : "2-digit",
+              ...options,
           }).format(end)
         : formatTime({ date: end, timeZone, hour12, locale });
 

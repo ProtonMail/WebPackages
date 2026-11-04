@@ -425,3 +425,18 @@ export const getTimezoneOffsetFromUtcMinutes = (
     const asUtc = Date.UTC(year, month - 1, day, hours, minutes, seconds);
     return Math.round((asUtc - date.getTime()) / 60_000);
 };
+
+/**
+ * Numeric year of `date` as observed in `timeZone`.
+ */
+export const getYearInZone = (date: Date | number, timeZone: string): number =>
+    Number(
+        getDateTimeFormatter({
+            locale: "en-US",
+            timeZone,
+            numberingSystem: "latn",
+            year: "numeric",
+        })
+            .formatToParts(date)
+            .find((part) => part.type === "year")?.value,
+    );

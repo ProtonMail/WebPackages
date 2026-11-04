@@ -15,6 +15,7 @@ import {
     getTimezoneShortLabel,
     getToday,
     getWeekdayInTimezone,
+    getYearInZone,
     getZonedParts,
     isNowWeekend,
     isToday,
@@ -810,6 +811,14 @@ describe("timezone helpers", () => {
                     "Asia/Kolkata",
                 ),
             ).toBe(330);
+        });
+    });
+
+    describe("getYearInZone", () => {
+        it("reads the year in the given timezone", () => {
+            const date = new Date(Date.UTC(2026, 11, 31, 23, 30));
+            expect(getYearInZone(date, "UTC")).toBe(2026);
+            expect(getYearInZone(date, "Europe/Zurich")).toBe(2027);
         });
     });
 });

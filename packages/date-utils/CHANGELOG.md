@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.7
+
+### Patch Changes
+
+- fc6e92b: Allow passing date formatting options to some helper functions and add getYearInZone helper
+
 ## 0.1.6
 
 ### Patch Changes

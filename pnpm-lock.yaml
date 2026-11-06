@@ -541,6 +541,39 @@ importers:
         specifier: ^3.9.9
         version: 3.9.9
 
+  packages/proton-apps:
+    devDependencies:
+      '@protontech/eslint-plugin-enforce-uint8array-arraybuffer':
+        specifier: workspace:*
+        version: link:../eslint-plugin-enforce-uint8array-arraybuffer
+      '@protontech/oxlint-config':
+        specifier: workspace:*
+        version: link:../oxlint-config
+      '@protontech/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      '@protontech/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      happy-dom:
+        specifier: ^20.14.5
+        version: 20.14.5
+      oxlint:
+        specifier: ^1.86.0
+        version: 1.87.0(oxlint-tsgolint@7.0.2003)
+      oxlint-tsgolint:
+        specifier: ^7.0.2003
+        version: 7.0.2003
+      prettier:
+        specifier: ^3.9.9
+        version: 3.9.9
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(happy-dom@20.14.5)(vite@8.3.4(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/proton-fetch:
     devDependencies:
       '@protontech/eslint-plugin-enforce-uint8array-arraybuffer':

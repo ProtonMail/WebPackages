@@ -1,0 +1,44 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="36"
+    height="36"
+    fill="none"
+    overflow="visible"
+    preserveAspectRatio="none"
+    style="display: block"
+    viewBox="0 0 36 36"
+>
+    <path
+        fill="url(#proton-spaces-glyph-a)"
+        d="M15.543 3.999c6.902 0 14.1 4.807 16.406 11.705 2.521 7.543-1.5 14.876-9.509 16.11l-.01.005q-1.157.18-2.423.18c-2.635 0-5.207-.652-7.53-1.802-.242-.12-6.131.826-8.106 1.18-.525.094-.755-.18-.688-.417.376-1.76 1.443-7.407 1.307-7.634-1.405-2.37-2.163-4.987-2.12-7.62a11.8 11.8 0 0 1 .839-4.237l.01-.013-.012.011C5.54 6.917 10.167 4 15.543 4"
+    />
+    <path
+        fill="url(#proton-spaces-glyph-b)"
+        d="M15.543 4c6.902 0 14.1 4.807 16.406 11.705 2.481 7.424-1.375 14.644-9.134 16.047 4.107-2.632 5.798-7.706 4.055-12.89-2.1-6.243-8.654-10.594-14.94-10.594-3.167 0-6.049 1.105-8.14 3.001C5.674 6.832 10.244 4 15.542 4"
+        opacity=".6"
+    />
+    <defs>
+        <radialGradient
+            id="proton-spaces-glyph-a"
+            cx="0"
+            cy="0"
+            r="1"
+            gradientTransform="matrix(-20.3438 33.25 -40.4732 -25.1568 24.595 -2.412)"
+            gradientUnits="userSpaceOnUse"
+        >
+            <stop offset=".403" stop-color="#4f28ff" />
+            <stop offset=".994" stop-color="#74ccff" />
+        </radialGradient>
+        <linearGradient
+            id="proton-spaces-glyph-b"
+            x1="18.243"
+            x2="18.243"
+            y1="3.999"
+            y2="31.752"
+            gradientUnits="userSpaceOnUse"
+        >
+            <stop stop-color="#fff" />
+            <stop offset="1" stop-color="#fff" stop-opacity="0" />
+        </linearGradient>
+    </defs>
+</svg>

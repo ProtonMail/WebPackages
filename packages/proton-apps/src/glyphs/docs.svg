@@ -1,0 +1,55 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="36"
+    height="36"
+    fill="none"
+    viewBox="0 0 36 36"
+>
+    <g clip-path="url(#proton-docs-glyph-a)">
+        <mask
+            id="proton-docs-glyph-b"
+            width="141"
+            height="36"
+            x="0"
+            y="0"
+            maskUnits="userSpaceOnUse"
+            style="mask-type: luminance"
+        >
+            <path fill="#fff" d="M0 0h141v36H0z" />
+        </mask>
+        <g mask="url(#proton-docs-glyph-b)">
+            <path
+                fill="url(#proton-docs-glyph-c)"
+                d="M27.579 5H8.948A3.95 3.95 0 0 0 5 8.948v18.63a3.95 3.95 0 0 0 3.948 3.948h18.63a3.95 3.95 0 0 0 3.948-3.947V8.948A3.95 3.95 0 0 0 27.58 5"
+            />
+            <path fill="#85d4f5" d="M18.263 5h6.632v6.632h-6.632z" />
+            <path
+                fill="#d6f1fc"
+                d="M24.893 5h2.684a3.95 3.95 0 0 1 3.947 3.948v2.684h-6.631z"
+            />
+            <path fill="#85d4f5" d="M24.893 11.632h6.631v6.631h-6.631z" />
+            <path
+                fill="#fff"
+                fill-rule="evenodd"
+                d="M19.37 26c0 .61-.495 1.105-1.105 1.105h-7.737a1.106 1.106 0 1 1 0-2.21h7.735c.611 0 1.107.494 1.107 1.105m-3.316-4.422c0 .61-.495 1.105-1.105 1.105h-4.421a1.106 1.106 0 0 1 0-2.21h4.421c.61 0 1.105.494 1.105 1.105"
+                clip-rule="evenodd"
+            />
+        </g>
+    </g>
+    <defs>
+        <radialGradient
+            id="proton-docs-glyph-c"
+            cx="0"
+            cy="0"
+            r="1"
+            gradientTransform="rotate(-53.15 35.608 20.231)scale(33.0407)"
+            gradientUnits="userSpaceOnUse"
+        >
+            <stop stop-color="#6d4aff" />
+            <stop offset="1" stop-color="#34b8ee" />
+        </radialGradient>
+        <clipPath id="proton-docs-glyph-a">
+            <path fill="#fff" d="M0 0h36v36H0z" />
+        </clipPath>
+    </defs>
+</svg>

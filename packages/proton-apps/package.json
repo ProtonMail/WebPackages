@@ -1,0 +1,34 @@
+{
+    "name": "@protontech/proton-apps",
+    "version": "0.0.0",
+    "description": "Proton apps catalogue: ids, names, links and icons",
+    "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/protonmail/WebPackages"
+    },
+    "license": "GPL-3.0",
+    "author": "Proton AG",
+    "type": "module",
+    "exports": {
+        "./*": "./src/*"
+    },
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "oxlint",
+        "test": "vitest",
+        "typecheck": "tsc -b"
+    },
+    "devDependencies": {
+        "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
+        "@protontech/oxlint-config": "workspace:*",
+        "@protontech/prettier-config": "workspace:*",
+        "@protontech/typescript-config": "workspace:*",
+        "happy-dom": "^20.14.5",
+        "oxlint": "^1.86.0",
+        "oxlint-tsgolint": "^7.0.2003",
+        "prettier": "^3.9.9",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.3"
+    }
+}

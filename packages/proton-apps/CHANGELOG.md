@@ -1,5 +1,11 @@
 # @protontech/proton-apps
 
+## 1.0.0
+
+### Major Changes
+
+- d53ae77: Update APPS "new" flag
+
 ## 0.1.0
 
 ### Minor Changes

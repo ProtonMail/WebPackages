@@ -33,7 +33,7 @@
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
         "fake-indexeddb": "^6.2.7",
-        "happy-dom": "^20.14.6",
+        "happy-dom": "^21.0.4",
         "oxlint": "^1.90.0",
         "oxlint-tsgolint": "^7.0.2005",
         "prettier": "^3.9.10",

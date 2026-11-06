@@ -64,7 +64,6 @@ export const PROTON_APPS: Readonly<Record<ProtonAppId, ProtonApp>> = {
         name: "Proton Sheets",
         shortName: "Sheets",
         subdomain: "sheets",
-        isNew: true,
     },
     Pass: {
         id: "Pass",
@@ -84,14 +83,12 @@ export const PROTON_APPS: Readonly<Record<ProtonAppId, ProtonApp>> = {
         shortName: "Lumo",
         altName: "Lumo AI",
         subdomain: "lumo",
-        isNew: true,
     },
     Meet: {
         id: "Meet",
         name: "Proton Meet",
         shortName: "Meet",
         subdomain: "meet",
-        isNew: true,
     },
     Authenticator: {
         id: "Authenticator",

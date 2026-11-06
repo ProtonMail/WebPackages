@@ -21,6 +21,12 @@
       "matchDepTypes": ["engines"],
       "matchPackageNames": ["node"],
       "enabled": false
+    },
+    {
+      "description": "Keep pnpm updates separate so package-manager bootstrap failures do not block other dependency updates.",
+      "matchPackageNames": ["pnpm"],
+      "groupName": "pnpm",
+      "groupSlug": "pnpm"
     }
   ]
 }

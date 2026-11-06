@@ -19,13 +19,13 @@
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
-        "oxlint": "^1.86.0",
-        "prettier": "^3.9.9",
+        "oxlint": "^1.90.0",
+        "prettier": "^3.9.10",
         "typescript": "^7.0.2"
     },
     "peerDependencies": {
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:^",
-        "oxlint": "^1.86.0"
+        "oxlint": "^1.90.0"
     },
     "publishConfig": {
         "exports": {

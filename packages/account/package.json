@@ -31,7 +31,7 @@
         "typecheck": "tsc -b"
     },
     "dependencies": {
-        "idb": "^8.0.3"
+        "idb": "^8.0.4"
     },
     "devDependencies": {
         "@protontech/eslint-plugin-enforce-uint8array-arraybuffer": "workspace:*",
@@ -39,13 +39,13 @@
         "@protontech/oxlint-config": "workspace:*",
         "@protontech/prettier-config": "workspace:*",
         "@protontech/typescript-config": "workspace:*",
-        "core-js": "^3.50.0",
-        "fake-indexeddb": "^6.2.5",
-        "oxlint": "^1.86.0",
-        "oxlint-tsgolint": "^7.0.2003",
-        "prettier": "^3.9.9",
+        "core-js": "^3.51.0",
+        "fake-indexeddb": "^6.2.7",
+        "oxlint": "^1.90.0",
+        "oxlint-tsgolint": "^7.0.2005",
+        "prettier": "^3.9.10",
         "typescript": "^7.0.2",
-        "vitest": "^5.0.3"
+        "vitest": "^5.1.0"
     },
     "peerDependencies": {
         "@protontech/crypto": "workspace:^",

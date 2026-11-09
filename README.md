@@ -11,7 +11,7 @@ Technically, this monorepo is based on pnpm Workspaces, with separate versioning
 You'll need to have the following environment to work with this project:
 
 - Node.js LTS
-- pnpm (or corepack)
+- pnpm
 - git
 
 See `package.json` for specific version requirements.

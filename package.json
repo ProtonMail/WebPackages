@@ -29,7 +29,7 @@
     "sort-package-json": "^4.1.0",
     "typescript": "^7.0.2"
   },
-  "packageManager": "pnpm@12.9.1",
+  "packageManager": "pnpm@12.18.0",
   "engines": {
     "node": "^24.22.1"
   },

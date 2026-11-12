@@ -252,6 +252,106 @@ describe("Logger", () => {
         });
     });
 
+    describe("withContext", () => {
+        it("prefixes persisted lines with the context", async () => {
+            const at = Date.UTC(2026, 0, 2, 3, 4, 5);
+            const logger = createLogger({ now: () => at });
+
+            logger.withContext("1234567890").warn("joined");
+
+            expect(await logger.getLogs()).toBe(
+                "2026-01-02T03:04:05.000Z WARN [test]: [1234567890] joined",
+            );
+        });
+
+        it("prefixes console output with the context", () => {
+            const error = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            const logger = createLogger();
+
+            logger.withContext("1234567890").error("failed");
+
+            expect(error).toHaveBeenCalledWith("[test]", "[1234567890] failed");
+        });
+
+        it("logs at info level from log", async () => {
+            const logger = createLogger();
+
+            logger.withContext("1234567890").log("joined");
+
+            expect(await logger.getLogs()).toContain(
+                "INFO [test]: [1234567890] joined",
+            );
+        });
+
+        it("keeps contexts used at the same time apart", async () => {
+            const logger = createLogger();
+            const first = logger.withContext("first");
+            const second = logger.withContext("second");
+
+            first.info("one");
+            second.info("two");
+
+            const lines = (await logger.getLogs()).split("\n");
+            expect(lines.map((line) => line.split(": ")[1])).toEqual([
+                "[first] one",
+                "[second] two",
+            ]);
+        });
+
+        it("leaves the root logger without context", async () => {
+            const logger = createLogger();
+            const meetingLogger = logger.withContext("1234567890");
+
+            meetingLogger.info("joined");
+            logger.info("dashboard");
+
+            const lines = (await logger.getLogs()).split("\n");
+            expect(lines.map((line) => line.split(": ")[1])).toEqual([
+                "[1234567890] joined",
+                "dashboard",
+            ]);
+        });
+
+        it("nests contexts without changing the parent", async () => {
+            const logger = createLogger();
+            const meetingLogger = logger.withContext("1234567890");
+
+            meetingLogger.withContext("livekit").info("connected");
+            meetingLogger.info("joined");
+
+            const lines = (await logger.getLogs()).split("\n");
+            expect(lines.map((line) => line.split(": ")[1])).toEqual([
+                "[1234567890] [livekit] connected",
+                "[1234567890] joined",
+            ]);
+        });
+
+        it("buffers lines emitted before initialize with their context", async () => {
+            const id = uniqueId();
+            const logger = new PersistentLogger(undefined, inProcessReader);
+            loggers.push(logger);
+            databases.push({ name: "test", id });
+
+            logger.withContext("1234567890").info("before init");
+            logger.initialize(options({ loggerName: "test", loggerID: id }));
+
+            expect(await logger.getLogs()).toContain(
+                "[test]: [1234567890] before init",
+            );
+        });
+
+        it("keeps methods bound when detached", async () => {
+            const logger = createLogger();
+            const { info } = logger.withContext("1234567890");
+
+            info("detached");
+
+            expect(await logger.getLogs()).toContain("[1234567890] detached");
+        });
+    });
+
     describe("reading", () => {
         it("returns an empty string before initialize", async () => {
             const logger = new PersistentLogger();

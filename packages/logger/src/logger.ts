@@ -11,11 +11,18 @@ import {
     DEFAULT_RETENTION_DAYS,
     MAX_PENDING_LOGS,
 } from "./constants";
+import { createContextLogWriter } from "./contextLogWriter";
 import { IndexedDBStorage } from "./storage";
-import type { LogLevel, Storage, Logger, LoggerOptions } from "./types";
+import type {
+    LogWriter,
+    LogLevel,
+    Storage,
+    Logger,
+    LoggerOptions,
+} from "./types";
 import type { LogReaderOptions } from "./worker/LogReader";
 
-export type { Logger } from "./types";
+export type { Logger, LogWriter } from "./types";
 
 declare const process: { env: { NODE_ENV?: string } };
 
@@ -192,6 +199,12 @@ export class PersistentLogger implements Logger {
     log = (message: string, ...args: unknown[]): void => {
         this.emit("info", message, args);
     };
+
+    withContext = (context: string): LogWriter =>
+        createContextLogWriter(
+            (level, message, args) => this.emit(level, message, args),
+            `[${context}]`,
+        );
 
     private emit(level: LogLevel, message: string, args: unknown[]): void {
         if (

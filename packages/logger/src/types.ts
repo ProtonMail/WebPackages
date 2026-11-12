@@ -33,6 +33,17 @@ export interface LoggerOptions {
     consoleLevels?: LogLevel[];
 }
 
+export interface LogWriter {
+    trace: (message: string, ...args: unknown[]) => void;
+    debug: (message: string, ...args: unknown[]) => void;
+    info: (message: string, ...args: unknown[]) => void;
+    warn: (message: string, ...args: unknown[]) => void;
+    error: (message: string, ...args: unknown[]) => void;
+    /** Equivalent to `info`. */
+    log: (message: string, ...args: unknown[]) => void;
+    withContext: (context: string) => LogWriter;
+}
+
 /**
  * Encrypted, persistent application logger.
  *
@@ -44,17 +55,9 @@ export interface LoggerOptions {
  * Lines emitted before `initialize()` are buffered and written once it resolves,
  * keeping their original timestamps.
  */
-export interface Logger {
+export interface Logger extends LogWriter {
     initialize(options: LoggerOptions): void;
     isInitialized(): boolean;
-
-    trace(message: string, ...args: unknown[]): void;
-    debug(message: string, ...args: unknown[]): void;
-    info(message: string, ...args: unknown[]): void;
-    warn(message: string, ...args: unknown[]): void;
-    error(message: string, ...args: unknown[]): void;
-    /** Equivalent to `info`. */
-    log(message: string, ...args: unknown[]): void;
 
     /** Resolves once every line emitted so far has been written. */
     flush(): Promise<void>;

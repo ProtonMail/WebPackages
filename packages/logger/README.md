@@ -73,6 +73,27 @@ Arguments are serialized before encryption: `Error`s keep their stack, strings p
 
 In development every level goes to the console. Otherwise only the levels in `consoleLevels` do — errors by default, or `ALL_CONSOLE_LEVELS` to echo everything. Persistence is unaffected by console filtering.
 
+### Context
+
+`withContext` returns a `LogWriter`, the logging methods with every line prefixed by the given context. It writes to the same database as `logger`, so its lines stay in the same file and in chronological order with the rest. Reading, clearing and the lifecycle stay on `logger`.
+
+```typescript
+const meetingLogger = logger.withContext("1234567890");
+
+meetingLogger.info("Joined");
+// 2026-01-02T03:04:05.000Z INFO [meet]: [1234567890] Joined
+
+const meetingLiveKitLogger = meetingLogger.withContext("livekit");
+
+meetingLiveKitLogger.info("Connected");
+// 2026-01-02T03:04:06.000Z INFO [meet]: [1234567890] [livekit] Connected
+
+logger.info("Back on the dashboard");
+// 2026-01-02T03:05:10.000Z INFO [meet]: Back on the dashboard
+```
+
+Never put private or sensitive data in the context.
+
 ## 3. Reading, downloading, clearing
 
 ```typescript

@@ -1,5 +1,11 @@
 # @protontech/proton-apps
 
+## 1.0.1
+
+### Patch Changes
+
+- f535091: Add the `Auth` alternative name for Authenticator, used for its short app switcher label.
+
 ## 1.0.0
 
 ### Major Changes

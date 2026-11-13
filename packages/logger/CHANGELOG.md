@@ -1,5 +1,11 @@
 # @protontech/logger
 
+## 1.1.0
+
+### Minor Changes
+
+- 2bc2815: Add `withContext`, which returns a `LogWriter` that prefixes every line with a context, such as the current meeting. Contexts can be nested.
+
 ## 1.0.0
 
 ### Major Changes

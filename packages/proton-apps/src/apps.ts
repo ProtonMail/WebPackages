@@ -94,6 +94,7 @@ export const PROTON_APPS: Readonly<Record<ProtonAppId, ProtonApp>> = {
         id: "Authenticator",
         name: "Proton Authenticator",
         shortName: "Authenticator",
+        altName: "Auth",
         subdomain: "account",
         path: "authenticator",
         isHiddenFromAppSwitcher: true,

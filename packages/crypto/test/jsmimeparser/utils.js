@@ -133,7 +133,3 @@ export function read_file_raw(file) {
             .catch(err => reject(err))
     });
 }
-
-export function isChromium() {
-    return navigator.userAgent.toLowerCase().includes("chrome")
-}

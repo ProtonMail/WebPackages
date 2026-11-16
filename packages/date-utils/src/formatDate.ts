@@ -9,7 +9,7 @@ type FormatDateOptions = Intl.DateTimeFormatOptions & {
 // rather than letting `Intl.DateTimeFormat` throw or silently use the
 // runtime's default locale. `supportedLocalesOf` itself throws a RangeError
 // for structurally invalid tags (e.g. "en_US", ""), so those fall back too.
-const resolveSupportedLocale = (locale: string): string => {
+export const resolveSupportedLocale = (locale: string): string => {
     try {
         return Intl.DateTimeFormat.supportedLocalesOf(locale).length > 0
             ? locale

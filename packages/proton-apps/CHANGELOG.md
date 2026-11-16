@@ -1,5 +1,11 @@
 # @protontech/proton-apps
 
+## 1.1.0
+
+### Minor Changes
+
+- 4ab5d62: Declare explicit exports (`./apps`, `./glyphs`, `./glyphs/*`, `./url`) so consumers can import without the `.ts` extension. The `.ts` paths keep working.
+
 ## 1.0.2
 
 ### Patch Changes

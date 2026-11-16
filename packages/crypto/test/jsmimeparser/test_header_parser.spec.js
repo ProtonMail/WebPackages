@@ -2,7 +2,6 @@
 
 import { assert, describe, it } from "vitest";
 import { headerparser } from "../../src/jsmimeparser/jsmime.js";
-import { isChromium } from "./utils.js";
 
 function arrayTest(data, fn) {
     fn.toString = function() {
@@ -1135,7 +1134,7 @@ describe("headerparser", function() {
             // GyRCJCIbKEI= is the base64 encoding of ESC$B$"ESC(B.
             [
                 "=?ISO-2022-JP?B?GyRCJCIbKEI=?==?ISO-2022-JP?B?GyRCJCIbKEI=?=",
-                isChromium() ? "あ\ufffdあ" : "ああ" // see https://github.com/ProtonMail/jsmimeparser/issues/1
+                "ああ",
             ],
 
             // Tolerate invalid split of character, € = 0xE2 0x82 0xAC in UTF-8.

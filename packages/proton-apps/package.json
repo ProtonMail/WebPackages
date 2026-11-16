@@ -11,7 +11,13 @@
     "author": "Proton AG",
     "type": "module",
     "exports": {
-        "./*": "./src/*"
+        "./apps": "./src/apps.ts",
+        "./apps.ts": "./src/apps.ts",
+        "./glyphs": "./src/glyphs.ts",
+        "./glyphs.ts": "./src/glyphs.ts",
+        "./glyphs/*": "./src/glyphs/*",
+        "./url": "./src/url.ts",
+        "./url.ts": "./src/url.ts"
     },
     "scripts": {
         "format": "prettier --write .",

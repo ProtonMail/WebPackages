@@ -1,5 +1,11 @@
 # @protontech/date-utils
 
+## 0.1.8
+
+### Patch Changes
+
+- c6f22c8: Export function that will be needed for NGC
+
 ## 0.1.7
 
 ### Patch Changes

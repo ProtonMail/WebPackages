@@ -1,5 +1,11 @@
 # @protontech/proton-apps
 
+## 1.0.2
+
+### Patch Changes
+
+- 407240b: Publish to the public npm registry
+
 ## 1.0.1
 
 ### Patch Changes

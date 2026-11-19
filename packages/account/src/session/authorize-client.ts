@@ -1,4 +1,6 @@
 import { importKey } from "@protontech/crypto/subtle/aesGcm.ts";
+import type { ProtonFetch } from "@protontech/fetch/fetch.ts";
+import { ServiceType } from "@protontech/fetch/policy.ts";
 import {
     AccountAuthorizeType,
     AccountAuthorizeVersion,
@@ -407,7 +409,7 @@ export interface PulledFork {
 }
 
 export interface AuthorizeClientOptions {
-    fetch: typeof window.fetch;
+    fetch: ProtonFetch["fetch"];
     /** The app account forks sessions to */
     app: `proton-${string}`;
     /** Where account is, e.g. `https://account.proton.me` */
@@ -417,7 +419,7 @@ export interface AuthorizeClientOptions {
 }
 
 export class AuthorizeClient {
-    #fetch: typeof window.fetch;
+    #fetch: ProtonFetch["fetch"];
     #app: `proton-${string}`;
     #accountUrl: URL;
     #redirectUrl: URL | undefined;
@@ -519,6 +521,7 @@ export class AuthorizeClient {
                         : undefined,
                 },
             ),
+            { policy: { service: ServiceType.Interactive } },
         );
         const getForkSelectorDto = (await getForkResponse
             .json()
@@ -589,6 +592,7 @@ export class AuthorizeClient {
                     "content-type": "application/json",
                 },
             }),
+            { policy: { service: ServiceType.Interactive } },
         );
         if (postCookiesResponse.status !== 200) {
             if (

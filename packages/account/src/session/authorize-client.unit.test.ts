@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { ServiceType } from "@protontech/fetch/policy.ts";
 import {
     AuthorizeCallbackParameters,
     AuthorizeClient,
@@ -295,9 +296,9 @@ describe("AuthorizeClient.getAuthorizeLink", () => {
 
 describe("AuthorizeClient.pullFork", () => {
     const pullFork = async (forkSecret: string | undefined) => {
-        const fetch = vi.fn<(request: Request) => Promise<Response>>(() =>
-            Promise.resolve(new Response(null, { status: 422 })),
-        );
+        const fetch = vi.fn<
+            (request: Request, init?: unknown) => Promise<Response>
+        >(() => Promise.resolve(new Response(null, { status: 422 })));
         const authorizeClient = makeAuthorizeClient(
             fetch as unknown as typeof window.fetch,
         );
@@ -318,6 +319,9 @@ describe("AuthorizeClient.pullFork", () => {
         expect(fetch).toHaveBeenCalledTimes(1);
         const request = fetch.mock.calls[0]?.[0];
         expect(request?.url).toBe("/auth/v4/sessions/forks/selector");
+        expect(fetch.mock.calls[0]?.[1]).toEqual({
+            policy: { service: ServiceType.Interactive },
+        });
         return request;
     };
 

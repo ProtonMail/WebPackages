@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "fake-indexeddb/auto";
+import { ServiceType } from "@protontech/fetch/policy.ts";
 import {
     SessionPersistence,
     SessionError,
@@ -99,9 +100,9 @@ async function captureRejection(promise: Promise<unknown>): Promise<unknown> {
 function setup(fetchImpl?: (request: Request) => Promise<Response>) {
     const sessionDb = new SessionDb();
     const sessionMem = new SessionMem(makeMemStore());
-    const fetch = vi.fn<(request: Request) => Promise<Response>>(
-        fetchImpl ?? (() => jsonResponse(200)),
-    );
+    const fetch = vi.fn<
+        (request: Request, init?: unknown) => Promise<Response>
+    >(fetchImpl ?? (() => jsonResponse(200)));
     const persistence = new SessionPersistence({
         fetch: fetch as unknown as typeof window.fetch,
         sessionDb,
@@ -203,6 +204,9 @@ describe("getSessionFromStorage", () => {
         const request = fetch.mock.calls[0]?.[0];
         expect(request?.url).toContain("/auth/v4/sessions/local/key");
         expect(request?.headers.get("x-pm-uid")).toBe("uid-1");
+        expect(fetch.mock.calls[0]?.[1]).toEqual({
+            policy: { service: ServiceType.Interactive },
+        });
     });
 
     it("deletes the session and throws SessionExpired on 401", async () => {
@@ -454,6 +458,9 @@ describe("signOutSession", () => {
         const request = fetch.mock.calls[0]?.[0];
         expect(request?.method).toBe("DELETE");
         expect(request?.headers.get("x-pm-uid")).toBe("uid-1");
+        expect(fetch.mock.calls[0]?.[1]).toEqual({
+            policy: { retry: { maxRetries: 0 } },
+        });
     });
 
     it("clears local state without a network call for an unauthorized sign-out", async () => {

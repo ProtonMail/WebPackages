@@ -1,3 +1,4 @@
+import type { ProtonFetch } from "@protontech/fetch/fetch.ts";
 import type { SessionsStorage } from "./sessions-storage.ts";
 import {
     type LocalSessionMapResultDto,
@@ -14,7 +15,7 @@ export const getLocalIdSessionString = (array: number[]) => {
 };
 
 export class SessionsClient {
-    #fetch: typeof window.fetch;
+    #fetch: ProtonFetch["fetch"];
     #sessionsStorage: SessionsStorage;
     #sessionDb: SessionDb;
     #cachedSessions: SessionsResultDto = [];
@@ -24,7 +25,7 @@ export class SessionsClient {
         sessionsStorage,
         sessionDb,
     }: {
-        fetch: typeof window.fetch;
+        fetch: ProtonFetch["fetch"];
         sessionsStorage: SessionsStorage;
         sessionDb: SessionDb;
     }) {

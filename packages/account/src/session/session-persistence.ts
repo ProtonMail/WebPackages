@@ -1,3 +1,5 @@
+import type { ProtonFetch } from "@protontech/fetch/fetch.ts";
+import { ServiceType } from "@protontech/fetch/policy.ts";
 import { SessionDb, type SessionDbDto } from "./session-db.ts";
 import { SessionMem, type SessionMemDto } from "./session-mem.ts";
 import { generateClientKey, getClientKey } from "./client-key.ts";
@@ -48,7 +50,7 @@ export class SessionError extends Error {
 export class SessionAuthError extends SessionError {}
 
 export class SessionPersistence {
-    #fetch: typeof window.fetch;
+    #fetch: ProtonFetch["fetch"];
     #sessionDb: SessionDb;
     #sessionMem: SessionMem;
 
@@ -57,7 +59,7 @@ export class SessionPersistence {
         sessionDb = new SessionDb(),
         sessionMem = new SessionMem(),
     }: {
-        fetch: typeof window.fetch;
+        fetch: ProtonFetch["fetch"];
         sessionDb?: SessionDb;
         sessionMem?: SessionMem;
     }) {
@@ -94,6 +96,7 @@ export class SessionPersistence {
                     "x-pm-uid": sessionDbDto.data.uid,
                 },
             }),
+            { policy: { service: ServiceType.Interactive } },
         );
         if (response.status === 401) {
             // TODO: Was a refresh attempted?
@@ -194,6 +197,7 @@ export class SessionPersistence {
                     },
                     body: JSON.stringify({ Key: serializedData }),
                 }),
+                { policy: { service: ServiceType.Interactive } },
             );
         } catch (error) {
             throw new SessionError(
@@ -301,6 +305,8 @@ export class SessionPersistence {
                             "x-pm-uid": sessionDb.data.uid,
                         },
                     }),
+                    // Sign-out waits for this and ignores failures, so don't hold it up with retries.
+                    { policy: { retry: { maxRetries: 0 } } },
                 ).catch(() => {});
             }
             // The session has been torn down locally; that is what consumers

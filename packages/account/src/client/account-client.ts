@@ -1,3 +1,4 @@
+import type { ProtonFetch } from "@protontech/fetch/fetch.ts";
 import { SessionsClient } from "../sessions/sessions-client.ts";
 import { SessionPersistence } from "../session/session-persistence.ts";
 import {
@@ -30,7 +31,7 @@ export class AccountClient {
     #sessionBootstrapClient: SessionBootstrapClient;
     #authorizeClient: AuthorizeClient;
 
-    #fetch: typeof window.fetch;
+    #fetch: ProtonFetch["fetch"];
     #sessionPersistence: SessionPersistence;
     #sessionDb: SessionDb;
     #sessionMem: SessionMem;
@@ -43,7 +44,7 @@ export class AccountClient {
         accountUrl,
         redirectUrl,
     }: {
-        fetch: typeof window.fetch;
+        fetch: ProtonFetch["fetch"];
         cookieStorage: CookieStorage;
         url: URL;
         /** The app account forks sessions to */

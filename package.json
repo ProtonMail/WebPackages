@@ -24,7 +24,7 @@
     "dependency-cruiser": "^18.7.2",
     "husky": "^9.1.7",
     "knip": "^6.45.1",
-    "lint-staged": "^17.6.0",
+    "lint-staged": "^17.6.1",
     "prettier": "^3.10.1",
     "sort-package-json": "^4.1.0",
     "typescript": "^7.0.2"

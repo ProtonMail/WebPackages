@@ -34,7 +34,7 @@
         "@protontech/typescript-config": "workspace:*",
         "fake-indexeddb": "^6.2.8",
         "happy-dom": "^21.0.4",
-        "oxlint": "^1.93.0",
+        "oxlint": "^1.94.0",
         "oxlint-tsgolint": "^7.0.2007",
         "prettier": "^3.10.1",
         "typescript": "^7.0.2",

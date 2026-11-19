@@ -1,7 +1,17 @@
 import type { MiddlewareFn } from "../interface.ts";
+import { type RequestPolicy, ServiceType } from "../policy.ts";
 import { getRefresh, refreshOnce } from "../refreshManager.ts";
 
 export type UnauthorizedListener = () => void;
+
+/**
+ * The refresh is shared by every request of the session that waits on it, so
+ * it has its own policy instead of the policy of the request that got the 401.
+ */
+export const refreshPolicy: RequestPolicy = {
+    service: ServiceType.Interactive,
+    timeoutMs: 15_000,
+};
 
 /**
  * Creates the refresh middleware. On a 401 it attempts a single token refresh
@@ -44,6 +54,7 @@ export const createRefreshMiddleware = (
                 const fetch = context.createFetch({
                     ...context,
                     startedAt: Date.now(),
+                    policy: refreshPolicy,
                     refresh: true,
                 });
                 const refreshResponse = await refreshOnce(

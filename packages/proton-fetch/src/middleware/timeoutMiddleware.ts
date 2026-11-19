@@ -1,5 +1,6 @@
 import type { MiddlewareFn } from "../interface.ts";
 import { TimeoutError } from "../error.ts";
+import { getDeadline } from "./utils.ts";
 
 interface TimeoutEntry {
     signal: AbortSignal;
@@ -34,9 +35,17 @@ function createTimeoutEntry(timeout: number): TimeoutEntry {
     };
 }
 
-export const timeoutMiddleware: MiddlewareFn = (next) => {
+/**
+ * Fails the request with a `TimeoutError` once its time is up: `timeoutMs`
+ * (default 30s, overridable with the `policy.timeoutMs` fetch option) after the
+ * fetch call. The time is shared by all retries, so each attempt only gets what
+ * is left.
+ */
+export const timeoutMiddleware: MiddlewareFn = (next, context) => {
     return async (request) => {
-        const timeout = createTimeoutEntry(30_000);
+        const timeout = createTimeoutEntry(
+            Math.max(getDeadline(context) - Date.now(), 0),
+        );
         const id = Symbol("timeout");
         timeoutMap.set(id, timeout);
         const timeoutRequest = new Request(request, {

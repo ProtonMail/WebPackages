@@ -6,6 +6,7 @@ import { originMiddleware } from "./middleware/originMiddleware.ts";
 import { headerMiddleware } from "./middleware/headerMiddleware.ts";
 import { createRefreshMiddleware } from "./middleware/refreshMiddleware.ts";
 import { timeoutMiddleware } from "./middleware/timeoutMiddleware.ts";
+import { createRetryMiddleware } from "./middleware/retryMiddleware.ts";
 
 vi.mock("./requestLock.ts", () => ({
     requestLock: vi.fn((_id: string, cb: () => Promise<unknown>) => cb()),
@@ -83,6 +84,25 @@ describe("ProtonFetch", () => {
         });
         const response = await pf.fetch("https://api.proton.me/events");
         expect(response.status).toBe(204);
+    });
+
+    it("passes the policy fetch option to the middlewares", async () => {
+        let capturedPolicy: unknown;
+        const pf = new ProtonFetch({
+            middlewares: [
+                (next, context) => {
+                    capturedPolicy = context.policy;
+                    return next;
+                },
+            ],
+            fetchFn: vi
+                .fn()
+                .mockResolvedValue(new Response(null, { status: 200 })),
+            config: baseConfig,
+        });
+        const policy = { retry: { maxRetries: 0 } };
+        await pf.fetch("https://api.proton.me/events", { policy });
+        expect(capturedPolicy).toBe(policy);
     });
 
     it("adds x-pm-uid header via headerMiddleware", async () => {
@@ -206,6 +226,61 @@ describe("ProtonFetch", () => {
             "https://api.proton.me/api/v1/events",
             "https://api.proton.me/api/v1/events",
         ]);
+    });
+});
+
+// ─────────────────────────────────────────────
+// Aborting through the whole middleware chain
+// ─────────────────────────────────────────────
+describe("Aborting a request", () => {
+    const withRetry: MiddlewareFn[] = [
+        originMiddleware,
+        headerMiddleware,
+        createRetryMiddleware(),
+        createRefreshMiddleware(() => {}),
+        timeoutMiddleware,
+    ];
+
+    it("cancels the network request", async () => {
+        const controller = new AbortController();
+        const fetchFn = vi.fn().mockImplementation(
+            (request: Request) =>
+                new Promise<Response>((_, reject) => {
+                    request.signal.addEventListener("abort", () =>
+                        reject(new Error("network request cancelled")),
+                    );
+                }),
+        );
+        const pf = new ProtonFetch({
+            middlewares: withRetry,
+            fetchFn,
+            config: baseConfig,
+        });
+        const pending = pf.fetch("https://api.proton.me/events", {
+            signal: controller.signal,
+        });
+        await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledOnce());
+        controller.abort();
+        await expect(pending).rejects.toThrow("network request cancelled");
+    });
+
+    it("stops the wait before a retry", async () => {
+        const controller = new AbortController();
+        const fetchFn = vi.fn(() => {
+            controller.abort(new Error("cancelled"));
+            return Promise.resolve(new Response(null, { status: 503 }));
+        });
+        const pf = new ProtonFetch({
+            middlewares: withRetry,
+            fetchFn,
+            config: baseConfig,
+        });
+        await expect(
+            pf.fetch("https://api.proton.me/events", {
+                signal: controller.signal,
+            }),
+        ).rejects.toThrow("cancelled");
+        expect(fetchFn).toHaveBeenCalledOnce();
     });
 });
 

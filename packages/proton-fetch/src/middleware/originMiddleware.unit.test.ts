@@ -90,4 +90,21 @@ describe("originMiddleware", () => {
             "application/json",
         );
     });
+
+    it("keeps the caller's abort signal", async () => {
+        const controller = new AbortController();
+        const terminal = vi
+            .fn<FetchLike>()
+            .mockResolvedValue(new Response(null, { status: 200 }));
+        await originMiddleware(
+            terminal,
+            makeContext({ config: configWithPath }),
+        )(
+            new Request("https://placeholder.local/events", {
+                signal: controller.signal,
+            }),
+        );
+        controller.abort();
+        expect(terminal.mock.calls[0]?.[0].signal.aborted).toBe(true);
+    });
 });

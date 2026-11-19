@@ -3,6 +3,7 @@ import type {
     MiddlewareFn,
     ProtonConfig,
     ProtonFetchContext,
+    ProtonRequestInit,
 } from "./interface.ts";
 import { httpFetch } from "./httpFetch.ts";
 
@@ -43,15 +44,20 @@ export class ProtonFetch {
         this.middlewares = middlewares;
     }
 
-    public fetch: typeof window.fetch = async (input, init) => {
+    public fetch = async (
+        input: RequestInfo | URL,
+        init?: ProtonRequestInit,
+    ): Promise<Response> => {
+        const { policy, ...requestInit } = init ?? {};
         const createFetch = fetchMiddlewareHelper(this.fetchFn);
         const context: ProtonFetchContext = {
             createFetch,
             startedAt: Date.now(),
             config: this.config,
             middlewares: this.middlewares,
+            policy,
         };
-        return createFetch(context)(new Request(input, init));
+        return createFetch(context)(new Request(input, requestInit));
     };
 
     public setUid(uid: string) {

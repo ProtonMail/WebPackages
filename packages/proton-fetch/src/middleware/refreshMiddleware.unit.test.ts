@@ -4,7 +4,8 @@ import type {
     ProtonConfig,
     ProtonFetchContext,
 } from "../interface.ts";
-import { createRefreshMiddleware } from "./refreshMiddleware.ts";
+import { ServiceType } from "../policy.ts";
+import { createRefreshMiddleware, refreshPolicy } from "./refreshMiddleware.ts";
 import { getRefresh, refreshOnce } from "../refreshManager.ts";
 
 const refreshMiddleware = createRefreshMiddleware(() => {});
@@ -273,6 +274,35 @@ describe("refreshMiddleware", () => {
         );
         expect(createFetch).toHaveBeenCalledWith(
             expect.objectContaining({ refresh: true }),
+        );
+    });
+
+    it("refreshes with its own policy, not the policy of the request", async () => {
+        const createFetch = vi
+            .fn()
+            .mockReturnValue(
+                vi.fn().mockResolvedValue(new Response(null, { status: 200 })),
+            );
+        vi.mocked(refreshOnce).mockResolvedValue("ok");
+        await refreshMiddleware(
+            vi
+                .fn<FetchLike>()
+                .mockResolvedValue(new Response(null, { status: 401 })),
+            makeContext({
+                createFetch,
+                policy: {
+                    retry: { maxRetries: 0 },
+                    service: ServiceType.Optional,
+                    timeoutMs: 1_000,
+                },
+            }),
+        )(
+            new Request("https://api.proton.me/test", {
+                headers: { "x-pm-uid": "user-123" },
+            }),
+        );
+        expect(createFetch).toHaveBeenCalledWith(
+            expect.objectContaining({ policy: refreshPolicy }),
         );
     });
 

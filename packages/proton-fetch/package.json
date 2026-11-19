@@ -14,6 +14,7 @@
         "./fetch.ts": "./src/protonFetch.ts",
         "./error.ts": "./src/error.ts",
         "./errors.ts": "./src/errors.ts",
+        "./policy.ts": "./src/policy.ts",
         "./middleware/*": "./src/middleware/*.ts"
     },
     "scripts": {

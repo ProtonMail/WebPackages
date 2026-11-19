@@ -60,6 +60,31 @@ describe("timeoutMiddleware", () => {
         expect(capturedRequest).not.toBe(original);
     });
 
+    it.each([
+        ["the default 30s", undefined, 0, 30_000],
+        ["the policy timeout", 5_000, 0, 5_000],
+        ["only the time left since the fetch call", undefined, 29_000, 1_000],
+        ["no time when it is up", 1_000, 2_000, 0],
+    ])("gives the request %s", async (_, timeoutMs, elapsed, expected) => {
+        vi.useFakeTimers({ now: 100_000 });
+        const timeout = vi.spyOn(AbortSignal, "timeout");
+        try {
+            await timeoutMiddleware(
+                vi
+                    .fn<FetchLike>()
+                    .mockResolvedValue(new Response(null, { status: 200 })),
+                makeContext({
+                    startedAt: 100_000 - elapsed,
+                    policy: { timeoutMs },
+                }),
+            )(new Request("https://api.proton.me/test"));
+            expect(timeout).toHaveBeenCalledExactlyOnceWith(expected);
+        } finally {
+            vi.restoreAllMocks();
+            vi.useRealTimers();
+        }
+    });
+
     it("throws TimeoutError when next rejects with DOMException TimeoutError", async () => {
         const terminal: FetchLike = vi
             .fn()

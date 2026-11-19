@@ -1,3 +1,9 @@
+import type { RequestPolicy } from "./policy.ts";
+
+export interface ProtonRequestInit extends RequestInit {
+    policy?: RequestPolicy;
+}
+
 export interface ProtonConfig {
     url: URL;
     appVersion: string;
@@ -10,6 +16,7 @@ export interface ProtonFetchContext {
     createFetch: (context: ProtonFetchContext) => FetchLike;
     startedAt: number;
     middlewares: MiddlewareFn[];
+    policy?: RequestPolicy;
     // eslint-disable-next-line
     [key: string]: any;
 }

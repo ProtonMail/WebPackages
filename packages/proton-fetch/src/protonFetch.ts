@@ -5,13 +5,6 @@ import type {
     ProtonFetchContext,
 } from "./interface.ts";
 import { httpFetch } from "./httpFetch.ts";
-import {
-    createRefreshMiddleware,
-    type UnauthorizedListener,
-} from "./middleware/refreshMiddleware.ts";
-import { timeoutMiddleware } from "./middleware/timeoutMiddleware.ts";
-import { originMiddleware } from "./middleware/originMiddleware.ts";
-import { headerMiddleware } from "./middleware/headerMiddleware.ts";
 
 function middlewareHelper(middlewares: MiddlewareFn[]) {
     return (
@@ -39,24 +32,15 @@ export class ProtonFetch {
     constructor({
         fetchFn = httpFetch,
         config,
-        onUnauthorized,
         middlewares,
     }: {
         fetchFn?: typeof window.fetch;
         config: ProtonConfig;
-        onUnauthorized?: UnauthorizedListener;
-        middlewares?: MiddlewareFn[];
+        middlewares: MiddlewareFn[];
     }) {
         this.config = config;
         this.fetchFn = fetchFn;
-        this.middlewares = middlewares ?? [
-            originMiddleware,
-            headerMiddleware,
-            // The refresh middleware fires `onUnauthorized` for 401s that
-            // survive the token-refresh retry (genuine auth failures).
-            createRefreshMiddleware(onUnauthorized),
-            timeoutMiddleware,
-        ];
+        this.middlewares = middlewares;
     }
 
     public fetch: typeof window.fetch = async (input, init) => {

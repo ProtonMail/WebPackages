@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MiddlewareFn, ProtonConfig } from "./interface.ts";
 import { ProtonFetch } from "./protonFetch.ts";
 import { getRefresh, refreshOnce } from "./refreshManager.ts";
+import { originMiddleware } from "./middleware/originMiddleware.ts";
+import { headerMiddleware } from "./middleware/headerMiddleware.ts";
+import { createRefreshMiddleware } from "./middleware/refreshMiddleware.ts";
+import { timeoutMiddleware } from "./middleware/timeoutMiddleware.ts";
 
 vi.mock("./requestLock.ts", () => ({
     requestLock: vi.fn((_id: string, cb: () => Promise<unknown>) => cb()),
@@ -19,6 +23,13 @@ const baseConfig: ProtonConfig = {
     locale: "en_US",
 };
 
+const middlewares: MiddlewareFn[] = [
+    originMiddleware,
+    headerMiddleware,
+    createRefreshMiddleware(() => {}),
+    timeoutMiddleware,
+];
+
 beforeEach(() => {
     vi.resetAllMocks();
 });
@@ -33,18 +44,18 @@ describe("ProtonFetch", () => {
     });
 
     it("stores config on the instance", () => {
-        const pf = new ProtonFetch({ config: baseConfig });
+        const pf = new ProtonFetch({ config: baseConfig, middlewares });
         expect(pf.config).toEqual(baseConfig);
     });
 
     it("setUid updates config.uid", () => {
-        const pf = new ProtonFetch({ config: { ...baseConfig } });
+        const pf = new ProtonFetch({ config: { ...baseConfig }, middlewares });
         pf.setUid("new-uid");
         expect(pf.config.uid).toBe("new-uid");
     });
 
     it("setAppVersion updates config.appVersion", () => {
-        const pf = new ProtonFetch({ config: { ...baseConfig } });
+        const pf = new ProtonFetch({ config: { ...baseConfig }, middlewares });
         pf.setAppVersion("web-calendar@2.0.0");
         expect(pf.config.appVersion).toBe("web-calendar@2.0.0");
     });
@@ -53,13 +64,18 @@ describe("ProtonFetch", () => {
         const fetchFn = vi
             .fn()
             .mockResolvedValue(new Response(null, { status: 200 }));
-        const pf = new ProtonFetch({ fetchFn, config: baseConfig });
+        const pf = new ProtonFetch({
+            fetchFn,
+            config: baseConfig,
+            middlewares,
+        });
         await pf.fetch("https://api.proton.me/events");
         expect(fetchFn).toHaveBeenCalledOnce();
     });
 
     it("returns the response from the fetch function", async () => {
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn: vi
                 .fn()
                 .mockResolvedValue(new Response(null, { status: 204 })),
@@ -72,6 +88,7 @@ describe("ProtonFetch", () => {
     it("adds x-pm-uid header via headerMiddleware", async () => {
         let capturedRequest: Request | undefined;
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn: vi.fn().mockImplementation((req: Request) => {
                 capturedRequest = req;
                 return Promise.resolve(new Response(null, { status: 200 }));
@@ -85,6 +102,7 @@ describe("ProtonFetch", () => {
     it("adds x-pm-appversion header via headerMiddleware", async () => {
         let capturedRequest: Request | undefined;
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn: vi.fn().mockImplementation((req: Request) => {
                 capturedRequest = req;
                 return Promise.resolve(new Response(null, { status: 200 }));
@@ -100,6 +118,7 @@ describe("ProtonFetch", () => {
     it("rewrites the request URL via originMiddleware when config has a path prefix", async () => {
         let capturedRequest: Request | undefined;
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn: vi.fn().mockImplementation((req: Request) => {
                 capturedRequest = req;
                 return Promise.resolve(new Response(null, { status: 200 }));
@@ -116,6 +135,7 @@ describe("ProtonFetch", () => {
     it("attaches a timeout signal via timeoutMiddleware", async () => {
         let capturedRequest: Request | undefined;
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn: vi.fn().mockImplementation((req: Request) => {
                 capturedRequest = req;
                 return Promise.resolve(new Response(null, { status: 200 }));
@@ -140,6 +160,7 @@ describe("ProtonFetch", () => {
         vi.mocked(refreshOnce).mockResolvedValue("ok");
 
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn,
             config: {
                 ...baseConfig,
@@ -168,6 +189,7 @@ describe("ProtonFetch", () => {
         vi.mocked(refreshOnce).mockResolvedValue("ok");
 
         const pf = new ProtonFetch({
+            middlewares,
             fetchFn,
             config: {
                 ...baseConfig,

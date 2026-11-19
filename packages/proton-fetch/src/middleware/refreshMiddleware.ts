@@ -7,14 +7,13 @@ export type UnauthorizedListener = () => void;
  * Creates the refresh middleware. On a 401 it attempts a single token refresh
  * and retries the request.
  *
- * If provided, `onUnauthorized` is invoked with the original request whenever a
- * 401 surfaces to the consumer — i.e. a genuine auth failure that the refresh
- * flow could not recover from — rather than the routine token-expiry 401s that
- * the refresh flow silently retries. The `context.refresh` guard prevents it
+ * `onUnauthorized` is invoked whenever a 401 surfaces to the consumer — i.e. a
+ * genuine auth failure that the refresh flow could not recover from — rather
+ * than the routine token-expiry 401s that the refresh flow silently retries. The `context.refresh` guard prevents it
  * from firing on the internal retry requests spawned by the refresh flow.
  */
 export const createRefreshMiddleware = (
-    onUnauthorized?: UnauthorizedListener,
+    onUnauthorized: UnauthorizedListener,
 ): MiddlewareFn => {
     return (next, context) => {
         return async (request) => {
@@ -63,7 +62,7 @@ export const createRefreshMiddleware = (
                 // Refresh failed, return 401 to consumers
                 else if (refreshResponse === "fail") {
                     if (uid === context.config.uid) {
-                        onUnauthorized?.();
+                        onUnauthorized();
                     }
                     return response;
                 }

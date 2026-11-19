@@ -7,7 +7,7 @@ import type {
 import { createRefreshMiddleware } from "./refreshMiddleware.ts";
 import { getRefresh, refreshOnce } from "../refreshManager.ts";
 
-const refreshMiddleware = createRefreshMiddleware();
+const refreshMiddleware = createRefreshMiddleware(() => {});
 
 vi.mock("../requestLock.ts", () => ({
     requestLock: vi.fn((_id: string, cb: () => Promise<unknown>) => cb()),
@@ -176,7 +176,7 @@ describe("refreshMiddleware", () => {
             headers: { "x-pm-uid": "user-123" },
         });
 
-        await createRefreshMiddleware()(terminal, makeContext())(req);
+        await createRefreshMiddleware(() => {})(terminal, makeContext())(req);
 
         // GET has no body, so there is nothing to replay — the retry re-sends
         // the very same request object downstream.

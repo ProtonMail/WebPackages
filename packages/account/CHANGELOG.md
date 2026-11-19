@@ -1,5 +1,25 @@
 # @protontech/account
 
+## 5.0.0
+
+### Major Changes
+
+- 3f0ed24: When a fork lands on a local id that already has a working session, keep that session, with its UID and client key, and revoke the fork if it's the same session: same user, access type, persistent and trusted flags and key password. Otherwise revoke the existing session and use the fork, instead of leaving the replaced session alive on the server. Breaking: `AuthorizeClient.initialize` is replaced by `pullFork`, which no longer sets the fork's cookies, `setForkCookies` and `revokeFork`. `SessionPersistence` gets `getValidSession`, `revokeSession` and a public `useSession`.
+- 82253da: Read the session access type as the API's bitmask. `LocalSessionResponseDto` now carries `AccessType` from `auth/v4/sessions/local`, and the new `sessions/access-type.ts` exports `SessionAccessTypeFlag`, `getSessionAccessTypeMask(user)` and `hasSessionAccessType`. Breaking: `SwitcherAccessTypeEnum` and `SwitcherAccessType` are removed and `StoredSessionDto` no longer has `accessType`; the `iaas` cookie is only read for local ids.
+
+### Minor Changes
+
+- 82253da: Keep the session's access type with the saved session. `AuthorizeClient.initialize` reads `AccessType` from the fork pull, and `SessionPersistence.saveSession` stores it as `accessTypeMask` in the session DB. Sessions saved by earlier versions read as self sessions (`0`).
+- b2e55fb: Send request policies with the session requests: sign-in and session restore requests are interactive, and the sign-out request is never retried. `fetch` is now typed as `ProtonFetch["fetch"]`; `window.fetch` still fits and ignores the policies.
+
+### Patch Changes
+
+- Updated dependencies [4b96ee6]
+- Updated dependencies [c34245a]
+- Updated dependencies [4b96ee6]
+- Updated dependencies [c34245a]
+    - @protontech/fetch@2.0.0
+
 ## 4.0.0
 
 ### Major Changes

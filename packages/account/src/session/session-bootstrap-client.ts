@@ -9,6 +9,7 @@ import {
 import {
     type AuthorizeCallbackParameters,
     type AuthorizeClient,
+    type PulledFork,
     AuthorizeState,
     AuthorizeUnprocessableError,
     AuthorizeError,
@@ -75,6 +76,18 @@ const getResumeReason = (code: SessionErrorCode) => {
     return undefined;
 };
 
+/** Whether `existing` gives what the fork would: the fork adds nothing */
+const isSameSession = (existing: SessionDto, { session }: PulledFork) => {
+    const { data } = existing.sessionDbDto;
+    return (
+        data.userId === session.userId &&
+        data.accessTypeMask === session.accessTypeMask &&
+        data.persistent === session.persistent &&
+        data.trusted === session.trusted &&
+        existing.keyPassword === session.keyPassword
+    );
+};
+
 export class SessionBootstrapClient {
     #authorizeClient: AuthorizeClient;
     #sessionPersistence: SessionPersistence;
@@ -90,6 +103,41 @@ export class SessionBootstrapClient {
         this.#sessionPersistence = sessionPersistence;
     }
 
+    /**
+     * The session to use for `fork`. A fork may land on a local id that
+     * already has a session. If it's the same session as the fork's, it's
+     * kept, so that its UID and client key don't change, and the fork is
+     * revoked. Otherwise, e.g. another user's or one from before a password
+     * change, it's revoked and replaced. Either way, neither stays alive on the
+     * server once this app forgets it.
+     */
+    async #getForkedSession(fork: PulledFork): Promise<SessionDto> {
+        const existing = await this.#sessionPersistence.getValidSession(
+            fork.session.localId,
+        );
+        if (existing && isSameSession(existing, fork)) {
+            await this.#authorizeClient.revokeFork(fork);
+            await this.#sessionPersistence.useSession(existing);
+            return existing;
+        }
+        let session: SessionDto;
+        try {
+            await this.#authorizeClient.setForkCookies(fork);
+            session = await this.#sessionPersistence.saveSession(fork.session);
+        } catch (error) {
+            // A reload pulls the fork again, as a new session
+            await this.#authorizeClient.revokeFork(fork);
+            throw error;
+        }
+        // Only now, so that it's still there if the fork can't be used
+        if (existing) {
+            await this.#sessionPersistence.revokeSession(
+                existing.sessionDbDto.data.uid,
+            );
+        }
+        return session;
+    }
+
     async getSessionFromCallback<T>({
         authorizeCallbackParameters,
         localId,
@@ -100,12 +148,11 @@ export class SessionBootstrapClient {
         const { state } = authorizeCallbackParameters.dto;
         const authorizeState = AuthorizeState.fromKey<T>(state);
         try {
-            const authorizeResult = await this.#authorizeClient.initialize(
+            const fork = await this.#authorizeClient.pullFork(
                 authorizeCallbackParameters,
                 authorizeState.forkSecret,
             );
-            const session =
-                await this.#sessionPersistence.saveSession(authorizeResult);
+            const session = await this.#getForkedSession(fork);
             // Kept until now: after a transient error the fork can still be
             // pulled on reload, with the fork secret
             AuthorizeState.remove(state);

@@ -16,6 +16,7 @@ import {
     AuthorizeUnprocessableError,
     AuthorizeClient,
     type AuthorizeCallbackParameters,
+    type PulledFork,
 } from "./authorize-client.ts";
 import { generateForkSecret } from "./fork-secret.ts";
 import type { SessionDbDto } from "./session-db.ts";
@@ -79,6 +80,14 @@ function makeSaveParams(localId = 1): SaveSessionParams {
     };
 }
 
+function makeFork(localId = 1): PulledFork {
+    return {
+        session: makeSaveParams(localId),
+        accessToken: "access-token",
+        refreshToken: "refresh-token",
+    };
+}
+
 function makeCallbackParams(state = "state-key"): AuthorizeCallbackParameters {
     return { dto: { state } } as unknown as AuthorizeCallbackParameters;
 }
@@ -94,7 +103,9 @@ function makeClient() {
         getCallbackParameters: vi.fn<AuthorizeClient["getCallbackParameters"]>(
             () => null,
         ),
-        initialize: vi.fn<AuthorizeClient["initialize"]>(),
+        pullFork: vi.fn<AuthorizeClient["pullFork"]>(),
+        setForkCookies: vi.fn<AuthorizeClient["setForkCookies"]>(),
+        revokeFork: vi.fn<AuthorizeClient["revokeFork"]>(),
         authorize: vi.fn<AuthorizeClient["authorize"]>((intent, data) =>
             realAuthorizeClient.authorize(intent, data),
         ),
@@ -102,6 +113,9 @@ function makeClient() {
     const sessionPersistence = {
         getSession: vi.fn<SessionPersistence["getSession"]>(),
         saveSession: vi.fn<SessionPersistence["saveSession"]>(),
+        getValidSession: vi.fn<SessionPersistence["getValidSession"]>(),
+        useSession: vi.fn<SessionPersistence["useSession"]>(),
+        revokeSession: vi.fn<SessionPersistence["revokeSession"]>(),
     };
     const client = new SessionBootstrapClient({
         authorizeClient: authorizeClient as unknown as AuthorizeClient,
@@ -131,9 +145,9 @@ async function captureRejection(promise: Promise<unknown>): Promise<unknown> {
 describe("getSessionFromCallback", () => {
     it("returns an authenticated result on success", async () => {
         const { client, authorizeClient, sessionPersistence } = makeClient();
-        const authorizeResult = makeSaveParams();
+        const fork = makeFork();
         const session = makeSessionDto();
-        authorizeClient.initialize.mockResolvedValue(authorizeResult);
+        authorizeClient.pullFork.mockResolvedValue(fork);
         sessionPersistence.saveSession.mockResolvedValue(session);
         const state = new AuthorizeState({ returnTo: "/inbox" }).write();
         const authorizeCallbackParameters = makeCallbackParams(state);
@@ -147,18 +161,18 @@ describe("getSessionFromCallback", () => {
         }
         expect(result.session).toBe(session);
         expect(result.data).toEqual({ returnTo: "/inbox" });
-        expect(authorizeClient.initialize).toHaveBeenCalledWith(
+        expect(authorizeClient.pullFork).toHaveBeenCalledWith(
             authorizeCallbackParameters,
             undefined,
         );
         expect(sessionPersistence.saveSession).toHaveBeenCalledWith(
-            authorizeResult,
+            fork.session,
         );
     });
 
     it("proves the fork with the fork secret kept in its state", async () => {
         const { client, authorizeClient, sessionPersistence } = makeClient();
-        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
+        authorizeClient.pullFork.mockResolvedValue(makeFork());
         sessionPersistence.saveSession.mockResolvedValue(makeSessionDto());
         const state = new AuthorizeState(null, "fork-secret").write();
         const authorizeCallbackParameters = makeCallbackParams(state);
@@ -167,7 +181,7 @@ describe("getSessionFromCallback", () => {
             authorizeCallbackParameters,
         });
 
-        expect(authorizeClient.initialize).toHaveBeenCalledWith(
+        expect(authorizeClient.pullFork).toHaveBeenCalledWith(
             authorizeCallbackParameters,
             "fork-secret",
         );
@@ -176,7 +190,7 @@ describe("getSessionFromCallback", () => {
     it("forgets the authorize state once the session is saved", async () => {
         const { client, authorizeClient, sessionPersistence } = makeClient();
         const state = new AuthorizeState(null, "fork-secret").write();
-        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
+        authorizeClient.pullFork.mockResolvedValue(makeFork());
         sessionPersistence.saveSession.mockImplementation(() => {
             // Still needed if saving the session fails
             expect(storage.size).toBe(1);
@@ -193,9 +207,7 @@ describe("getSessionFromCallback", () => {
     it("keeps the authorize state when the fork can't be pulled for now", async () => {
         const { client, authorizeClient } = makeClient();
         const state = new AuthorizeState(null, "fork-secret").write();
-        authorizeClient.initialize.mockRejectedValue(
-            new AuthorizeError(503, {}),
-        );
+        authorizeClient.pullFork.mockRejectedValue(new AuthorizeError(503, {}));
 
         await expect(
             client.getSessionFromCallback({
@@ -215,7 +227,7 @@ describe("getSessionFromCallback", () => {
         ],
         [
             "the session can't be saved",
-            () => Promise.resolve(makeSaveParams()),
+            () => Promise.resolve(makeFork()),
             () =>
                 Promise.reject(
                     new SessionAuthError(
@@ -229,10 +241,10 @@ describe("getSessionFromCallback", () => {
         ],
     ])(
         "requests a new fork under a new authorize state when %s",
-        async (_, initialize, saveSession) => {
+        async (_, pullFork, saveSession) => {
             const { client, authorizeClient, sessionPersistence } =
                 makeClient();
-            authorizeClient.initialize.mockImplementation(initialize);
+            authorizeClient.pullFork.mockImplementation(pullFork);
             sessionPersistence.saveSession.mockImplementation(saveSession);
             const previousState = new AuthorizeState(
                 { returnTo: "/inbox" },
@@ -263,7 +275,7 @@ describe("getSessionFromCallback", () => {
 
     it("resumes the session it was given for the new fork", async () => {
         const { client, authorizeClient } = makeClient();
-        authorizeClient.initialize.mockRejectedValue(
+        authorizeClient.pullFork.mockRejectedValue(
             new AuthorizeUnprocessableError(422, {}),
         );
 
@@ -281,7 +293,7 @@ describe("getSessionFromCallback", () => {
 
     it("wraps a network AuthorizeError in a SessionBootstrapError", async () => {
         const { client, authorizeClient } = makeClient();
-        authorizeClient.initialize.mockRejectedValue(
+        authorizeClient.pullFork.mockRejectedValue(
             new AuthorizeError(500, { Error: "boom", Code: 500 }),
         );
 
@@ -301,7 +313,7 @@ describe("getSessionFromCallback", () => {
     it("rethrows errors that are neither auth nor network failures", async () => {
         const { client, authorizeClient } = makeClient();
         const original = new Error("unexpected");
-        authorizeClient.initialize.mockRejectedValue(original);
+        authorizeClient.pullFork.mockRejectedValue(original);
 
         const error = await captureRejection(
             client.getSessionFromCallback({
@@ -310,6 +322,159 @@ describe("getSessionFromCallback", () => {
         );
 
         expect(error).toBe(original);
+    });
+
+    describe("when the fork's local id already has a session", () => {
+        const setup = (existing: SessionDto | undefined) => {
+            const { client, authorizeClient, sessionPersistence } =
+                makeClient();
+            const fork = makeFork();
+            const saved = makeSessionDto();
+            authorizeClient.pullFork.mockResolvedValue(fork);
+            sessionPersistence.getValidSession.mockResolvedValue(existing);
+            sessionPersistence.saveSession.mockResolvedValue(saved);
+            const getSession = async () => {
+                const result = await client.getSessionFromCallback({
+                    authorizeCallbackParameters: makeCallbackParams(),
+                });
+                if (result.type !== "authenticated") {
+                    throw new Error("expected authenticated result");
+                }
+                return result.session;
+            };
+            return {
+                authorizeClient,
+                sessionPersistence,
+                fork,
+                saved,
+                getSession,
+            };
+        };
+
+        /** A stored session that gives what the fork would, under another UID */
+        const makeExisting = (
+            changes: Partial<SessionDto["sessionDbDto"]["data"]> & {
+                keyPassword?: string;
+            } = {},
+        ): SessionDto => {
+            const { keyPassword = "kp", ...data } = changes;
+            const session = makeSessionDto();
+            return {
+                ...session,
+                keyPassword,
+                sessionDbDto: {
+                    ...session.sessionDbDto,
+                    data: {
+                        ...session.sessionDbDto.data,
+                        uid: "old-uid",
+                        trusted: false,
+                        ...data,
+                    },
+                },
+            };
+        };
+
+        it("keeps the user's session and revokes the fork", async () => {
+            const existing = makeExisting();
+            const { authorizeClient, sessionPersistence, fork, getSession } =
+                setup(existing);
+
+            expect(await getSession()).toBe(existing);
+
+            expect(sessionPersistence.getValidSession).toHaveBeenCalledWith(1);
+            expect(authorizeClient.revokeFork).toHaveBeenCalledWith(fork);
+            expect(sessionPersistence.useSession).toHaveBeenCalledWith(
+                existing,
+            );
+            expect(authorizeClient.setForkCookies).not.toHaveBeenCalled();
+            expect(sessionPersistence.saveSession).not.toHaveBeenCalled();
+            expect(storage.size).toBe(0);
+        });
+
+        it.each([
+            ["another user's", { userId: "other-user" }],
+            ["an admin access", { accessTypeMask: 1 }],
+            ["a non-persistent", { persistent: false }],
+            ["a trusted", { trusted: true }],
+            ["a pre-password-change", { keyPassword: "old-kp" }],
+        ])("revokes %s session and uses the fork", async (_, changes) => {
+            const {
+                authorizeClient,
+                sessionPersistence,
+                fork,
+                saved,
+                getSession,
+            } = setup(makeExisting(changes));
+
+            expect(await getSession()).toBe(saved);
+
+            expect(sessionPersistence.revokeSession).toHaveBeenCalledWith(
+                "old-uid",
+            );
+            expect(authorizeClient.revokeFork).not.toHaveBeenCalled();
+            expect(authorizeClient.setForkCookies).toHaveBeenCalledWith(fork);
+            expect(sessionPersistence.saveSession).toHaveBeenCalledWith(
+                fork.session,
+            );
+            // Only once the fork is saved, so it's still there if it fails
+            expect(
+                sessionPersistence.revokeSession.mock.invocationCallOrder[0],
+            ).toBeGreaterThan(
+                sessionPersistence.saveSession.mock.invocationCallOrder[0] ?? 0,
+            );
+        });
+
+        it.each([
+            ["its cookies can't be set", "setForkCookies"],
+            ["it can't be saved", "saveSession"],
+        ] as const)(
+            "keeps the existing session and revokes the fork when %s",
+            async (_, failing) => {
+                const {
+                    authorizeClient,
+                    sessionPersistence,
+                    fork,
+                    getSession,
+                } = setup(makeExisting({ userId: "other-user" }));
+                const failure = new AuthorizeUnprocessableError(422, {});
+                if (failing === "setForkCookies") {
+                    authorizeClient.setForkCookies.mockRejectedValue(failure);
+                } else {
+                    sessionPersistence.saveSession.mockRejectedValue(
+                        new SessionAuthError(
+                            SessionErrorCode.SessionExpired,
+                            null,
+                            401,
+                            null,
+                            null,
+                        ),
+                    );
+                }
+
+                await expect(getSession()).rejects.toThrow(
+                    "expected authenticated result",
+                );
+
+                expect(authorizeClient.revokeFork).toHaveBeenCalledWith(fork);
+                expect(sessionPersistence.revokeSession).not.toHaveBeenCalled();
+            },
+        );
+
+        it("uses the fork when there's no working session", async () => {
+            const {
+                authorizeClient,
+                sessionPersistence,
+                fork,
+                saved,
+                getSession,
+            } = setup(undefined);
+
+            expect(await getSession()).toBe(saved);
+
+            expect(sessionPersistence.revokeSession).not.toHaveBeenCalled();
+            expect(authorizeClient.revokeFork).not.toHaveBeenCalled();
+            expect(authorizeClient.setForkCookies).toHaveBeenCalledWith(fork);
+        });
     });
 });
 
@@ -498,7 +663,7 @@ describe("getSession", () => {
         authorizeClient.getCallbackParameters.mockReturnValue(
             makeCallbackParams("state-key"),
         );
-        authorizeClient.initialize.mockResolvedValue(makeSaveParams());
+        authorizeClient.pullFork.mockResolvedValue(makeFork());
         sessionPersistence.saveSession.mockResolvedValue(makeSessionDto());
 
         const result = await client.getSession({
@@ -507,7 +672,7 @@ describe("getSession", () => {
         });
 
         expect(result.type).toBe("authenticated");
-        expect(authorizeClient.initialize).toHaveBeenCalled();
+        expect(authorizeClient.pullFork).toHaveBeenCalled();
         expect(sessionPersistence.getSession).not.toHaveBeenCalled();
     });
 
@@ -523,7 +688,7 @@ describe("getSession", () => {
         });
 
         expect(result.type).toBe("authenticated");
-        expect(authorizeClient.initialize).not.toHaveBeenCalled();
+        expect(authorizeClient.pullFork).not.toHaveBeenCalled();
         expect(sessionPersistence.getSession).toHaveBeenCalledWith(7);
     });
 });

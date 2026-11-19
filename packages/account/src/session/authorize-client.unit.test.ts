@@ -6,6 +6,7 @@ import {
     AuthorizeState,
     AuthorizeUnprocessableError,
     type AuthorizeIntent,
+    type PulledFork,
 } from "./authorize-client.ts";
 import { generateForkSecret } from "./fork-secret.ts";
 
@@ -292,7 +293,7 @@ describe("AuthorizeClient.getAuthorizeLink", () => {
     });
 });
 
-describe("AuthorizeClient.initialize", () => {
+describe("AuthorizeClient.pullFork", () => {
     const pullFork = async (forkSecret: string | undefined) => {
         const fetch = vi.fn<(request: Request) => Promise<Response>>(() =>
             Promise.resolve(new Response(null, { status: 422 })),
@@ -311,7 +312,7 @@ describe("AuthorizeClient.initialize", () => {
         });
 
         await expect(
-            authorizeClient.initialize(authorizeCallbackParameters, forkSecret),
+            authorizeClient.pullFork(authorizeCallbackParameters, forkSecret),
         ).rejects.toBeInstanceOf(AuthorizeUnprocessableError);
 
         expect(fetch).toHaveBeenCalledTimes(1);
@@ -333,27 +334,24 @@ describe("AuthorizeClient.initialize", () => {
     });
 });
 
-describe("AuthorizeClient.initialize access type", () => {
-    const initialize = (forkDto: Record<string, unknown>) => {
-        const fetch = vi.fn<(request: Request) => Promise<Response>>(
-            (request) =>
-                Promise.resolve(
-                    request.url === "/auth/v4/sessions/forks/selector"
-                        ? Response.json({
-                              Payload: "payload",
-                              LocalID: 3,
-                              UID: "uid",
-                              AccessToken: "access-token",
-                              RefreshToken: "refresh-token",
-                              UserID: "user-id",
-                              ...forkDto,
-                          })
-                        : Response.json({}),
-                ),
+describe("AuthorizeClient.pullFork access type", () => {
+    const pullFork = (forkDto: Record<string, unknown>) => {
+        const fetch = vi.fn<(request: Request) => Promise<Response>>(() =>
+            Promise.resolve(
+                Response.json({
+                    Payload: "payload",
+                    LocalID: 3,
+                    UID: "uid",
+                    AccessToken: "access-token",
+                    RefreshToken: "refresh-token",
+                    UserID: "user-id",
+                    ...forkDto,
+                }),
+            ),
         );
         return makeAuthorizeClient(
             fetch as unknown as typeof window.fetch,
-        ).initialize(
+        ).pullFork(
             new AuthorizeCallbackParameters({
                 state: "state-key",
                 selector: "selector",
@@ -367,10 +365,72 @@ describe("AuthorizeClient.initialize access type", () => {
     };
 
     it("returns the access type of the pulled fork", async () => {
-        await expect(initialize({ AccessType: 1 })).resolves.toMatchObject({
+        await expect(pullFork({ AccessType: 1 })).resolves.toMatchObject({
+            session: { localId: 3, uid: "uid", accessTypeMask: 1 },
+            accessToken: "access-token",
+            refreshToken: "refresh-token",
+        });
+    });
+});
+
+describe("AuthorizeClient fork session", () => {
+    const fork: PulledFork = {
+        session: {
             localId: 3,
             uid: "uid",
-            accessTypeMask: 1,
-        });
+            userId: "user-id",
+            persistent: true,
+            trusted: false,
+            accessTypeMask: 0,
+            keyPassword: "key-password",
+        },
+        accessToken: "access-token",
+        refreshToken: "refresh-token",
+    };
+    const setup = (response: () => Promise<Response>) => {
+        const fetch = vi.fn<(request: Request) => Promise<Response>>(response);
+        const authorizeClient = makeAuthorizeClient(
+            fetch as unknown as typeof window.fetch,
+        );
+        const getRequest = () => fetch.mock.calls[0]?.[0];
+        return { authorizeClient, getRequest };
+    };
+
+    it("sets the fork's cookies with its tokens", async () => {
+        const { authorizeClient, getRequest } = setup(() =>
+            Promise.resolve(Response.json({})),
+        );
+
+        await authorizeClient.setForkCookies(fork);
+
+        expect(getRequest()?.url).toBe("/core/v4/auth/cookies");
+        expect(getRequest()?.headers.get("authorization")).toBe(
+            "Bearer access-token",
+        );
+    });
+
+    it("can't use the fork when its cookies are refused", async () => {
+        const { authorizeClient } = setup(() =>
+            Promise.resolve(new Response(null, { status: 422 })),
+        );
+
+        await expect(
+            authorizeClient.setForkCookies(fork),
+        ).rejects.toBeInstanceOf(AuthorizeUnprocessableError);
+    });
+
+    it("revokes only the fork's session, with its token", async () => {
+        const { authorizeClient, getRequest } = setup(() =>
+            Promise.reject(new Error("offline")),
+        );
+
+        await authorizeClient.revokeFork(fork);
+
+        expect(getRequest()?.method).toBe("DELETE");
+        expect(getRequest()?.url).toBe("/core/v4/auth?Child=1");
+        expect(getRequest()?.headers.get("x-pm-uid")).toBe("uid");
+        expect(getRequest()?.headers.get("authorization")).toBe(
+            "Bearer access-token",
+        );
     });
 });

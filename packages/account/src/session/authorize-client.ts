@@ -226,7 +226,7 @@ export class AuthorizeState<T> {
     /**
      * Proves this tab requested the fork, see
      * {@link AuthorizeClient.authorize}. Pass it to
-     * {@link AuthorizeClient.initialize}.
+     * {@link AuthorizeClient.pullFork}.
      */
     forkSecret: string | undefined;
 
@@ -399,6 +399,13 @@ export class AuthorizeError extends Error {
 
 export class AuthorizeUnprocessableError extends AuthorizeError {}
 
+/** A fork pulled by {@link AuthorizeClient.pullFork} */
+export interface PulledFork {
+    session: SaveSessionParams;
+    accessToken: string;
+    refreshToken: string;
+}
+
 export interface AuthorizeClientOptions {
     fetch: typeof window.fetch;
     /** The app account forks sessions to */
@@ -490,16 +497,18 @@ export class AuthorizeClient {
     }
 
     /**
-     * Pulls the fork and sets up its session. `forkSecret` proves this client
+     * Pulls the fork, whose session can't be used until
+     * {@link AuthorizeClient.setForkCookies}, or is dropped with
+     * {@link AuthorizeClient.revokeFork}. `forkSecret` proves this client
      * requested the fork, when it's bound to one (see
      * {@link AuthorizeClient.authorize}): pass {@link AuthorizeState.forkSecret}
      * of the callback's state, and {@link AuthorizeState.remove} it once the
      * session is saved.
      */
-    async initialize(
+    async pullFork(
         authorizeCallbackParameters: AuthorizeCallbackParameters,
         forkSecret?: string,
-    ): Promise<SaveSessionParams> {
+    ): Promise<PulledFork> {
         const getForkResponse = await this.#fetch(
             new Request(
                 `/auth/v4/sessions/forks/${authorizeCallbackParameters.dto.selector}`,
@@ -544,10 +553,27 @@ export class AuthorizeClient {
             );
         }
 
+        return {
+            session: {
+                localId: getForkSelectorDto.LocalID,
+                userId: getForkSelectorDto.UserID,
+                uid: getForkSelectorDto.UID,
+                persistent: authorizeCallbackParameters.dto.persistent,
+                trusted: authorizeCallbackParameters.dto.trusted,
+                accessTypeMask: getForkSelectorDto.AccessType,
+                keyPassword: payloadResult.keyPassword,
+            },
+            accessToken: getForkSelectorDto.AccessToken,
+            refreshToken: getForkSelectorDto.RefreshToken,
+        };
+    }
+
+    /** Sets the auth cookies of the fork's session, so that it can be used */
+    async setForkCookies({ session, accessToken, refreshToken }: PulledFork) {
         const cookiesData: PostCookiesDto = {
-            UID: getForkSelectorDto.UID,
-            RefreshToken: getForkSelectorDto.RefreshToken,
-            Persistent: Number(authorizeCallbackParameters.dto.persistent),
+            UID: session.uid,
+            RefreshToken: refreshToken,
+            Persistent: Number(session.persistent),
             State: "test", // Needed?
             RedirectURI: "https://protonmail.com",
             ResponseType: "token",
@@ -558,8 +584,8 @@ export class AuthorizeClient {
                 method: "POST",
                 body: JSON.stringify(cookiesData),
                 headers: {
-                    "x-pm-uid": getForkSelectorDto.UID,
-                    Authorization: `Bearer ${getForkSelectorDto.AccessToken}`,
+                    "x-pm-uid": session.uid,
+                    Authorization: `Bearer ${accessToken}`,
                     "content-type": "application/json",
                 },
             }),
@@ -576,15 +602,18 @@ export class AuthorizeClient {
             }
             throw new AuthorizeError(postCookiesResponse.status, {});
         }
+    }
 
-        return {
-            localId: getForkSelectorDto.LocalID,
-            userId: getForkSelectorDto.UserID,
-            uid: getForkSelectorDto.UID,
-            persistent: authorizeCallbackParameters.dto.persistent,
-            trusted: authorizeCallbackParameters.dto.trusted,
-            accessTypeMask: getForkSelectorDto.AccessType,
-            keyPassword: payloadResult.keyPassword,
-        };
+    /** Logs out the fork's session only, when it isn't needed after all */
+    async revokeFork({ session, accessToken }: PulledFork) {
+        await this.#fetch(
+            new Request("/core/v4/auth?Child=1", {
+                method: "DELETE",
+                headers: {
+                    "x-pm-uid": session.uid,
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }),
+        ).catch(() => {});
     }
 }

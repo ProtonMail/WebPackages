@@ -141,7 +141,33 @@ export class SessionPersistence {
         }
     }
 
-    async #useSession(sessionDto: SessionDto) {
+    /**
+     * The session saved under `localId`, if the API still accepts it. Asks the
+     * API even when the session is in memory, which it may have revoked.
+     */
+    async getValidSession(localId: number): Promise<SessionDto | undefined> {
+        try {
+            const sessionDbDto = await this.#sessionDb.get(localId);
+            return (
+                sessionDbDto && (await this.getSessionFromStorage(sessionDbDto))
+            );
+        } catch {
+            return undefined;
+        }
+    }
+
+    /** Logs out the session `uid` only, not its parent or siblings */
+    async revokeSession(uid: string) {
+        await this.#fetch(
+            new Request("/core/v4/auth?Child=1", {
+                method: "DELETE",
+                headers: { "x-pm-uid": uid },
+            }),
+        ).catch(() => {});
+    }
+
+    /** Makes `sessionDto` the last used session, and keeps it in memory */
+    async useSession(sessionDto: SessionDto) {
         const now = Date.now();
         const memorySessionDto: SessionMemDto = {
             localId: sessionDto.sessionDbDto.data.localId,
@@ -219,7 +245,7 @@ export class SessionPersistence {
             keyPassword: data.keyPassword,
             clientKey: serializedData,
         };
-        await this.#useSession(sessionDto);
+        await this.useSession(sessionDto);
         return sessionDto;
     }
 
@@ -227,7 +253,7 @@ export class SessionPersistence {
         const memoryAccountSessionDto =
             await this.getSessionFromMemory(localId);
         if (memoryAccountSessionDto) {
-            await this.#useSession(memoryAccountSessionDto);
+            await this.useSession(memoryAccountSessionDto);
             return memoryAccountSessionDto;
         }
         const sessionDbDto = await (localId === undefined
@@ -235,7 +261,7 @@ export class SessionPersistence {
             : this.#sessionDb.get(localId));
         if (sessionDbDto) {
             const sessionDto = await this.getSessionFromStorage(sessionDbDto);
-            await this.#useSession(sessionDto);
+            await this.useSession(sessionDto);
             return sessionDto;
         }
         throw new SessionAuthError(

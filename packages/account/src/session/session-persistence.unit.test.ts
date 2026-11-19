@@ -257,6 +257,55 @@ describe("getSessionFromStorage", () => {
     });
 });
 
+describe("getValidSession", () => {
+    it("returns the stored session the API still accepts", async () => {
+        const { persistence, sessionDb, fetch } = setup(() =>
+            jsonResponse(200, { ClientKey: "network-client-key" }),
+        );
+        await sessionDb.save(makeDbDto(1));
+
+        const result = await persistence.getValidSession(1);
+
+        expect(result?.sessionDbDto.data.uid).toBe("uid-1");
+        expect(result?.clientKey).toBe("network-client-key");
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("returns undefined when there's no session", async () => {
+        const { persistence, fetch } = setup();
+
+        expect(await persistence.getValidSession(1)).toBeUndefined();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it.each([401, 500])(
+        "returns undefined when the API answers %i",
+        async (status) => {
+            const { persistence, sessionDb } = setup(() =>
+                jsonResponse(status, {}),
+            );
+            await sessionDb.save(makeDbDto(1));
+
+            expect(await persistence.getValidSession(1)).toBeUndefined();
+        },
+    );
+});
+
+describe("revokeSession", () => {
+    it("logs out only that session, ignoring failures", async () => {
+        const { persistence, fetch } = setup(() =>
+            Promise.reject(new Error("offline")),
+        );
+
+        await persistence.revokeSession("uid-1");
+
+        const request = fetch.mock.calls[0]?.[0];
+        expect(request?.method).toBe("DELETE");
+        expect(request?.url).toBe("/core/v4/auth?Child=1");
+        expect(request?.headers.get("x-pm-uid")).toBe("uid-1");
+    });
+});
+
 describe("saveSession", () => {
     const params = {
         localId: 1,

@@ -51,6 +51,7 @@ function makeDbDto(localId: number): SessionDbDto {
             uid: `uid-${localId}`,
             persistent: true,
             trusted: true,
+            accessTypeMask: 0,
             userId: `user-${localId}`,
             payload: new Uint8Array([1, 2, 3]),
         },
@@ -73,6 +74,7 @@ function makeSaveParams(localId = 1): SaveSessionParams {
         userId: `user-${localId}`,
         persistent: true,
         trusted: false,
+        accessTypeMask: 0,
         keyPassword: "kp",
     };
 }

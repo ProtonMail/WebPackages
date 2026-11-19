@@ -10,6 +10,7 @@ import {
 } from "./authorize-payload-crypto.ts";
 import { serializeUsers } from "./signout-parameters.ts";
 import { generateForkSecret } from "./fork-secret.ts";
+import type { SessionAccessTypeMask } from "../sessions/access-type.ts";
 
 export const AccountAuthorizeQueryParameters = {
     App: "app",
@@ -371,6 +372,7 @@ interface GetForkSelectorDto {
     TokenType: string;
     UserID: string;
     Scopes: string[];
+    AccessType: SessionAccessTypeMask;
 }
 
 interface PostCookiesDto {
@@ -581,6 +583,7 @@ export class AuthorizeClient {
             uid: getForkSelectorDto.UID,
             persistent: authorizeCallbackParameters.dto.persistent,
             trusted: authorizeCallbackParameters.dto.trusted,
+            accessTypeMask: getForkSelectorDto.AccessType,
             keyPassword: payloadResult.keyPassword,
         };
     }

@@ -18,6 +18,7 @@ function makeDto(
             uid: `uid-${localId}`,
             persistent: true,
             trusted: true,
+            accessTypeMask: 0,
             userId: `user-${localId}`,
             payload: new Uint8Array([1, 2, 3]),
         },
@@ -44,6 +45,28 @@ describe("SessionDb.save / get", () => {
         const updated = makeDto(1, 9999);
         await db.save(updated);
         expect(await db.get(1)).toEqual(updated);
+    });
+});
+
+describe("SessionDb access type", () => {
+    it("reads a session saved without an access type as a self session", async () => {
+        const db = new SessionDb();
+        const { accessTypeMask: _, ...data } = makeDto(1).data;
+        await db.save({ ...makeDto(1), data } as unknown as SessionDbDto);
+
+        expect((await db.get(1))?.data.accessTypeMask).toBe(0);
+        expect((await db.getLastUsed())?.data.accessTypeMask).toBe(0);
+        expect((await db.getAll())[0]?.data.accessTypeMask).toBe(0);
+    });
+
+    it("keeps a saved access type", async () => {
+        const db = new SessionDb();
+        await db.save({
+            ...makeDto(1),
+            data: { ...makeDto(1).data, accessTypeMask: 1 },
+        });
+
+        expect((await db.get(1))?.data.accessTypeMask).toBe(1);
     });
 });
 

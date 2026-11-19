@@ -1,17 +1,9 @@
 import type { SessionDbDto } from "../session/session-db.ts";
+import type { SessionAccessTypeMask } from "./access-type.ts";
 
-export const SwitcherAccessTypeEnum = {
-    Self: 0,
-    AdminAccess: 1,
-    EmergencyAccess: 2,
-} as const;
-
-export type SwitcherAccessType =
-    (typeof SwitcherAccessTypeEnum)[keyof typeof SwitcherAccessTypeEnum];
-
+/** The access type is read from `auth/v4/sessions/local`, not from the cookie. */
 export interface StoredSessionDto {
     localId: number;
-    accessType: SwitcherAccessType;
 }
 
 export interface LocalSessionResponseDto {
@@ -21,6 +13,7 @@ export interface LocalSessionResponseDto {
     LocalID: number;
     UserID: string;
     PrimaryEmail?: string;
+    AccessType: SessionAccessTypeMask;
 }
 
 export interface LocalSessionsResponseDto {

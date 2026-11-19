@@ -11,6 +11,13 @@ import { generateForkSecret } from "./fork-secret.ts";
 
 // The fork secret's crypto has its own tests, here only where it's kept matters
 vi.mock("./fork-secret.ts", () => ({ generateForkSecret: vi.fn() }));
+// The payload's crypto has its own tests, here only what the pull returns matters
+vi.mock("@protontech/crypto/subtle/aesGcm.ts", () => ({ importKey: vi.fn() }));
+vi.mock("./authorize-payload-crypto.ts", () => ({
+    decryptPayload: vi.fn(() =>
+        Promise.resolve({ keyPassword: "key-password" }),
+    ),
+}));
 
 /**
  * Node's global `Request` rejects relative URLs. AuthorizeClient builds
@@ -323,5 +330,47 @@ describe("AuthorizeClient.initialize", () => {
         const request = await pullFork(undefined);
 
         expect(request?.headers.has("x-pm-fork-secret")).toBe(false);
+    });
+});
+
+describe("AuthorizeClient.initialize access type", () => {
+    const initialize = (forkDto: Record<string, unknown>) => {
+        const fetch = vi.fn<(request: Request) => Promise<Response>>(
+            (request) =>
+                Promise.resolve(
+                    request.url === "/auth/v4/sessions/forks/selector"
+                        ? Response.json({
+                              Payload: "payload",
+                              LocalID: 3,
+                              UID: "uid",
+                              AccessToken: "access-token",
+                              RefreshToken: "refresh-token",
+                              UserID: "user-id",
+                              ...forkDto,
+                          })
+                        : Response.json({}),
+                ),
+        );
+        return makeAuthorizeClient(
+            fetch as unknown as typeof window.fetch,
+        ).initialize(
+            new AuthorizeCallbackParameters({
+                state: "state-key",
+                selector: "selector",
+                key: new Uint8Array(32),
+                persistent: false,
+                trusted: false,
+                payloadVersion: 3,
+                payloadType: "default",
+            }),
+        );
+    };
+
+    it("returns the access type of the pulled fork", async () => {
+        await expect(initialize({ AccessType: 1 })).resolves.toMatchObject({
+            localId: 3,
+            uid: "uid",
+            accessTypeMask: 1,
+        });
     });
 });

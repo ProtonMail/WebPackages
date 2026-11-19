@@ -1,3 +1,5 @@
+import type { SessionAccessTypeMask } from "../sessions/access-type.ts";
+
 export const AccountAuthorizeVersion = 2;
 
 export const AccountAuthorizeType = {
@@ -12,5 +14,6 @@ export interface SaveSessionParams {
     userId: string;
     persistent: boolean;
     trusted: boolean;
+    accessTypeMask: SessionAccessTypeMask;
     keyPassword: string;
 }

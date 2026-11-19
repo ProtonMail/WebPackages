@@ -205,6 +205,7 @@ export class SessionPersistence {
                 userId: data.userId,
                 persistent: data.persistent,
                 trusted: data.trusted,
+                accessTypeMask: data.accessTypeMask,
                 payload: await encryptBlob(key, data.keyPassword),
             },
             meta: {

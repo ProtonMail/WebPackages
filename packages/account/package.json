@@ -20,6 +20,7 @@
         "./session/signout-parameters.ts": "./src/session/signout-parameters.ts",
         "./session/local-id.ts": "./src/session/local-id.ts",
         "./session/client-key.ts": "./src/session/client-key.ts",
+        "./sessions/access-type.ts": "./src/sessions/access-type.ts",
         "./sessions/interface.ts": "./src/sessions/interface.ts",
         "./sessions/sessions-client.ts": "./src/sessions/sessions-client.ts",
         "./sessions/sessions-storage.ts": "./src/sessions/sessions-storage.ts"

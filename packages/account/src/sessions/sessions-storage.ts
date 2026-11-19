@@ -1,29 +1,23 @@
-import {
-    type StoredSessionDto,
-    type SwitcherAccessType,
-    SwitcherAccessTypeEnum,
-} from "./interface.ts";
+import type { StoredSessionDto } from "./interface.ts";
 import type { CookieStorage } from "@protontech/web-utils/cookie-storage.ts";
 
 const cookieName = "iaas";
 
+/**
+ * Only the local id is read back. Account still writes `{ l, a }` for clients
+ * that predate `auth/v4/sessions/local` returning the access type.
+ */
 const fromItem = (value: unknown): StoredSessionDto | undefined => {
     if (Number.isInteger(value)) {
-        return {
-            localId: Number(value),
-            accessType: SwitcherAccessTypeEnum.Self,
-        };
+        return { localId: value as number };
     }
     if (
         typeof value === "object" &&
         value !== null &&
         "l" in value &&
-        "a" in value
+        Number.isInteger(value.l)
     ) {
-        return {
-            localId: Number(value.l),
-            accessType: value.a as SwitcherAccessType,
-        };
+        return { localId: value.l as number };
     }
 };
 

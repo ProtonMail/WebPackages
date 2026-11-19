@@ -1,4 +1,8 @@
 import { type DBSchema, openDB } from "idb";
+import {
+    type SessionAccessTypeMask,
+    selfAccessTypeMask,
+} from "../sessions/access-type.ts";
 
 interface DataDbDto {
     // Session data
@@ -6,6 +10,7 @@ interface DataDbDto {
     uid: string;
     persistent: boolean;
     trusted: boolean;
+    accessTypeMask: SessionAccessTypeMask;
     // User data
     userId: string;
     payload: Uint8Array<ArrayBuffer>; // Encrypted data
@@ -30,6 +35,15 @@ interface SessionDbSchema extends DBSchema {
         };
     };
 }
+// Sessions saved by earlier versions have no access type
+const withAccessType = (dto: SessionDbDto): SessionDbDto => ({
+    ...dto,
+    data: {
+        ...dto.data,
+        accessTypeMask: dto.data.accessTypeMask ?? selfAccessTypeMask,
+    },
+});
+
 export class SessionDb {
     async #db() {
         return await openDB<SessionDbSchema>("sessions", 1, {
@@ -42,12 +56,13 @@ export class SessionDb {
 
     async getAll(): Promise<SessionDbDto[]> {
         const db = await this.#db();
-        return await db.getAll("sessions");
+        return (await db.getAll("sessions")).map(withAccessType);
     }
 
     async get(localId: number): Promise<SessionDbDto | undefined> {
         const db = await this.#db();
-        return await db.get("sessions", `${localId}`);
+        const dto = await db.get("sessions", `${localId}`);
+        return dto && withAccessType(dto);
     }
 
     async save(dto: SessionDbDto) {
@@ -65,7 +80,7 @@ export class SessionDb {
         const tx = db.transaction("sessions");
         const index = tx.store.index("by-used-at");
         const cursor = await index.openCursor(null, "prev");
-        return cursor?.value;
+        return cursor?.value && withAccessType(cursor.value);
     }
 
     async setLastUsed(sessionDbDto: SessionDbDto, date: number) {

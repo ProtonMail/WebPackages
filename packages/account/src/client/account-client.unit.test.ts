@@ -65,6 +65,7 @@ const saveSession = (localId: number) =>
             uid: `uid-${localId}`,
             persistent: true,
             trusted: true,
+            accessTypeMask: 0,
             userId: `user-${localId}`,
             payload: new Uint8Array([1, 2, 3]),
         },

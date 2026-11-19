@@ -48,6 +48,7 @@ function makeDbDto(localId: number): SessionDbDto {
             uid: `uid-${localId}`,
             persistent: true,
             trusted: true,
+            accessTypeMask: 0,
             userId: `user-${localId}`,
             payload: new Uint8Array([1, 2, 3]),
         },
@@ -263,6 +264,7 @@ describe("saveSession", () => {
         userId: "user-1",
         persistent: true,
         trusted: false,
+        accessTypeMask: 1,
         keyPassword: "the-key-password",
     };
 
@@ -284,6 +286,14 @@ describe("saveSession", () => {
         const request = fetch.mock.calls[0]?.[0];
         expect(request?.method).toBe("put");
         expect(request?.headers.get("x-pm-uid")).toBe("uid-1");
+    });
+
+    it("persists the access type with the session", async () => {
+        const { persistence, sessionDb } = setup(() => jsonResponse(200, {}));
+
+        await persistence.saveSession(params);
+
+        expect((await sessionDb.get(1))?.data.accessTypeMask).toBe(1);
     });
 
     it("throws a Network error when the request rejects", async () => {

@@ -2,11 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "fake-indexeddb/auto";
 import { SessionsClient, getLocalIdSessionString } from "./sessions-client.ts";
 import { SessionDb, type SessionDbDto } from "../session/session-db.ts";
-import {
-    SwitcherAccessTypeEnum,
-    type LocalSessionResponseDto,
-    type StoredSessionDto,
-} from "./interface.ts";
+import type { LocalSessionResponseDto, StoredSessionDto } from "./interface.ts";
+import { selfAccessTypeMask } from "./access-type.ts";
 import type { SessionsStorage } from "./sessions-storage.ts";
 
 /**
@@ -33,6 +30,7 @@ function makeDbDto(localId: number): SessionDbDto {
             uid: `uid-${localId}`,
             persistent: true,
             trusted: true,
+            accessTypeMask: 0,
             userId: `user-${localId}`,
             payload: new Uint8Array([1, 2, 3]),
         },
@@ -46,11 +44,12 @@ function makeNetworkDto(localId: number): LocalSessionResponseDto {
         DisplayName: `Display ${localId}`,
         LocalID: localId,
         UserID: `user-${localId}`,
+        AccessType: selfAccessTypeMask,
     };
 }
 
 function makeStored(localId: number): StoredSessionDto {
-    return { localId, accessType: SwitcherAccessTypeEnum.Self };
+    return { localId };
 }
 
 function makeStorage(stored?: number[]): SessionsStorage {
